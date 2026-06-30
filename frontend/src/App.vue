@@ -1,7 +1,6 @@
 <script setup>
 import {
   darkTheme,
-  type GlobalThemeOverrides,
 } from "naive-ui"
 import { computed, onMounted, watchEffect } from "vue"
 import { useScript } from "@unhead/vue"
@@ -21,7 +20,7 @@ const adClient = import.meta.env.VITE_GOOGLE_AD_CLIENT;
 const adSlot = import.meta.env.VITE_GOOGLE_AD_SLOT;
 const { locale } = useI18n({ useScope: "global" });
 
-const themeOverrides: GlobalThemeOverrides = {
+const themeOverrides = {
   common: {
     borderRadius: "6px",
     fontSize: "14px",
@@ -51,7 +50,7 @@ const themeOverrides: GlobalThemeOverrides = {
   },
 }
 
-const darkThemeOverrides: GlobalThemeOverrides = {
+const darkThemeOverrides = {
   common: {
     bodyColor: "#0a0a0f",
     cardColor: "#14141a",
@@ -62,7 +61,7 @@ const darkThemeOverrides: GlobalThemeOverrides = {
   },
 }
 
-const lightThemeOverrides: GlobalThemeOverrides = {
+const lightThemeOverrides = {
   common: {
     bodyColor: "#fafafa",
     cardColor: "#ffffff",
