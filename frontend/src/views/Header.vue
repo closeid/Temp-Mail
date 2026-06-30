@@ -268,6 +268,8 @@ onMounted(async () => {
                             <n-icon :component="KeyboardArrowDownOutlined" style="margin-left: 4px;" />
                         </n-button>
                     </n-dropdown>
+                </n-space>
+            </template>
         </n-page-header>
         <n-drawer v-model:show="showMobileMenu" placement="top" style="height: 100vh;">
             <n-drawer-content :title="t('menu')" closable>
