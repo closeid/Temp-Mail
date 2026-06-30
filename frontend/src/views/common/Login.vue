@@ -337,7 +337,6 @@ onMounted(async () => {
                     </n-form>
                 </n-spin>
             </n-tab-pane>
-            </n-tab-pane>
         </n-tabs>
     </div>
 </template>
