@@ -549,8 +549,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "状态"
     },
     "title": {
-      "en": "Cloudflare Temp Email",
-      "zh": "Cloudflare 临时邮件"
+      "en": "GetAnEmail",
+      "zh": "GetAnEmail"
     },
     "dashboard": {
       "en": "Dashboard",
@@ -574,11 +574,11 @@ export const MESSAGE_REGISTRY = {
     },
     "accessHeader": {
       "en": "Admin Password",
-      "zh": "Admin 密码"
+      "zh": "管理员密码"
     },
     "accessTip": {
       "en": "Please enter the admin password",
-      "zh": "请输入 Admin 密码"
+      "zh": "请输入管理员密码"
     },
     "account": {
       "en": "Account",
@@ -626,7 +626,7 @@ export const MESSAGE_REGISTRY = {
     },
     "loginViaPassword": {
       "en": "Admin Password Login",
-      "zh": "Admin 密码登录"
+      "zh": "管理员密码登录"
     },
     "loginViaUserAdmin": {
       "en": "User Admin Permission",
