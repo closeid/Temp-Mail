@@ -20,7 +20,6 @@ import UserOauth2Settings from './admin/UserOauth2Settings.vue';
 import RoleAddressConfig from './admin/RoleAddressConfig.vue';
 import Mails from './admin/Mails.vue';
 import MailsUnknow from './admin/MailsUnknow.vue';
-import About from './common/About.vue';
 import Maintenance from './admin/Maintenance.vue';
 import DatabaseManager from './admin/DatabaseManager.vue';
 import Appearance from './common/Appearance.vue';
@@ -230,9 +229,6 @@ onMounted(async () => {
             </n-space>
           </n-card>
         </div>
-      </n-tab-pane>
-      <n-tab-pane name="about" :tab="t('about')">
-        <About />
       </n-tab-pane>
     </n-tabs>
     <n-modal v-model:show="showLogoutModal" preset="dialog" :title="t('logoutConfirmTitle')">

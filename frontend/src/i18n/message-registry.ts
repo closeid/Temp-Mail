@@ -552,6 +552,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Cloudflare Temp Email",
       "zh": "Cloudflare 临时邮件"
     },
+    "dashboard": {
+      "en": "Dashboard",
+      "zh": "后台"
+    },
     "user": {
       "en": "User",
       "zh": "用户"
