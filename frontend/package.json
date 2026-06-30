@@ -61,6 +61,6 @@
       "core-js-pure",
       "esbuild",
       "sharp",
-      "workerd"
+      "workerd", "es5-ext"
     ]
   }}

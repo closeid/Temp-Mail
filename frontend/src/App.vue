@@ -1,8 +1,8 @@
 <script setup>
 import {
   darkTheme,
+  type GlobalThemeOverrides,
 } from "naive-ui"
-import type { GlobalThemeOverrides } from "naive-ui"
 import { computed, onMounted, watchEffect } from "vue"
 import { useScript } from "@unhead/vue"
 import { useI18n } from "vue-i18n"
