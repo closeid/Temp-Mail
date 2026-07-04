@@ -325,8 +325,22 @@ body {
   box-shadow: none;
 }
 
+.app-content > * + *,
+.app-content .n-card + .n-card,
+.app-content .n-tabs + .n-card,
+.app-content .n-card + .n-tabs,
+.app-content .n-data-table + .n-card,
+.app-content .n-form + .n-card {
+  margin-top: 48px;
+}
+
 .n-card > .n-card-header {
-  padding-bottom: 14px;
+  padding-bottom: 22px;
+}
+
+.n-card > .n-card__content,
+.n-card > .n-card__footer {
+  padding-top: 6px;
 }
 
 .n-card.n-card--embedded {
@@ -372,6 +386,18 @@ body {
   background: var(--n-color, #ffffff);
 }
 
+.n-tabs .n-tabs-nav {
+  margin-bottom: 32px;
+}
+
+.n-form .n-form-item + .n-form-item {
+  margin-top: 18px;
+}
+
+.n-space--vertical > .n-space-item + .n-space-item {
+  margin-top: 28px !important;
+}
+
 .n-button {
   letter-spacing: 0;
 }
@@ -404,7 +430,7 @@ body {
 .app-content {
   width: min(100%, 1120px);
   margin: 0 auto;
-  padding: 88px 48px 96px;
+  padding: 112px 56px 128px;
   box-sizing: border-box;
 }
 
@@ -422,7 +448,7 @@ body {
 
 @media (max-width: 640px) {
   .app-content {
-    padding: 48px 18px 64px;
+    padding: 64px 20px 80px;
   }
 }
 </style>

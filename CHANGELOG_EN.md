@@ -18,6 +18,7 @@
 ### Improvements
 
 - style: |Frontend| Refine the interface into a spacious white-and-gray minimalist style with a pure white light-mode background, full-bleed Header/Footer, centered content, larger spacing, and 1px dividers while keeping behavior unchanged
+- style: |Frontend| Remove the Footer background color, make the Header content span 100% width, and further expand spacing between main content elements
 
 ## v1.9.0
 

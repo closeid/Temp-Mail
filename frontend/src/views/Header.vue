@@ -312,9 +312,9 @@ onMounted(async () => {
 }
 
 .app-page-header {
-    width: min(100%, 1120px);
-    margin: 0 auto;
-    padding: 32px 48px;
+    width: 100%;
+    margin: 0;
+    padding: 36px 64px;
     box-sizing: border-box;
     border: 0;
     border-radius: 0;
@@ -480,7 +480,7 @@ onMounted(async () => {
 
 @media (max-width: 640px) {
     :deep(.n-page-header) {
-        padding: 24px 18px;
+        padding: 28px 20px;
     }
 
     :deep(.n-page-header__title) {
