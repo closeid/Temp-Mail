@@ -301,21 +301,22 @@ onMounted(async () => {
 
 <style scoped>
 .app-header-shell {
-    padding: 12px 0 12px;
+    padding: 22px 0 18px;
 }
 
 .app-page-header {
-    border: 0;
+    border: 1px solid var(--n-border-color, #e2e8f0);
     border-radius: 8px;
-    padding: 10px 16px;
-    background: #0f6cbd;
-    color: #ffffff;
-    box-shadow: 0 14px 34px rgba(15, 108, 189, 0.22);
+    padding: 14px 18px;
+    background: var(--n-color, var(--n-card-color, #ffffff));
+    color: var(--n-text-color-base, inherit);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.045);
 }
 
 :global(html[data-theme="dark"]) .app-page-header {
-    background: #0b4f8a;
-    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.24);
+    border-color: #2a3040;
+    background: #171a23;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
 }
 
 .app-page-header :deep(.n-page-header__main) {
@@ -331,8 +332,8 @@ onMounted(async () => {
     max-width: min(44vw, 460px);
     margin: 0;
     overflow: hidden;
-    color: #ffffff;
-    font-size: 18px;
+    color: var(--n-title-text-color, var(--n-text-color-base, inherit));
+    font-size: 20px;
     font-weight: 650;
     line-height: 1.25;
     letter-spacing: 0;
@@ -348,7 +349,7 @@ onMounted(async () => {
 
 .brand-logo {
     margin-left: 2px;
-    box-shadow: 0 8px 20px rgba(6, 36, 64, 0.22);
+    box-shadow: 0 5px 14px rgba(15, 23, 42, 0.11);
 }
 
 .n-layout-header {
@@ -364,14 +365,6 @@ onMounted(async () => {
 
 .header-extra :deep(.n-menu) {
     background: transparent;
-    --n-item-text-color: rgba(255, 255, 255, 0.86);
-    --n-item-text-color-hover: #ffffff;
-    --n-item-text-color-active: #ffffff;
-    --n-item-icon-color: rgba(255, 255, 255, 0.86);
-    --n-item-icon-color-hover: #ffffff;
-    --n-item-icon-color-active: #ffffff;
-    --n-item-color-hover: rgba(255, 255, 255, 0.12);
-    --n-item-color-active: rgba(255, 255, 255, 0.18);
 }
 
 .header-extra :deep(.n-menu-item-content) {
@@ -384,13 +377,12 @@ onMounted(async () => {
 }
 
 .header-extra :deep(.n-button) {
-    color: rgba(255, 255, 255, 0.9);
+    color: inherit;
 }
 
 .header-extra :deep(.n-button:hover),
 .header-extra :deep(.n-button.n-button--pressed) {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.12);
+    background: var(--n-action-color, rgba(148, 163, 184, 0.10));
 }
 
 .header-locale-button {
@@ -398,8 +390,8 @@ onMounted(async () => {
     align-items: center;
     padding: 0 10px;
     border-radius: 6px;
-    color: rgba(255, 255, 255, 0.9);
-    background: rgba(255, 255, 255, 0.10);
+    color: inherit;
+    background: transparent;
 }
 
 .header-locale-button :deep(.n-button__content) {
@@ -428,9 +420,9 @@ onMounted(async () => {
     width: 100%;
     min-width: 0;
     padding: 0 8px;
-    border: 0;
+    border: 1px solid var(--n-border-color, #e2e8f0);
     border-radius: 6px;
-    background: rgba(15, 108, 189, 0.10);
+    background: transparent;
     color: inherit;
     font: inherit;
     text-decoration: none;
@@ -479,7 +471,7 @@ onMounted(async () => {
 
 @media (max-width: 640px) {
     :deep(.n-page-header) {
-        padding: 10px 12px;
+        padding: 12px 14px;
     }
 
     :deep(.n-page-header__title) {

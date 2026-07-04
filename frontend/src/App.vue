@@ -28,10 +28,10 @@ const themeOverrides = {
     lineHeight: "1.55",
     fontFamily: "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
     fontWeightStrong: "600",
-    primaryColor: "#0f6cbd",
-    primaryColorHover: "#115ea3",
-    primaryColorPressed: "#0f548c",
-    primaryColorSuppl: "#2b88d8",
+    primaryColor: "#2563eb",
+    primaryColorHover: "#1d4ed8",
+    primaryColorPressed: "#1e40af",
+    primaryColorSuppl: "#3b82f6",
   },
   Button: {
     borderRadiusSmall: "4px",
@@ -41,8 +41,8 @@ const themeOverrides = {
   },
   Card: {
     borderRadius: "8px",
-    paddingMedium: "18px",
-    paddingLarge: "22px",
+    paddingMedium: "22px",
+    paddingLarge: "28px",
   },
   Input: {
     borderRadius: "6px",
@@ -71,67 +71,67 @@ const themeOverrides = {
 
 const darkThemeOverrides = {
   common: {
-    bodyColor: "#101820",
-    cardColor: "#192638",
-    modalColor: "#192638",
-    popoverColor: "#192638",
-    tableColor: "#192638",
-    actionColor: "#132033",
-    hoverColor: "rgba(71, 159, 245, 0.14)",
-    borderColor: "rgba(145, 179, 210, 0.12)",
-    dividerColor: "rgba(145, 179, 210, 0.08)",
-    textColorBase: "#f3f7fb",
-    textColor1: "#f3f7fb",
-    textColor2: "#d6e0ea",
-    textColor3: "#9fb0c1",
+    bodyColor: "#0f1117",
+    cardColor: "#171a23",
+    modalColor: "#171a23",
+    popoverColor: "#171a23",
+    tableColor: "#171a23",
+    actionColor: "#202431",
+    hoverColor: "rgba(148, 163, 184, 0.12)",
+    borderColor: "#2a3040",
+    dividerColor: "#2a3040",
+    textColorBase: "#f3f4f6",
+    textColor1: "#f3f4f6",
+    textColor2: "#d1d5db",
+    textColor3: "#9ca3af",
   },
   Card: {
-    colorEmbedded: "#132033",
+    colorEmbedded: "#151922",
   },
   DataTable: {
-    thColor: "#132033",
-    tdColorHover: "rgba(71, 159, 245, 0.10)",
-    borderColor: "transparent",
+    thColor: "#151922",
+    tdColorHover: "rgba(148, 163, 184, 0.10)",
+    borderColor: "#2a3040",
   },
   Divider: {
-    color: "rgba(148, 163, 184, 0.10)",
+    color: "#2a3040",
   },
   Tabs: {
-    paneBorderColor: "transparent",
-    tabBorderColor: "transparent",
+    paneBorderColor: "#2a3040",
+    tabBorderColor: "#2a3040",
   },
 }
 
 const lightThemeOverrides = {
   common: {
-    bodyColor: "#eef3f8",
+    bodyColor: "#f7f8fb",
     cardColor: "#ffffff",
     modalColor: "#ffffff",
     popoverColor: "#ffffff",
     tableColor: "#ffffff",
-    actionColor: "#e7f0f8",
-    hoverColor: "rgba(15, 108, 189, 0.08)",
-    borderColor: "rgba(96, 126, 155, 0.12)",
-    dividerColor: "rgba(96, 126, 155, 0.08)",
-    textColorBase: "#1f2937",
-    textColor1: "#1f2937",
-    textColor2: "#4b5563",
+    actionColor: "#f1f5f9",
+    hoverColor: "rgba(37, 99, 235, 0.07)",
+    borderColor: "#e2e8f0",
+    dividerColor: "#e2e8f0",
+    textColorBase: "#111827",
+    textColor1: "#111827",
+    textColor2: "#475569",
     textColor3: "#64748b",
   },
   Card: {
     colorEmbedded: "#ffffff",
   },
   DataTable: {
-    thColor: "#f3f7fb",
-    tdColorHover: "#f6faff",
-    borderColor: "transparent",
+    thColor: "#f8fafc",
+    tdColorHover: "#f8fafc",
+    borderColor: "#e2e8f0",
   },
   Divider: {
-    color: "rgba(148, 163, 184, 0.12)",
+    color: "#e2e8f0",
   },
   Tabs: {
-    paneBorderColor: "transparent",
-    tabBorderColor: "transparent",
+    paneBorderColor: "#e2e8f0",
+    tabBorderColor: "#e2e8f0",
   },
 }
 
@@ -270,34 +270,24 @@ onMounted(async () => {
 <style>
 html {
   min-height: 100%;
-  background: var(--n-color-body, #eef3f8);
+  background: var(--n-color-body, #f7f8fb);
 }
 
 html[data-theme="dark"] .n-card {
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
 }
 
 html[data-theme="dark"] .n-card.n-card--embedded {
-  background: #132033;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+  background: #151922;
+  box-shadow: none;
 }
 
 html[data-theme="dark"] .n-data-table {
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
-}
-
-html[data-theme="dark"] body {
-  background:
-    linear-gradient(180deg, rgba(11, 79, 138, 0.24) 0, rgba(16, 24, 32, 0) 240px),
-    var(--n-color-body, #101820);
-}
-
-html[data-theme="dark"] .n-tabs .n-tabs-tab.n-tabs-tab--active {
-  background: rgba(71, 159, 245, 0.12);
+  box-shadow: none;
 }
 
 html[data-theme="dark"] .n-data-table .n-data-table-tr:nth-child(even) .n-data-table-td {
-  background: rgba(71, 159, 245, 0.035);
+  background: transparent;
 }
 
 .n-switch {
@@ -318,9 +308,7 @@ html[data-theme="dark"] .n-data-table .n-data-table-tr:nth-child(even) .n-data-t
 body {
   margin: 0;
   min-height: 100%;
-  background:
-    linear-gradient(180deg, rgba(209, 224, 239, 0.64) 0, rgba(238, 243, 248, 0) 220px),
-    var(--n-color-body, #eef3f8);
+  background: var(--n-color-body, #f7f8fb);
   color: var(--n-text-color-base, #111827);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -331,39 +319,47 @@ body {
 }
 
 .n-card {
-  border-color: transparent !important;
-  box-shadow: 0 16px 38px rgba(31, 57, 82, 0.08);
+  border-color: var(--n-border-color, #e2e8f0) !important;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.045);
+}
+
+.n-card > .n-card-header {
+  padding-bottom: 14px;
 }
 
 .n-card.n-card--embedded {
-  background: #f8fbfe;
-  box-shadow: 0 10px 24px rgba(31, 57, 82, 0.045);
+  background: var(--n-color-embedded, #ffffff);
+  box-shadow: none;
 }
 
 .n-data-table,
 .n-list {
+  border: 1px solid var(--n-border-color, #e2e8f0);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .n-data-table {
-  box-shadow: 0 10px 28px rgba(31, 57, 82, 0.045);
+  box-shadow: none;
 }
 
 .n-data-table .n-data-table-th,
 .n-data-table .n-data-table-td {
-  border-color: transparent !important;
+  border-color: var(--n-merged-border-color, #e2e8f0) !important;
 }
 
 .n-data-table .n-data-table-tr:nth-child(even) .n-data-table-td {
-  background: rgba(15, 108, 189, 0.025);
+  background: transparent;
 }
 
-.n-tabs .n-tabs-pane-wrapper,
+.n-tabs .n-tabs-pane-wrapper {
+  border-color: var(--n-pane-border-color, #e2e8f0) !important;
+}
+
 .n-tabs .n-tabs-tab,
 .n-tabs .n-tabs-nav::before,
 .n-tabs .n-tabs-nav-scroll-content::after {
-  border-color: transparent !important;
+  border-color: var(--n-tab-border-color, #e2e8f0) !important;
 }
 
 .n-tabs .n-tabs-tab {
@@ -371,7 +367,7 @@ body {
 }
 
 .n-tabs .n-tabs-tab.n-tabs-tab--active {
-  background: rgba(15, 108, 189, 0.08);
+  background: var(--n-color, #ffffff);
 }
 
 .n-button {
@@ -381,19 +377,21 @@ body {
 .n-alert,
 .n-drawer-content,
 .n-modal {
-  border-color: transparent !important;
+  border-color: var(--n-border-color, #e2e8f0) !important;
 }
 </style>
 
 <style scoped>
 .side {
   height: 100vh;
-  padding-top: 14px;
+  padding-top: 22px;
 }
 
 .main {
+  width: min(100%, 1320px);
   min-height: 100vh;
-  padding: 0 14px 24px;
+  margin: 0 auto;
+  padding: 0 28px 36px;
   text-align: center;
 }
 
@@ -416,7 +414,7 @@ body {
 
 @media (max-width: 640px) {
   .main {
-    padding: 0 8px 20px;
+    padding: 0 12px 24px;
   }
 }
 </style>
