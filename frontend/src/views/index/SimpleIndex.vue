@@ -252,6 +252,7 @@ onBeforeUnmount(() => {
     margin-bottom: 16px;
     text-align: center;
     font-size: 18px;
+    color: var(--n-text-color-1);
 }
 
 .auto-refresh-tip {
@@ -260,13 +261,15 @@ onBeforeUnmount(() => {
 }
 
 .mail-panel {
+    background: rgba(255, 255, 255, 0.88);
     text-align: left;
 }
 
 .mail-subject {
     margin: 0 0 14px;
     overflow-wrap: anywhere;
-    font-size: 18px;
+    color: var(--n-text-color-1);
+    font-size: 17px;
     font-weight: 650;
     line-height: 1.35;
 }

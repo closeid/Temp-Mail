@@ -247,12 +247,24 @@ onMounted(async () => {
 }
 
 .admin-shell :deep(.n-tabs-nav) {
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .admin-shell :deep(.n-tabs-tab) {
   font-weight: 500;
   letter-spacing: 0;
+}
+
+.admin-shell :deep(.n-tabs-tab-wrapper) {
+  border-radius: 6px;
+}
+
+.admin-shell :deep(.n-tabs-tab.n-tabs-tab--active) {
+  background: rgba(15, 108, 189, 0.10);
+}
+
+.admin-shell :deep(.n-tabs-tab:hover) {
+  background: rgba(15, 108, 189, 0.07);
 }
 
 .admin-shell :deep(.n-tabs-tab-pad) {

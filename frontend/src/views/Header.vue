@@ -301,15 +301,21 @@ onMounted(async () => {
 
 <style scoped>
 .app-header-shell {
-    padding: 14px 0 10px;
+    padding: 12px 0 12px;
 }
 
 .app-page-header {
     border: 0;
     border-radius: 8px;
-    padding: 10px 14px;
-    background: var(--n-color, var(--n-card-color, #ffffff));
-    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.07);
+    padding: 10px 16px;
+    background: #0f6cbd;
+    color: #ffffff;
+    box-shadow: 0 14px 34px rgba(15, 108, 189, 0.22);
+}
+
+:global(html[data-theme="dark"]) .app-page-header {
+    background: #0b4f8a;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.24);
 }
 
 .app-page-header :deep(.n-page-header__main) {
@@ -325,7 +331,7 @@ onMounted(async () => {
     max-width: min(44vw, 460px);
     margin: 0;
     overflow: hidden;
-    color: var(--n-title-text-color, var(--n-text-color-base, inherit));
+    color: #ffffff;
     font-size: 18px;
     font-weight: 650;
     line-height: 1.25;
@@ -342,7 +348,7 @@ onMounted(async () => {
 
 .brand-logo {
     margin-left: 2px;
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 8px 20px rgba(6, 36, 64, 0.22);
 }
 
 .n-layout-header {
@@ -358,6 +364,14 @@ onMounted(async () => {
 
 .header-extra :deep(.n-menu) {
     background: transparent;
+    --n-item-text-color: rgba(255, 255, 255, 0.86);
+    --n-item-text-color-hover: #ffffff;
+    --n-item-text-color-active: #ffffff;
+    --n-item-icon-color: rgba(255, 255, 255, 0.86);
+    --n-item-icon-color-hover: #ffffff;
+    --n-item-icon-color-active: #ffffff;
+    --n-item-color-hover: rgba(255, 255, 255, 0.12);
+    --n-item-color-active: rgba(255, 255, 255, 0.18);
 }
 
 .header-extra :deep(.n-menu-item-content) {
@@ -369,11 +383,23 @@ onMounted(async () => {
     align-items: center;
 }
 
+.header-extra :deep(.n-button) {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.header-extra :deep(.n-button:hover),
+.header-extra :deep(.n-button.n-button--pressed) {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
 .header-locale-button {
     display: inline-flex;
     align-items: center;
     padding: 0 10px;
     border-radius: 6px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.10);
 }
 
 .header-locale-button :deep(.n-button__content) {
@@ -404,7 +430,7 @@ onMounted(async () => {
     padding: 0 8px;
     border: 0;
     border-radius: 6px;
-    background: rgba(148, 163, 184, 0.10);
+    background: rgba(15, 108, 189, 0.10);
     color: inherit;
     font: inherit;
     text-decoration: none;

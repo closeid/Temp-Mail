@@ -19,6 +19,7 @@
 
 - style: |Frontend| Refresh the shared frontend and admin visual system with cleaner theme colors, spacing, cards, and Header treatment while keeping behavior unchanged
 - style: |Frontend| Reduce visible lines in the Header, Footer, cards, tables, and admin views, using spacing, soft surfaces, and subtle shadows for hierarchy
+- style: |Frontend| Shift the overall visual direction toward an Outlook-like business blue-gray style, separating areas with a colored top bar, light workspace, and soft panels
 
 ## v1.9.0
 

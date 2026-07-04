@@ -28,10 +28,10 @@ const themeOverrides = {
     lineHeight: "1.55",
     fontFamily: "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
     fontWeightStrong: "600",
-    primaryColor: "#2563eb",
-    primaryColorHover: "#1d4ed8",
-    primaryColorPressed: "#1e40af",
-    primaryColorSuppl: "#3b82f6",
+    primaryColor: "#0f6cbd",
+    primaryColorHover: "#115ea3",
+    primaryColorPressed: "#0f548c",
+    primaryColorSuppl: "#2b88d8",
   },
   Button: {
     borderRadiusSmall: "4px",
@@ -71,27 +71,27 @@ const themeOverrides = {
 
 const darkThemeOverrides = {
   common: {
-    bodyColor: "#0c0f14",
-    cardColor: "#151922",
-    modalColor: "#151922",
-    popoverColor: "#151922",
-    tableColor: "#151922",
-    actionColor: "#1d2430",
-    hoverColor: "rgba(148, 163, 184, 0.12)",
-    borderColor: "rgba(148, 163, 184, 0.14)",
-    dividerColor: "rgba(148, 163, 184, 0.10)",
-    textColorBase: "#eef2f7",
-    textColor1: "#eef2f7",
-    textColor2: "#cbd5e1",
-    textColor3: "#94a3b8",
+    bodyColor: "#101820",
+    cardColor: "#192638",
+    modalColor: "#192638",
+    popoverColor: "#192638",
+    tableColor: "#192638",
+    actionColor: "#132033",
+    hoverColor: "rgba(71, 159, 245, 0.14)",
+    borderColor: "rgba(145, 179, 210, 0.12)",
+    dividerColor: "rgba(145, 179, 210, 0.08)",
+    textColorBase: "#f3f7fb",
+    textColor1: "#f3f7fb",
+    textColor2: "#d6e0ea",
+    textColor3: "#9fb0c1",
   },
   Card: {
-    colorEmbedded: "#11151d",
+    colorEmbedded: "#132033",
   },
   DataTable: {
-    thColor: "#11151d",
-    tdColorHover: "rgba(148, 163, 184, 0.10)",
-    borderColor: "rgba(148, 163, 184, 0.08)",
+    thColor: "#132033",
+    tdColorHover: "rgba(71, 159, 245, 0.10)",
+    borderColor: "transparent",
   },
   Divider: {
     color: "rgba(148, 163, 184, 0.10)",
@@ -104,27 +104,27 @@ const darkThemeOverrides = {
 
 const lightThemeOverrides = {
   common: {
-    bodyColor: "#f6f7fb",
+    bodyColor: "#eef3f8",
     cardColor: "#ffffff",
     modalColor: "#ffffff",
     popoverColor: "#ffffff",
     tableColor: "#ffffff",
-    actionColor: "#f1f5f9",
-    hoverColor: "rgba(37, 99, 235, 0.07)",
-    borderColor: "rgba(148, 163, 184, 0.18)",
-    dividerColor: "rgba(148, 163, 184, 0.12)",
-    textColorBase: "#111827",
-    textColor1: "#111827",
-    textColor2: "#475569",
+    actionColor: "#e7f0f8",
+    hoverColor: "rgba(15, 108, 189, 0.08)",
+    borderColor: "rgba(96, 126, 155, 0.12)",
+    dividerColor: "rgba(96, 126, 155, 0.08)",
+    textColorBase: "#1f2937",
+    textColor1: "#1f2937",
+    textColor2: "#4b5563",
     textColor3: "#64748b",
   },
   Card: {
     colorEmbedded: "#ffffff",
   },
   DataTable: {
-    thColor: "#f8fafc",
-    tdColorHover: "#f8fafc",
-    borderColor: "rgba(148, 163, 184, 0.10)",
+    thColor: "#f3f7fb",
+    tdColorHover: "#f6faff",
+    borderColor: "transparent",
   },
   Divider: {
     color: "rgba(148, 163, 184, 0.12)",
@@ -270,15 +270,34 @@ onMounted(async () => {
 <style>
 html {
   min-height: 100%;
-  background: var(--n-color-body, #f6f7fb);
+  background: var(--n-color-body, #eef3f8);
 }
 
 html[data-theme="dark"] .n-card {
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.20);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
 }
 
 html[data-theme="dark"] .n-card.n-card--embedded {
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+  background: #132033;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+}
+
+html[data-theme="dark"] .n-data-table {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+}
+
+html[data-theme="dark"] body {
+  background:
+    linear-gradient(180deg, rgba(11, 79, 138, 0.24) 0, rgba(16, 24, 32, 0) 240px),
+    var(--n-color-body, #101820);
+}
+
+html[data-theme="dark"] .n-tabs .n-tabs-tab.n-tabs-tab--active {
+  background: rgba(71, 159, 245, 0.12);
+}
+
+html[data-theme="dark"] .n-data-table .n-data-table-tr:nth-child(even) .n-data-table-td {
+  background: rgba(71, 159, 245, 0.035);
 }
 
 .n-switch {
@@ -299,7 +318,9 @@ html[data-theme="dark"] .n-card.n-card--embedded {
 body {
   margin: 0;
   min-height: 100%;
-  background: var(--n-color-body, #f6f7fb);
+  background:
+    linear-gradient(180deg, rgba(209, 224, 239, 0.64) 0, rgba(238, 243, 248, 0) 220px),
+    var(--n-color-body, #eef3f8);
   color: var(--n-text-color-base, #111827);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -311,11 +332,12 @@ body {
 
 .n-card {
   border-color: transparent !important;
-  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.07);
+  box-shadow: 0 16px 38px rgba(31, 57, 82, 0.08);
 }
 
 .n-card.n-card--embedded {
-  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.045);
+  background: #f8fbfe;
+  box-shadow: 0 10px 24px rgba(31, 57, 82, 0.045);
 }
 
 .n-data-table,
@@ -325,7 +347,16 @@ body {
 }
 
 .n-data-table {
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 10px 28px rgba(31, 57, 82, 0.045);
+}
+
+.n-data-table .n-data-table-th,
+.n-data-table .n-data-table-td {
+  border-color: transparent !important;
+}
+
+.n-data-table .n-data-table-tr:nth-child(even) .n-data-table-td {
+  background: rgba(15, 108, 189, 0.025);
 }
 
 .n-tabs .n-tabs-pane-wrapper,
@@ -335,8 +366,22 @@ body {
   border-color: transparent !important;
 }
 
+.n-tabs .n-tabs-tab {
+  border-radius: 6px;
+}
+
+.n-tabs .n-tabs-tab.n-tabs-tab--active {
+  background: rgba(15, 108, 189, 0.08);
+}
+
 .n-button {
   letter-spacing: 0;
+}
+
+.n-alert,
+.n-drawer-content,
+.n-modal {
+  border-color: transparent !important;
 }
 </style>
 
