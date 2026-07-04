@@ -302,7 +302,7 @@ onMounted(async () => {
 <style scoped>
 .app-header-shell {
     width: 100%;
-    border-bottom: 1px solid var(--n-border-color, #e2e8f0);
+    border-bottom: 1px solid var(--n-border-color, #e5e7eb);
     background: var(--n-color, var(--n-card-color, #ffffff));
 }
 
@@ -312,9 +312,9 @@ onMounted(async () => {
 }
 
 .app-page-header {
-    width: min(100%, 1180px);
+    width: min(100%, 1120px);
     margin: 0 auto;
-    padding: 24px 40px;
+    padding: 32px 48px;
     box-sizing: border-box;
     border: 0;
     border-radius: 0;
@@ -338,7 +338,7 @@ onMounted(async () => {
 }
 
 .brand-title {
-    max-width: min(44vw, 560px);
+    max-width: min(44vw, 620px);
     margin: 0;
     overflow: hidden;
     color: var(--n-title-text-color, var(--n-text-color-base, inherit));
@@ -391,7 +391,7 @@ onMounted(async () => {
 
 .header-extra :deep(.n-button:hover),
 .header-extra :deep(.n-button.n-button--pressed) {
-    background: var(--n-action-color, rgba(148, 163, 184, 0.10));
+    background: var(--n-action-color, #fafafa);
 }
 
 .header-locale-button {
@@ -429,7 +429,7 @@ onMounted(async () => {
     width: 100%;
     min-width: 0;
     padding: 0 8px;
-    border: 1px solid var(--n-border-color, #e2e8f0);
+    border: 1px solid var(--n-border-color, #e5e7eb);
     border-radius: 6px;
     background: transparent;
     color: inherit;
@@ -480,7 +480,7 @@ onMounted(async () => {
 
 @media (max-width: 640px) {
     :deep(.n-page-header) {
-        padding: 18px 16px;
+        padding: 24px 18px;
     }
 
     :deep(.n-page-header__title) {

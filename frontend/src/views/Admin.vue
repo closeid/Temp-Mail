@@ -247,7 +247,7 @@ onMounted(async () => {
 }
 
 .admin-shell :deep(.n-tabs-nav) {
-  margin-bottom: 18px;
+  margin-bottom: 28px;
 }
 
 .admin-shell :deep(.n-tabs-tab) {
@@ -256,7 +256,7 @@ onMounted(async () => {
 }
 
 .admin-shell :deep(.n-tabs-tab-pad) {
-  width: 10px;
+  width: 14px;
 }
 
 .admin-logout-button {

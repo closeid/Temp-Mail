@@ -17,13 +17,7 @@
 
 ### Improvements
 
-- style: |Frontend| Refresh the shared frontend and admin visual system with cleaner theme colors, spacing, cards, and Header treatment while keeping behavior unchanged
-- style: |Frontend| Reduce visible lines in the Header, Footer, cards, tables, and admin views, using spacing, soft surfaces, and subtle shadows for hierarchy
-- style: |Frontend| Shift the overall visual direction toward an Outlook-like business blue-gray style, separating areas with a colored top bar, light workspace, and soft panels
-- style: |Frontend| Restore a clean line-separated visual style with a light gray workspace, white panels, and fine borders for clearer page structure
-- style: |Frontend| Increase page scale, Header breathing room, card spacing, and content width so the line-separated style feels more spacious and polished
-- style: |Frontend| Make the Header and Footer full-bleed, center the main content, and use large whitespace with 1px dividers for a more expansive layout
-- style: |Frontend| Use a white page background in light mode and reduce large background color fields, keeping only fine dividers and subtle state colors
+- style: |Frontend| Refine the interface into a spacious white-and-gray minimalist style with a pure white light-mode background, full-bleed Header/Footer, centered content, larger spacing, and 1px dividers while keeping behavior unchanged
 
 ## v1.9.0
 

@@ -22,7 +22,7 @@ const { t } = useScopedI18n('views.Footer')
 <style scoped>
 .app-footer {
     width: 100%;
-    border-top: 1px solid var(--n-border-color, #e2e8f0);
+    border-top: 1px solid var(--n-border-color, #e5e7eb);
     background: var(--n-color, #ffffff);
 }
 
@@ -36,16 +36,16 @@ const { t } = useScopedI18n('views.Footer')
 }
 
 .footer-content {
-    width: min(100%, 1180px);
+    width: min(100%, 1120px);
     margin: 0 auto;
-    padding: 32px 40px 36px;
+    padding: 44px 48px 48px;
     box-sizing: border-box;
     text-align: center;
 }
 
 @media (max-width: 640px) {
     .footer-content {
-        padding: 24px 16px 28px;
+        padding: 32px 18px 36px;
     }
 }
 </style>

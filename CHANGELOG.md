@@ -17,13 +17,7 @@
 
 ### Improvements
 
-- style: |Frontend| 统一前台与管理后台的主题色、页面留白、卡片和 Header 视觉，使界面更现代、简约、优雅，业务逻辑保持不变
-- style: |Frontend| 减少 Header、Footer、卡片、表格与后台页中的可见线条，改用留白、弱背景和轻阴影维持层次
-- style: |Frontend| 将整体视觉调整为接近 Outlook 的商务蓝灰风格，通过顶栏色块、浅色工作区和柔和面板区分区域
-- style: |Frontend| 恢复为线条分割的简洁大气风格，使用浅灰背景、白色面板和细边框强化页面结构
-- style: |Frontend| 放大整体页面尺度、Header 留白、卡片间距和内容宽度，让线条分割风格更简洁大气
-- style: |Frontend| 将 Header 与 Footer 调整为满屏区域，中间内容收束居中，并以大片留白和 1px 分割线提升页面气场
-- style: |Frontend| 亮色模式改为白色页面背景，减少大面积背景色，仅保留细线与轻量状态色区分区域
+- style: |Frontend| 将界面统一为白灰主导的简约大气风格，亮色模式使用纯白背景，Header/Footer 满屏铺开，中间内容居中收束，扩大元素间距并保留 1px 分割线，业务逻辑保持不变
 
 ## v1.9.0
 

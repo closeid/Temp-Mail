@@ -28,10 +28,10 @@ const themeOverrides = {
     lineHeight: "1.55",
     fontFamily: "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
     fontWeightStrong: "600",
-    primaryColor: "#2563eb",
-    primaryColorHover: "#1d4ed8",
-    primaryColorPressed: "#1e40af",
-    primaryColorSuppl: "#3b82f6",
+    primaryColor: "#374151",
+    primaryColorHover: "#1f2937",
+    primaryColorPressed: "#111827",
+    primaryColorSuppl: "#6b7280",
   },
   Button: {
     borderRadiusSmall: "4px",
@@ -41,8 +41,8 @@ const themeOverrides = {
   },
   Card: {
     borderRadius: "8px",
-    paddingMedium: "22px",
-    paddingLarge: "28px",
+    paddingMedium: "28px",
+    paddingLarge: "34px",
   },
   Input: {
     borderRadius: "6px",
@@ -109,14 +109,14 @@ const lightThemeOverrides = {
     modalColor: "#ffffff",
     popoverColor: "#ffffff",
     tableColor: "#ffffff",
-    actionColor: "#f8fafc",
-    hoverColor: "rgba(15, 23, 42, 0.04)",
-    borderColor: "#e2e8f0",
-    dividerColor: "#e2e8f0",
+    actionColor: "#fafafa",
+    hoverColor: "rgba(17, 24, 39, 0.035)",
+    borderColor: "#e5e7eb",
+    dividerColor: "#e5e7eb",
     textColorBase: "#111827",
     textColor1: "#111827",
-    textColor2: "#475569",
-    textColor3: "#64748b",
+    textColor2: "#4b5563",
+    textColor3: "#6b7280",
   },
   Card: {
     colorEmbedded: "#ffffff",
@@ -124,14 +124,14 @@ const lightThemeOverrides = {
   DataTable: {
     thColor: "#ffffff",
     tdColorHover: "#fafafa",
-    borderColor: "#e2e8f0",
+    borderColor: "#e5e7eb",
   },
   Divider: {
-    color: "#e2e8f0",
+    color: "#e5e7eb",
   },
   Tabs: {
-    paneBorderColor: "#e2e8f0",
-    tabBorderColor: "#e2e8f0",
+    paneBorderColor: "#e5e7eb",
+    tabBorderColor: "#e5e7eb",
   },
 }
 
@@ -321,7 +321,7 @@ body {
 }
 
 .n-card {
-  border-color: var(--n-border-color, #e2e8f0) !important;
+  border-color: var(--n-border-color, #e5e7eb) !important;
   box-shadow: none;
 }
 
@@ -336,7 +336,7 @@ body {
 
 .n-data-table,
 .n-list {
-  border: 1px solid var(--n-border-color, #e2e8f0);
+  border: 1px solid var(--n-border-color, #e5e7eb);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -347,7 +347,7 @@ body {
 
 .n-data-table .n-data-table-th,
 .n-data-table .n-data-table-td {
-  border-color: var(--n-merged-border-color, #e2e8f0) !important;
+  border-color: var(--n-merged-border-color, #e5e7eb) !important;
 }
 
 .n-data-table .n-data-table-tr:nth-child(even) .n-data-table-td {
@@ -355,13 +355,13 @@ body {
 }
 
 .n-tabs .n-tabs-pane-wrapper {
-  border-color: var(--n-pane-border-color, #e2e8f0) !important;
+  border-color: var(--n-pane-border-color, #e5e7eb) !important;
 }
 
 .n-tabs .n-tabs-tab,
 .n-tabs .n-tabs-nav::before,
 .n-tabs .n-tabs-nav-scroll-content::after {
-  border-color: var(--n-tab-border-color, #e2e8f0) !important;
+  border-color: var(--n-tab-border-color, #e5e7eb) !important;
 }
 
 .n-tabs .n-tabs-tab {
@@ -379,7 +379,7 @@ body {
 .n-alert,
 .n-drawer-content,
 .n-modal {
-  border-color: var(--n-border-color, #e2e8f0) !important;
+  border-color: var(--n-border-color, #e5e7eb) !important;
 }
 </style>
 
@@ -402,9 +402,9 @@ body {
 }
 
 .app-content {
-  width: min(100%, 1180px);
+  width: min(100%, 1120px);
   margin: 0 auto;
-  padding: 64px 40px 72px;
+  padding: 88px 48px 96px;
   box-sizing: border-box;
 }
 
@@ -422,7 +422,7 @@ body {
 
 @media (max-width: 640px) {
   .app-content {
-    padding: 36px 16px 48px;
+    padding: 48px 18px 64px;
   }
 }
 </style>

@@ -238,25 +238,25 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .center {
-    max-width: 1040px;
+    max-width: 980px;
     margin: 0 auto;
-    padding-bottom: 20px;
+    padding-bottom: 28px;
 }
 
 .n-card {
-    margin-top: 28px;
+    margin-top: 36px;
     width: 100%;
 }
 
 .address-heading {
-    margin-bottom: 20px;
+    margin-bottom: 28px;
     text-align: center;
     font-size: 20px;
     color: var(--n-text-color-1);
 }
 
 .auto-refresh-tip {
-    margin-top: 12px;
+    margin-top: 20px;
     text-align: center;
 }
 
@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
 }
 
 .mail-subject {
-    margin: 0 0 18px;
+    margin: 0 0 28px;
     overflow-wrap: anywhere;
     color: var(--n-text-color-1);
     font-size: 20px;
@@ -275,10 +275,10 @@ onBeforeUnmount(() => {
 }
 
 .mail-content {
-    margin-top: 20px;
+    margin-top: 28px;
 }
 
 .no-mail {
-    padding: 56px 0;
+    padding: 72px 0;
 }
 </style>
