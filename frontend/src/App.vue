@@ -78,8 +78,8 @@ const darkThemeOverrides = {
     tableColor: "#151922",
     actionColor: "#1d2430",
     hoverColor: "rgba(148, 163, 184, 0.12)",
-    borderColor: "#2a3340",
-    dividerColor: "#2a3340",
+    borderColor: "rgba(148, 163, 184, 0.14)",
+    dividerColor: "rgba(148, 163, 184, 0.10)",
     textColorBase: "#eef2f7",
     textColor1: "#eef2f7",
     textColor2: "#cbd5e1",
@@ -91,6 +91,14 @@ const darkThemeOverrides = {
   DataTable: {
     thColor: "#11151d",
     tdColorHover: "rgba(148, 163, 184, 0.10)",
+    borderColor: "rgba(148, 163, 184, 0.08)",
+  },
+  Divider: {
+    color: "rgba(148, 163, 184, 0.10)",
+  },
+  Tabs: {
+    paneBorderColor: "transparent",
+    tabBorderColor: "transparent",
   },
 }
 
@@ -103,8 +111,8 @@ const lightThemeOverrides = {
     tableColor: "#ffffff",
     actionColor: "#f1f5f9",
     hoverColor: "rgba(37, 99, 235, 0.07)",
-    borderColor: "#e4e8f0",
-    dividerColor: "#e4e8f0",
+    borderColor: "rgba(148, 163, 184, 0.18)",
+    dividerColor: "rgba(148, 163, 184, 0.12)",
     textColorBase: "#111827",
     textColor1: "#111827",
     textColor2: "#475569",
@@ -116,6 +124,14 @@ const lightThemeOverrides = {
   DataTable: {
     thColor: "#f8fafc",
     tdColorHover: "#f8fafc",
+    borderColor: "rgba(148, 163, 184, 0.10)",
+  },
+  Divider: {
+    color: "rgba(148, 163, 184, 0.12)",
+  },
+  Tabs: {
+    paneBorderColor: "transparent",
+    tabBorderColor: "transparent",
   },
 }
 
@@ -140,6 +156,13 @@ const themeConfig = computed(() => {
       ...themeOverrides.DataTable,
       ...modeOverrides.DataTable,
     },
+    Divider: {
+      ...modeOverrides.Divider,
+    },
+    Tabs: {
+      ...themeOverrides.Tabs,
+      ...modeOverrides.Tabs,
+    },
   }
 })
 
@@ -152,6 +175,7 @@ const gridMaxCols = computed(() => showAd.value ? 8 : 12);
 watchEffect(() => {
   if (typeof document === "undefined") return
   document.documentElement.lang = isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE
+  document.documentElement.dataset.theme = isDark.value ? "dark" : "light"
 })
 
 if (showAd.value) {
@@ -249,6 +273,14 @@ html {
   background: var(--n-color-body, #f6f7fb);
 }
 
+html[data-theme="dark"] .n-card {
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.20);
+}
+
+html[data-theme="dark"] .n-card.n-card--embedded {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+}
+
 .n-switch {
   margin-left: 10px;
   margin-right: 10px;
@@ -278,16 +310,29 @@ body {
 }
 
 .n-card {
-  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+  border-color: transparent !important;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.07);
 }
 
 .n-card.n-card--embedded {
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.14);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.045);
 }
 
 .n-data-table,
 .n-list {
   border-radius: 8px;
+  overflow: hidden;
+}
+
+.n-data-table {
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+}
+
+.n-tabs .n-tabs-pane-wrapper,
+.n-tabs .n-tabs-tab,
+.n-tabs .n-tabs-nav::before,
+.n-tabs .n-tabs-nav-scroll-content::after {
+  border-color: transparent !important;
 }
 
 .n-button {

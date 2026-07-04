@@ -18,6 +18,7 @@
 ### Improvements
 
 - style: |Frontend| Refresh the shared frontend and admin visual system with cleaner theme colors, spacing, cards, and Header treatment while keeping behavior unchanged
+- style: |Frontend| Reduce visible lines in the Header, Footer, cards, tables, and admin views, using spacing, soft surfaces, and subtle shadows for hierarchy
 
 ## v1.9.0
 

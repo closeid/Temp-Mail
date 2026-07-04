@@ -305,11 +305,11 @@ onMounted(async () => {
 }
 
 .app-page-header {
-    border: 1px solid rgba(148, 163, 184, 0.18);
+    border: 0;
     border-radius: 8px;
     padding: 10px 14px;
     background: var(--n-color, var(--n-card-color, #ffffff));
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.07);
 }
 
 .app-page-header :deep(.n-page-header__main) {
@@ -391,8 +391,7 @@ onMounted(async () => {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 6px;
     margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(128, 128, 128, 0.16);
+    padding-top: 6px;
 }
 
 .mobile-menu-utility-button {
@@ -403,9 +402,9 @@ onMounted(async () => {
     width: 100%;
     min-width: 0;
     padding: 0 8px;
-    border: 1px solid rgba(148, 163, 184, 0.18);
+    border: 0;
     border-radius: 6px;
-    background: rgba(148, 163, 184, 0.08);
+    background: rgba(148, 163, 184, 0.10);
     color: inherit;
     font: inherit;
     text-decoration: none;

@@ -7,7 +7,6 @@ const { t } = useScopedI18n('views.Footer')
 
 <template>
     <div class="app-footer">
-        <n-divider class="footer-divider" />
         <div class="footer-content">
             <n-space justify="center">
                 <n-text depth="3">
@@ -24,13 +23,8 @@ const { t } = useScopedI18n('views.Footer')
     padding-bottom: 10px;
 }
 
-.footer-divider {
-    margin: 0;
-    padding: 0 var(--x-padding);
-}
-
 .footer-content {
-    padding: 18px 20px 22px;
+    padding: 20px 20px 22px;
     text-align: center;
 }
 </style>

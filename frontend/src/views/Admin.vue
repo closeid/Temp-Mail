@@ -222,8 +222,7 @@ onMounted(async () => {
             <n-space vertical>
               <n-text strong>{{ t('loginMethod') }}</n-text>
               <n-text>{{ currentLoginMethod }}</n-text>
-              <n-divider v-if="isAdminPasswordLogin" />
-              <n-button v-if="isAdminPasswordLogin" type="warning" @click="showLogoutModal = true" block>
+              <n-button v-if="isAdminPasswordLogin" type="warning" class="admin-logout-button" @click="showLogoutModal = true" block>
                 {{ t('logout') }}
               </n-button>
             </n-space>
@@ -258,6 +257,10 @@ onMounted(async () => {
 
 .admin-shell :deep(.n-tabs-tab-pad) {
   width: 8px;
+}
+
+.admin-logout-button {
+  margin-top: 4px;
 }
 
 .n-pagination {

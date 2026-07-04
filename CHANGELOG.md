@@ -18,6 +18,7 @@
 ### Improvements
 
 - style: |Frontend| 统一前台与管理后台的主题色、页面留白、卡片和 Header 视觉，使界面更现代、简约、优雅，业务逻辑保持不变
+- style: |Frontend| 减少 Header、Footer、卡片、表格与后台页中的可见线条，改用留白、弱背景和轻阴影维持层次
 
 ## v1.9.0
 
