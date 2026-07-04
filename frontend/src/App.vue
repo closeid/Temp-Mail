@@ -104,13 +104,13 @@ const darkThemeOverrides = {
 
 const lightThemeOverrides = {
   common: {
-    bodyColor: "#f7f8fb",
+    bodyColor: "#ffffff",
     cardColor: "#ffffff",
     modalColor: "#ffffff",
     popoverColor: "#ffffff",
     tableColor: "#ffffff",
-    actionColor: "#f1f5f9",
-    hoverColor: "rgba(37, 99, 235, 0.07)",
+    actionColor: "#f8fafc",
+    hoverColor: "rgba(15, 23, 42, 0.04)",
     borderColor: "#e2e8f0",
     dividerColor: "#e2e8f0",
     textColorBase: "#111827",
@@ -122,8 +122,8 @@ const lightThemeOverrides = {
     colorEmbedded: "#ffffff",
   },
   DataTable: {
-    thColor: "#f8fafc",
-    tdColorHover: "#f8fafc",
+    thColor: "#ffffff",
+    tdColorHover: "#fafafa",
     borderColor: "#e2e8f0",
   },
   Divider: {
@@ -234,7 +234,7 @@ onMounted(async () => {
     <n-spin description="loading..." :show="loading">
       <n-notification-provider container-style="margin-top: 60px;">
         <n-message-provider container-style="margin-top: 20px;">
-          <n-grid x-gap="12" :cols="gridMaxCols">
+          <n-grid :x-gap="0" :cols="gridMaxCols">
             <n-gi v-if="showSideMargin" span="1">
               <div class="side" v-if="showAd">
                 <ins class="adsbygoogle" style="display:block" :data-ad-client="adClient" :data-ad-slot="adSlot"
@@ -246,7 +246,9 @@ onMounted(async () => {
                 <n-space vertical class="app-shell">
                   <n-layout class="app-layout">
                     <Header />
-                    <router-view></router-view>
+                    <main class="app-content">
+                      <router-view></router-view>
+                    </main>
                   </n-layout>
                   <Footer />
                 </n-space>
@@ -270,11 +272,11 @@ onMounted(async () => {
 <style>
 html {
   min-height: 100%;
-  background: var(--n-color-body, #f7f8fb);
+  background: var(--n-color-body, #ffffff);
 }
 
 html[data-theme="dark"] .n-card {
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+  box-shadow: none;
 }
 
 html[data-theme="dark"] .n-card.n-card--embedded {
@@ -308,7 +310,7 @@ html[data-theme="dark"] .n-data-table .n-data-table-tr:nth-child(even) .n-data-t
 body {
   margin: 0;
   min-height: 100%;
-  background: var(--n-color-body, #f7f8fb);
+  background: var(--n-color-body, #ffffff);
   color: var(--n-text-color-base, #111827);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -320,7 +322,7 @@ body {
 
 .n-card {
   border-color: var(--n-border-color, #e2e8f0) !important;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.045);
+  box-shadow: none;
 }
 
 .n-card > .n-card-header {
@@ -384,20 +386,26 @@ body {
 <style scoped>
 .side {
   height: 100vh;
-  padding-top: 22px;
+  padding-top: 0;
 }
 
 .main {
-  width: min(100%, 1320px);
+  width: 100%;
   min-height: 100vh;
-  margin: 0 auto;
-  padding: 0 28px 36px;
+  padding: 0;
   text-align: center;
 }
 
 .app-layout {
   min-height: 80vh;
   background: transparent;
+}
+
+.app-content {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  padding: 64px 40px 72px;
+  box-sizing: border-box;
 }
 
 .n-grid {
@@ -413,8 +421,8 @@ body {
 }
 
 @media (max-width: 640px) {
-  .main {
-    padding: 0 12px 24px;
+  .app-content {
+    padding: 36px 16px 48px;
   }
 }
 </style>

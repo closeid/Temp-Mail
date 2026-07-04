@@ -238,13 +238,13 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .center {
-    max-width: 960px;
+    max-width: 1040px;
     margin: 0 auto;
-    padding-bottom: 16px;
+    padding-bottom: 20px;
 }
 
 .n-card {
-    margin-top: 22px;
+    margin-top: 28px;
     width: 100%;
 }
 
@@ -279,6 +279,6 @@ onBeforeUnmount(() => {
 }
 
 .no-mail {
-    padding: 40px 0;
+    padding: 56px 0;
 }
 </style>

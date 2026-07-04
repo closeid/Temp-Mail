@@ -247,7 +247,7 @@ onMounted(async () => {
 }
 
 .admin-shell :deep(.n-tabs-nav) {
-  margin-bottom: 12px;
+  margin-bottom: 18px;
 }
 
 .admin-shell :deep(.n-tabs-tab) {

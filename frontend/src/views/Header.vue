@@ -301,22 +301,31 @@ onMounted(async () => {
 
 <style scoped>
 .app-header-shell {
-    padding: 22px 0 18px;
+    width: 100%;
+    border-bottom: 1px solid var(--n-border-color, #e2e8f0);
+    background: var(--n-color, var(--n-card-color, #ffffff));
+}
+
+:global(html[data-theme="dark"]) .app-header-shell {
+    border-bottom-color: #2a3040;
+    background: #171a23;
 }
 
 .app-page-header {
-    border: 1px solid var(--n-border-color, #e2e8f0);
-    border-radius: 8px;
-    padding: 14px 18px;
-    background: var(--n-color, var(--n-card-color, #ffffff));
+    width: min(100%, 1180px);
+    margin: 0 auto;
+    padding: 24px 40px;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     color: var(--n-text-color-base, inherit);
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.045);
+    box-shadow: none;
 }
 
 :global(html[data-theme="dark"]) .app-page-header {
-    border-color: #2a3040;
-    background: #171a23;
-    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+    background: transparent;
+    box-shadow: none;
 }
 
 .app-page-header :deep(.n-page-header__main) {
@@ -329,11 +338,11 @@ onMounted(async () => {
 }
 
 .brand-title {
-    max-width: min(44vw, 460px);
+    max-width: min(44vw, 560px);
     margin: 0;
     overflow: hidden;
     color: var(--n-title-text-color, var(--n-text-color-base, inherit));
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 650;
     line-height: 1.25;
     letter-spacing: 0;
@@ -349,7 +358,7 @@ onMounted(async () => {
 
 .brand-logo {
     margin-left: 2px;
-    box-shadow: 0 5px 14px rgba(15, 23, 42, 0.11);
+    box-shadow: none;
 }
 
 .n-layout-header {
@@ -471,7 +480,7 @@ onMounted(async () => {
 
 @media (max-width: 640px) {
     :deep(.n-page-header) {
-        padding: 12px 14px;
+        padding: 18px 16px;
     }
 
     :deep(.n-page-header__title) {

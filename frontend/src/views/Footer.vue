@@ -21,16 +21,31 @@ const { t } = useScopedI18n('views.Footer')
 
 <style scoped>
 .app-footer {
-    padding-bottom: 10px;
+    width: 100%;
+    border-top: 1px solid var(--n-border-color, #e2e8f0);
+    background: var(--n-color, #ffffff);
+}
+
+:global(html[data-theme="dark"]) .app-footer {
+    border-top-color: #2a3040;
+    background: #171a23;
 }
 
 .footer-divider {
-    margin: 0;
-    padding: 0 var(--x-padding);
+    display: none;
 }
 
 .footer-content {
-    padding: 24px 20px 28px;
+    width: min(100%, 1180px);
+    margin: 0 auto;
+    padding: 32px 40px 36px;
+    box-sizing: border-box;
     text-align: center;
+}
+
+@media (max-width: 640px) {
+    .footer-content {
+        padding: 24px 16px 28px;
+    }
 }
 </style>

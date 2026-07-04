@@ -22,6 +22,8 @@
 - style: |Frontend| Shift the overall visual direction toward an Outlook-like business blue-gray style, separating areas with a colored top bar, light workspace, and soft panels
 - style: |Frontend| Restore a clean line-separated visual style with a light gray workspace, white panels, and fine borders for clearer page structure
 - style: |Frontend| Increase page scale, Header breathing room, card spacing, and content width so the line-separated style feels more spacious and polished
+- style: |Frontend| Make the Header and Footer full-bleed, center the main content, and use large whitespace with 1px dividers for a more expansive layout
+- style: |Frontend| Use a white page background in light mode and reduce large background color fields, keeping only fine dividers and subtle state colors
 
 ## v1.9.0
 
