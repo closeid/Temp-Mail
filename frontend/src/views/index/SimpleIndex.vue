@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
 
         <div v-else>
             <n-card :bordered="false" embedded>
-                <div class="address-heading">
+                <div style="text-align: center; margin-bottom: 16px; font-size: 18px;">
                     <AddressSelect :showCopy="false" size="small" />
                 </div>
                 <n-flex justify="center">
@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
                         {{ t('accountSettings') }}
                     </n-button>
                 </n-flex>
-                <div v-if="isFirstPage" class="auto-refresh-tip">
+                <div v-if="isFirstPage" style="text-align: center; margin-top: 12px;">
                     <n-text depth="3" size="12">
                         {{ t('refreshAfter', { msg: Math.max(0, currentAutoRefreshInterval) }) }}
                     </n-text>
@@ -186,7 +186,7 @@ onBeforeUnmount(() => {
                 <AccountSettings />
             </n-card>
 
-            <n-card v-else :bordered="false" embedded class="mail-panel">
+            <n-card v-else :bordered="false" embedded style="text-align: left;">
 
                 <div v-if="totalCount > 1">
                     <n-flex justify="space-between">
@@ -216,8 +216,8 @@ onBeforeUnmount(() => {
                     <n-empty :description="t('noMails')" />
                 </div>
                 <div v-else>
-                    <h3 v-if="currentMail.subject" class="mail-subject">{{ currentMail.subject }}</h3>
-                    <div class="mail-content">
+                    <h3 v-if="currentMail.subject">{{ currentMail.subject }}</h3>
+                    <div style="margin-top: 16px;">
                         <MailContentRenderer :mail="currentMail" :showEMailTo="false" :showReply="false"
                             :enableUserDeleteEmail="openSettings.enableUserDeleteEmail" :showSaveS3="false"
                             :onDelete="deleteMail" />
@@ -238,47 +238,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .center {
-    max-width: 980px;
+    max-width: 800px;
     margin: 0 auto;
-    padding-bottom: 40px;
 }
 
 .n-card {
-    margin-top: 48px;
+    margin-top: 20px;
     width: 100%;
-}
-
-.address-heading {
-    margin-bottom: 36px;
-    text-align: center;
-    font-size: 20px;
-    color: var(--n-text-color-1);
-}
-
-.auto-refresh-tip {
-    margin-top: 28px;
-    text-align: center;
-}
-
-.mail-panel {
-    background: var(--n-color);
-    text-align: left;
-}
-
-.mail-subject {
-    margin: 0 0 36px;
-    overflow-wrap: anywhere;
-    color: var(--n-text-color-1);
-    font-size: 20px;
-    font-weight: 650;
-    line-height: 1.35;
-}
-
-.mail-content {
-    margin-top: 36px;
-}
-
-.no-mail {
-    padding: 88px 0;
 }
 </style>

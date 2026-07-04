@@ -105,7 +105,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="userSettings.fetched" class="admin-shell">
+  <div v-if="userSettings.fetched">
     <n-modal v-model:show="showAdminPasswordModal" :closable="false" :closeOnEsc="false" :maskClosable="false"
       preset="dialog" :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
@@ -222,7 +222,8 @@ onMounted(async () => {
             <n-space vertical>
               <n-text strong>{{ t('loginMethod') }}</n-text>
               <n-text>{{ currentLoginMethod }}</n-text>
-              <n-button v-if="isAdminPasswordLogin" type="warning" class="admin-logout-button" @click="showLogoutModal = true" block>
+              <n-divider v-if="isAdminPasswordLogin" />
+              <n-button v-if="isAdminPasswordLogin" type="warning" @click="showLogoutModal = true" block>
                 {{ t('logout') }}
               </n-button>
             </n-space>
@@ -242,27 +243,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.admin-shell {
-  text-align: left;
-}
-
-.admin-shell :deep(.n-tabs-nav) {
-  margin-bottom: 40px;
-}
-
-.admin-shell :deep(.n-tabs-tab) {
-  font-weight: 500;
-  letter-spacing: 0;
-}
-
-.admin-shell :deep(.n-tabs-tab-pad) {
-  width: 18px;
-}
-
-.admin-logout-button {
-  margin-top: 4px;
-}
-
 .n-pagination {
   margin-top: 10px;
   margin-bottom: 10px;

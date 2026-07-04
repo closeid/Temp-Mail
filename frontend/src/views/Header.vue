@@ -240,14 +240,14 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="app-header-shell">
-        <n-page-header class="app-page-header">
+    <div>
+        <n-page-header>
             <template #title>
-                <h3 class="brand-title">{{ openSettings.title || t('title') }}</h3>
+                <h3>{{ openSettings.title || t('title') }}</h3>
             </template>
             <template #avatar>
-                <div class="brand-avatar" @click="logoClick">
-                    <n-avatar class="brand-logo" src="/logo.png" />
+                <div @click="logoClick">
+                    <n-avatar style="margin-left: 10px;" src="/logo.png" />
                 </div>
             </template>
             <template #extra>
@@ -260,7 +260,7 @@ onMounted(async () => {
                         {{ t('menu') }}
                     </n-button>
                     <n-dropdown v-if="!isMobile" :options="languageOptions" @select="changeLocale" trigger="click" class="header-locale-dropdown">
-                        <n-button text size="small" class="header-locale-button">
+                        <n-button text size="small" class="header-locale-button" style="padding: 0 10px;">
                             <template #icon>
                                 <n-icon :component="Language" />
                             </template>
@@ -300,67 +300,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.app-header-shell {
-    width: 100%;
-    border-bottom: 1px solid var(--n-border-color, #e5e7eb);
-    background: var(--n-color, var(--n-card-color, #ffffff));
-}
-
-:global(html[data-theme="dark"]) .app-header-shell {
-    border-bottom-color: #2a3040;
-    background: #171a23;
-}
-
-.app-page-header {
-    width: 100%;
-    margin: 0;
-    padding: 36px 64px;
-    box-sizing: border-box;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: var(--n-text-color-base, inherit);
-    box-shadow: none;
-}
-
-:global(html[data-theme="dark"]) .app-page-header {
-    background: transparent;
-    box-shadow: none;
-}
-
-.app-page-header :deep(.n-page-header__main) {
-    min-width: 0;
-    align-items: center;
-}
-
-.app-page-header :deep(.n-page-header__title) {
-    min-width: 0;
-}
-
-.brand-title {
-    max-width: min(44vw, 620px);
-    margin: 0;
-    overflow: hidden;
-    color: var(--n-title-text-color, var(--n-text-color-base, inherit));
-    font-size: 22px;
-    font-weight: 650;
-    line-height: 1.25;
-    letter-spacing: 0;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.brand-avatar {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-}
-
-.brand-logo {
-    margin-left: 2px;
-    box-shadow: none;
-}
-
 .n-layout-header {
     display: flex;
     align-items: center;
@@ -372,35 +311,14 @@ onMounted(async () => {
     flex-wrap: nowrap;
 }
 
-.header-extra :deep(.n-menu) {
-    background: transparent;
-}
-
-.header-extra :deep(.n-menu-item-content) {
-    border-radius: 6px;
-}
-
 .header-extra :deep(.n-space-item) {
     display: flex;
     align-items: center;
 }
 
-.header-extra :deep(.n-button) {
-    color: inherit;
-}
-
-.header-extra :deep(.n-button:hover),
-.header-extra :deep(.n-button.n-button--pressed) {
-    background: var(--n-action-color, #fafafa);
-}
-
 .header-locale-button {
     display: inline-flex;
     align-items: center;
-    padding: 0 10px;
-    border-radius: 6px;
-    color: inherit;
-    background: transparent;
 }
 
 .header-locale-button :deep(.n-button__content) {
@@ -415,10 +333,11 @@ onMounted(async () => {
 
 .mobile-menu-actions {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
     margin-top: 12px;
-    padding-top: 6px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(128, 128, 128, 0.16);
 }
 
 .mobile-menu-utility-button {
@@ -429,18 +348,14 @@ onMounted(async () => {
     width: 100%;
     min-width: 0;
     padding: 0 8px;
-    border: 1px solid var(--n-border-color, #e5e7eb);
-    border-radius: 6px;
+    border: 0;
+    border-radius: 8px;
     background: transparent;
     color: inherit;
     font: inherit;
     text-decoration: none;
     opacity: 0.82;
     cursor: pointer;
-}
-
-.mobile-menu-utility-button:hover {
-    opacity: 1;
 }
 
 .mobile-menu-action-label {
@@ -480,14 +395,14 @@ onMounted(async () => {
 
 @media (max-width: 640px) {
     :deep(.n-page-header) {
-        padding: 28px 20px;
+        padding: 10px;
     }
 
     :deep(.n-page-header__title) {
         min-width: 0;
     }
 
-    .brand-title {
+    :deep(.n-page-header__title h3) {
         max-width: calc(100vw - 136px);
         overflow: hidden;
         text-overflow: ellipsis;
