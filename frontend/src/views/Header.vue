@@ -240,14 +240,14 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div>
-        <n-page-header>
+    <div class="app-header-shell">
+        <n-page-header class="app-page-header">
             <template #title>
-                <h3>{{ openSettings.title || t('title') }}</h3>
+                <h3 class="brand-title">{{ openSettings.title || t('title') }}</h3>
             </template>
             <template #avatar>
-                <div @click="logoClick">
-                    <n-avatar style="margin-left: 10px;" src="/logo.png" />
+                <div class="brand-avatar" @click="logoClick">
+                    <n-avatar class="brand-logo" src="/logo.png" />
                 </div>
             </template>
             <template #extra>
@@ -260,7 +260,7 @@ onMounted(async () => {
                         {{ t('menu') }}
                     </n-button>
                     <n-dropdown v-if="!isMobile" :options="languageOptions" @select="changeLocale" trigger="click" class="header-locale-dropdown">
-                        <n-button text size="small" class="header-locale-button" style="padding: 0 10px;">
+                        <n-button text size="small" class="header-locale-button">
                             <template #icon>
                                 <n-icon :component="Language" />
                             </template>
@@ -300,6 +300,51 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.app-header-shell {
+    padding: 14px 0 10px;
+}
+
+.app-page-header {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+    padding: 10px 14px;
+    background: var(--n-color, var(--n-card-color, #ffffff));
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.app-page-header :deep(.n-page-header__main) {
+    min-width: 0;
+    align-items: center;
+}
+
+.app-page-header :deep(.n-page-header__title) {
+    min-width: 0;
+}
+
+.brand-title {
+    max-width: min(44vw, 460px);
+    margin: 0;
+    overflow: hidden;
+    color: var(--n-title-text-color, var(--n-text-color-base, inherit));
+    font-size: 18px;
+    font-weight: 650;
+    line-height: 1.25;
+    letter-spacing: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.brand-avatar {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.brand-logo {
+    margin-left: 2px;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+}
+
 .n-layout-header {
     display: flex;
     align-items: center;
@@ -311,6 +356,14 @@ onMounted(async () => {
     flex-wrap: nowrap;
 }
 
+.header-extra :deep(.n-menu) {
+    background: transparent;
+}
+
+.header-extra :deep(.n-menu-item-content) {
+    border-radius: 6px;
+}
+
 .header-extra :deep(.n-space-item) {
     display: flex;
     align-items: center;
@@ -319,6 +372,8 @@ onMounted(async () => {
 .header-locale-button {
     display: inline-flex;
     align-items: center;
+    padding: 0 10px;
+    border-radius: 6px;
 }
 
 .header-locale-button :deep(.n-button__content) {
@@ -333,7 +388,7 @@ onMounted(async () => {
 
 .mobile-menu-actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 6px;
     margin-top: 12px;
     padding-top: 12px;
@@ -348,14 +403,18 @@ onMounted(async () => {
     width: 100%;
     min-width: 0;
     padding: 0 8px;
-    border: 0;
-    border-radius: 8px;
-    background: transparent;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 6px;
+    background: rgba(148, 163, 184, 0.08);
     color: inherit;
     font: inherit;
     text-decoration: none;
     opacity: 0.82;
     cursor: pointer;
+}
+
+.mobile-menu-utility-button:hover {
+    opacity: 1;
 }
 
 .mobile-menu-action-label {
@@ -395,14 +454,14 @@ onMounted(async () => {
 
 @media (max-width: 640px) {
     :deep(.n-page-header) {
-        padding: 10px;
+        padding: 10px 12px;
     }
 
     :deep(.n-page-header__title) {
         min-width: 0;
     }
 
-    :deep(.n-page-header__title h3) {
+    .brand-title {
         max-width: calc(100vw - 136px);
         overflow: hidden;
         text-overflow: ellipsis;

@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
 
         <div v-else>
             <n-card :bordered="false" embedded>
-                <div style="text-align: center; margin-bottom: 16px; font-size: 18px;">
+                <div class="address-heading">
                     <AddressSelect :showCopy="false" size="small" />
                 </div>
                 <n-flex justify="center">
@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
                         {{ t('accountSettings') }}
                     </n-button>
                 </n-flex>
-                <div v-if="isFirstPage" style="text-align: center; margin-top: 12px;">
+                <div v-if="isFirstPage" class="auto-refresh-tip">
                     <n-text depth="3" size="12">
                         {{ t('refreshAfter', { msg: Math.max(0, currentAutoRefreshInterval) }) }}
                     </n-text>
@@ -186,7 +186,7 @@ onBeforeUnmount(() => {
                 <AccountSettings />
             </n-card>
 
-            <n-card v-else :bordered="false" embedded style="text-align: left;">
+            <n-card v-else :bordered="false" embedded class="mail-panel">
 
                 <div v-if="totalCount > 1">
                     <n-flex justify="space-between">
@@ -216,8 +216,8 @@ onBeforeUnmount(() => {
                     <n-empty :description="t('noMails')" />
                 </div>
                 <div v-else>
-                    <h3 v-if="currentMail.subject">{{ currentMail.subject }}</h3>
-                    <div style="margin-top: 16px;">
+                    <h3 v-if="currentMail.subject" class="mail-subject">{{ currentMail.subject }}</h3>
+                    <div class="mail-content">
                         <MailContentRenderer :mail="currentMail" :showEMailTo="false" :showReply="false"
                             :enableUserDeleteEmail="openSettings.enableUserDeleteEmail" :showSaveS3="false"
                             :onDelete="deleteMail" />
@@ -240,10 +240,42 @@ onBeforeUnmount(() => {
 .center {
     max-width: 800px;
     margin: 0 auto;
+    padding-bottom: 8px;
 }
 
 .n-card {
-    margin-top: 20px;
+    margin-top: 16px;
     width: 100%;
+}
+
+.address-heading {
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 18px;
+}
+
+.auto-refresh-tip {
+    margin-top: 12px;
+    text-align: center;
+}
+
+.mail-panel {
+    text-align: left;
+}
+
+.mail-subject {
+    margin: 0 0 14px;
+    overflow-wrap: anywhere;
+    font-size: 18px;
+    font-weight: 650;
+    line-height: 1.35;
+}
+
+.mail-content {
+    margin-top: 16px;
+}
+
+.no-mail {
+    padding: 28px 0;
 }
 </style>

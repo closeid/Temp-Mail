@@ -105,7 +105,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="userSettings.fetched">
+  <div v-if="userSettings.fetched" class="admin-shell">
     <n-modal v-model:show="showAdminPasswordModal" :closable="false" :closeOnEsc="false" :maskClosable="false"
       preset="dialog" :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
@@ -243,6 +243,23 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.admin-shell {
+  text-align: left;
+}
+
+.admin-shell :deep(.n-tabs-nav) {
+  margin-bottom: 4px;
+}
+
+.admin-shell :deep(.n-tabs-tab) {
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.admin-shell :deep(.n-tabs-tab-pad) {
+  width: 8px;
+}
+
 .n-pagination {
   margin-top: 10px;
   margin-bottom: 10px;

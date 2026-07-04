@@ -17,6 +17,8 @@
 
 ### Improvements
 
+- style: |Frontend| Refresh the shared frontend and admin visual system with cleaner theme colors, spacing, cards, and Header treatment while keeping behavior unchanged
+
 ## v1.9.0
 
 ### Features
