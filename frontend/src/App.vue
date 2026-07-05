@@ -22,13 +22,18 @@ const { locale } = useI18n({ useScope: "global" });
 
 const themeOverrides = {
   common: {
-    borderRadius: "6px",
+    borderRadius: "8px",
     fontSize: "14px",
     fontFamily: "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
-    primaryColor: "#3b82f6",
-    primaryColorHover: "#2563eb",
-    primaryColorPressed: "#1d4ed8",
-    primaryColorSuppl: "#3b82f6",
+    primaryColor: "#1a73e8",
+    primaryColorHover: "#1558b0",
+    primaryColorPressed: "#174ea6",
+    primaryColorSuppl: "#1a73e8",
+    infoColor: "#1a73e8",
+    infoColorHover: "#1558b0",
+    successColor: "#188038",
+    warningColor: "#f9ab00",
+    errorColor: "#d93025",
   },
   Button: {
     borderRadiusSmall: "4px",
@@ -37,7 +42,7 @@ const themeOverrides = {
   },
   Card: {
     borderRadius: "8px",
-    paddingMedium: "20px",
+    paddingMedium: "18px",
   },
   Input: {
     borderRadius: "6px",
@@ -52,23 +57,23 @@ const themeOverrides = {
 
 const darkThemeOverrides = {
   common: {
-    bodyColor: "#0a0a0f",
-    cardColor: "#14141a",
-    modalColor: "#14141a",
-    popoverColor: "#14141a",
-    borderColor: "#2a2a35",
-    dividerColor: "#2a2a35",
+    bodyColor: "#202124",
+    cardColor: "#2b2c2f",
+    modalColor: "#2b2c2f",
+    popoverColor: "#2b2c2f",
+    borderColor: "#3c4043",
+    dividerColor: "#3c4043",
   },
 }
 
 const lightThemeOverrides = {
   common: {
-    bodyColor: "#fafafa",
+    bodyColor: "#f6f8fc",
     cardColor: "#ffffff",
     modalColor: "#ffffff",
     popoverColor: "#ffffff",
-    borderColor: "#e5e7eb",
-    dividerColor: "#e5e7eb",
+    borderColor: "#dadce0",
+    dividerColor: "#e8eaed",
   },
 }
 
@@ -76,10 +81,17 @@ const theme = computed(() => {
   if (!isDark.value) return null
   return darkTheme
 })
-const themeConfig = computed(() => ({
-  ...themeOverrides,
-  ...(isDark.value ? darkThemeOverrides : lightThemeOverrides),
-}))
+const themeConfig = computed(() => {
+  const modeOverrides = isDark.value ? darkThemeOverrides : lightThemeOverrides
+  return {
+    ...themeOverrides,
+    ...modeOverrides,
+    common: {
+      ...themeOverrides.common,
+      ...modeOverrides.common,
+    },
+  }
+})
 
 const localeConfig = computed(() => getNaiveLocaleConfig(isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE))
 const isMobile = useIsMobile()
@@ -145,7 +157,15 @@ onMounted(async () => {
 <template>
   <n-config-provider :locale="localeConfig.locale" :date-locale="localeConfig.dateLocale" :theme="theme" :theme-overrides="themeConfig">
     <n-global-style />
-    <n-spin description="loading..." :show="loading">
+    <n-spin :show="loading">
+      <template #icon>
+        <div class="gmail-loader" aria-label="loading">
+          <span class="gmail-loader__bar gmail-loader__bar--blue"></span>
+          <span class="gmail-loader__bar gmail-loader__bar--red"></span>
+          <span class="gmail-loader__bar gmail-loader__bar--yellow"></span>
+          <span class="gmail-loader__bar gmail-loader__bar--green"></span>
+        </div>
+      </template>
       <n-notification-provider container-style="margin-top: 60px;">
         <n-message-provider container-style="margin-top: 20px;">
           <n-grid x-gap="12" :cols="gridMaxCols">
@@ -200,8 +220,13 @@ onMounted(async () => {
 body {
   margin: 0;
   background: var(--n-color-body, #fafafa);
+  color: #202124;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
 }
 </style>
 
@@ -212,7 +237,7 @@ body {
 
 .main {
   min-height: 100vh;
-  text-align: center;
+  text-align: left;
 }
 
 .n-grid {
@@ -225,5 +250,51 @@ body {
 
 .n-space {
   height: 100%;
+}
+
+.gmail-loader {
+  display: grid;
+  grid-template-columns: repeat(4, 9px);
+  gap: 3px;
+  align-items: end;
+  height: 30px;
+}
+
+.gmail-loader__bar {
+  width: 9px;
+  height: 10px;
+  border-radius: 999px;
+  animation: gmail-loader-bounce 0.92s ease-in-out infinite;
+}
+
+.gmail-loader__bar--blue {
+  background: #4285f4;
+}
+
+.gmail-loader__bar--red {
+  background: #ea4335;
+  animation-delay: 0.1s;
+}
+
+.gmail-loader__bar--yellow {
+  background: #fbbc04;
+  animation-delay: 0.2s;
+}
+
+.gmail-loader__bar--green {
+  background: #34a853;
+  animation-delay: 0.3s;
+}
+
+@keyframes gmail-loader-bounce {
+  0%, 100% {
+    height: 10px;
+    opacity: 0.55;
+  }
+
+  50% {
+    height: 28px;
+    opacity: 1;
+  }
 }
 </style>

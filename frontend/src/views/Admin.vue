@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router'
+import { useIsMobile } from '../utils/composables'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -32,11 +33,12 @@ import AiExtractSettings from './admin/AiExtractSettings.vue';
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
-  globalTabplacement, showAdminPage, userSettings,
+  showAdminPage, userSettings,
   openSettings
 } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
+const isMobile = useIsMobile()
 
 const SendMail = defineAsyncComponent(() => {
   loading.value = true;
@@ -105,7 +107,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="userSettings.fetched">
+  <div v-if="userSettings.fetched" class="app-shell">
     <n-modal v-model:show="showAdminPasswordModal" :closable="false" :closeOnEsc="false" :maskClosable="false"
       preset="dialog" :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
@@ -117,9 +119,10 @@ onMounted(async () => {
         </n-button>
       </template>
     </n-modal>
-    <n-tabs v-if="showAdminPage" type="card" v-model:value="adminTab" :placement="globalTabplacement">
+    <n-tabs v-if="showAdminPage" class="app-sidebar-tabs" type="card" v-model:value="adminTab"
+      :placement="isMobile ? 'top' : 'left'">
       <n-tab-pane name="qucickSetup" :tab="t('qucickSetup')">
-        <n-tabs type="bar" justify-content="center" animated>
+        <n-tabs class="app-admin-nested-tabs" type="bar" justify-content="center" animated>
           <n-tab-pane name="database" :tab="t('database')">
             <DatabaseManager />
           </n-tab-pane>
@@ -135,7 +138,7 @@ onMounted(async () => {
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="account" :tab="t('account')">
-        <n-tabs type="bar" justify-content="center" animated>
+        <n-tabs class="app-admin-nested-tabs" type="bar" justify-content="center" animated>
           <n-tab-pane name="account" :tab="t('account')">
             <Account />
           </n-tab-pane>
@@ -160,7 +163,7 @@ onMounted(async () => {
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="user" :tab="t('user')">
-        <n-tabs type="bar" justify-content="center" animated>
+        <n-tabs class="app-admin-nested-tabs" type="bar" justify-content="center" animated>
           <n-tab-pane name="user_management" :tab="t('user_management')">
             <UserManagement />
           </n-tab-pane>
@@ -176,7 +179,7 @@ onMounted(async () => {
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="mails" :tab="t('mails')">
-        <n-tabs type="bar" justify-content="center" animated>
+        <n-tabs class="app-admin-nested-tabs" type="bar" justify-content="center" animated>
           <n-tab-pane name="mails" :tab="t('mails')">
             <Mails />
           </n-tab-pane>
@@ -201,7 +204,7 @@ onMounted(async () => {
         <Statistics />
       </n-tab-pane>
       <n-tab-pane name="maintenance" :tab="t('maintenance')">
-        <n-tabs type="bar" justify-content="center" animated>
+        <n-tabs class="app-admin-nested-tabs" type="bar" justify-content="center" animated>
           <n-tab-pane name="database" :tab="t('database')">
             <DatabaseManager />
           </n-tab-pane>

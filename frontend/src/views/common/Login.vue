@@ -247,7 +247,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div>
+    <div class="login-form">
         <n-alert v-if="userSettings.user_email" :show-icon="false" :bordered="false" closable>
             <span>{{ t('bindUserInfo') }}</span>
         </n-alert>
@@ -361,5 +361,22 @@ onMounted(async () => {
 
 .n-form {
     text-align: left;
+}
+
+.login-form :deep(.n-tabs-nav) {
+    margin-bottom: 12px;
+}
+
+.login-form :deep(.n-tabs-tab) {
+    font-weight: 600;
+}
+
+.login-form :deep(.n-form-item-label) {
+    color: var(--app-text-muted);
+    font-weight: 600;
+}
+
+.login-form :deep(.n-button) {
+    min-height: 38px;
 }
 </style>

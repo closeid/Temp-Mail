@@ -17,6 +17,8 @@
 
 ### Improvements
 
+- style: |Frontend| 调整首页、登录后邮箱页、用户中心与管理面板布局为更克制的 Gmail/管理台风格，并统一加载动画样式
+
 ## v1.9.0
 
 ### Features

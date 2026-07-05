@@ -178,8 +178,8 @@ onMounted(async () => {
 
 <template>
   <div>
-    <div v-if="!isMobile" class="left">
-      <div style="margin-bottom: 10px;">
+    <div v-if="!isMobile" class="left mailbox-layout">
+      <div class="mailbox-toolbar">
         <n-space v-if="multiActionMode">
           <n-button @click="multiActionModeClick(false)" tertiary>
             {{ t('cancelMultiAction') }}
@@ -213,10 +213,10 @@ onMounted(async () => {
       <n-split direction="horizontal" :max="0.75" :min="0.25" :default-size="mailboxSplitSize"
         :on-update:size="onSpiltSizeChange">
         <template #1>
-          <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
+          <div class="mailbox-list-pane">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
-                :class="mailItemClass(row)">
+                :class="['mailbox-row', mailItemClass(row)]">
                 <template #prefix v-if="multiActionMode">
                   <n-checkbox v-model:checked="row.checked" />
                 </template>
@@ -241,7 +241,7 @@ onMounted(async () => {
           </div>
         </template>
         <template #2>
-          <n-card :bordered="false" embedded v-if="curMail" class="mail-item" :title="curMail.subject"
+          <n-card :bordered="false" embedded v-if="curMail" class="mail-item mailbox-detail-card" :title="curMail.subject"
             style="overflow: auto; max-height: 100vh;">
             <n-space>
               <n-tag type="info">
@@ -270,7 +270,7 @@ onMounted(async () => {
             <pre v-else-if="!curMail.is_html" style="margin-top: 10px;">{{ curMail.content }}</pre>
             <div v-else v-html="curMail.content" style="margin-top: 10px;"></div>
           </n-card>
-          <n-card :bordered="false" embedded class="mail-item" v-else>
+          <n-card :bordered="false" embedded class="mail-item mailbox-empty" v-else>
             <n-result status="info" :title="count === 0 ? t('emptySent') : t('pleaseSelectMail')">
               <template #icon>
                 <n-icon :component="SendRound" :size="100" />
@@ -281,7 +281,7 @@ onMounted(async () => {
       </n-split>
     </div>
     <div class="left" v-else>
-      <div class="center">
+      <div class="center mobile-toolbar">
         <div style="display: inline-block; margin-right: 10px;">
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
         </div>
@@ -289,9 +289,9 @@ onMounted(async () => {
           {{ t('refresh') }}
         </n-button>
       </div>
-      <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
+      <div class="mobile-list-pane">
         <n-list hoverable clickable>
-          <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
+          <n-list-item class="mailbox-row" v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
             <n-thing :title="row.subject">
               <template #description>
                 <n-tag type="info">

@@ -19,7 +19,7 @@ import Attachment from './index/Attachment.vue';
 import About from './common/About.vue';
 import SimpleIndex from './index/SimpleIndex.vue';
 
-const { loading, settings, openSettings, indexTab, globalTabplacement, useSimpleIndex } = useGlobalState()
+const { loading, settings, openSettings, indexTab, useSimpleIndex } = useGlobalState()
 const message = useMessage()
 const route = useRoute()
 const isMobile = useIsMobile()
@@ -99,14 +99,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="app-shell" :class="{ 'app-shell--home': !settings.address }">
     <div v-if="useSimpleIndex">
       <SimpleIndex />
     </div>
-    <div v-else>
+    <div v-else-if="settings.address" class="mail-app">
       <AddressBar />
-      <n-tabs v-if="settings.address" type="card" v-model:value="indexTab" :placement="globalTabplacement">
-        <template #prefix v-if="!isMobile">
+      <n-tabs v-if="settings.address" class="app-sidebar-tabs" type="card" v-model:value="indexTab"
+        :placement="isMobile ? 'top' : 'left'">
+        <template #prefix>
           <n-button @click="useSimpleIndex = true" tertiary size="small">
             <template #icon>
               <n-icon>
@@ -155,6 +156,27 @@ onMounted(() => {
           <About />
         </n-tab-pane>
       </n-tabs>
+    </div>
+    <div v-else class="home-dashboard">
+      <section class="home-dashboard__intro">
+        <span class="home-eyebrow">{{ openSettings.title || t('mailbox') }}</span>
+        <h1 class="home-title">{{ openSettings.title || t('mailbox') }}</h1>
+        <p v-if="openSettings.description" class="home-copy">
+          {{ openSettings.description }}
+        </p>
+      </section>
+      <section class="home-dashboard__panel">
+        <div class="home-panel">
+          <div class="home-panel__bar">
+            <span class="home-panel__dot home-panel__dot--red"></span>
+            <span class="home-panel__dot home-panel__dot--yellow"></span>
+            <span class="home-panel__dot home-panel__dot--green"></span>
+          </div>
+          <div class="home-panel__body">
+            <AddressBar />
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>

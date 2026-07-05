@@ -17,6 +17,8 @@
 
 ### Improvements
 
+- style: |Frontend| Restyle the homepage, authenticated mailbox, user center, admin panel, and loading state with a more restrained Gmail/admin-console layout
+
 ## v1.9.0
 
 ### Features

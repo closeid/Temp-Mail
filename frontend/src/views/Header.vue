@@ -240,7 +240,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div>
+    <div class="app-header">
         <n-page-header>
             <template #title>
                 <h3>{{ openSettings.title || t('title') }}</h3>

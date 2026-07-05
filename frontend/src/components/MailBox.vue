@@ -328,8 +328,8 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <div v-if="!isMobile" class="left">
-      <div style="margin-bottom: 10px;">
+    <div v-if="!isMobile" class="left mailbox-layout">
+      <div class="mailbox-toolbar">
         <n-space v-if="multiActionMode" align="center">
           <n-button @click="multiActionModeClick(false)" tertiary>
             {{ t('cancelMultiAction') }}
@@ -378,10 +378,10 @@ onBeforeUnmount(() => {
       <n-split class="left" direction="horizontal" :max="0.75" :min="0.25" :default-size="mailboxSplitSize"
         :on-update:size="onSpiltSizeChange">
         <template #1>
-          <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
+          <div class="mailbox-list-pane">
             <n-list hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
-                :class="mailItemClass(row)">
+                :class="['mailbox-row', mailItemClass(row)]">
                 <template #prefix v-if="multiActionMode">
                   <n-checkbox v-model:checked="row.checked" />
                 </template>
@@ -411,7 +411,7 @@ onBeforeUnmount(() => {
           </div>
         </template>
         <template #2>
-          <div v-if="curMail" style="margin: 8px;">
+          <div v-if="curMail" class="mailbox-detail-nav">
             <n-flex justify="space-between">
               <n-button @click="prevMail" :disabled="!canGoPrevMail" text size="small">
                 <template #icon>
@@ -431,13 +431,13 @@ onBeforeUnmount(() => {
               </n-button>
             </n-flex>
           </div>
-          <n-card :bordered="false" embedded v-if="curMail" class="mail-item" :title="curMail.subject"
+          <n-card :bordered="false" embedded v-if="curMail" class="mail-item mailbox-detail-card" :title="curMail.subject"
             style="overflow: auto; max-height: 100vh;">
             <MailContentRenderer :mail="curMail" :showEMailTo="showEMailTo"
               :enableUserDeleteEmail="enableUserDeleteEmail" :showReply="showReply" :showSaveS3="showSaveS3"
               :onDelete="deleteMail" :onReply="replyMail" :onForward="forwardMail" :onSaveToS3="saveToS3Proxy" />
           </n-card>
-          <n-card :bordered="false" embedded class="mail-item" v-else>
+          <n-card :bordered="false" embedded class="mail-item mailbox-empty" v-else>
             <n-result status="info" :title="count === 0 ? t('emptyInbox') : t('pleaseSelectMail')">
               <template #icon>
                 <n-icon :component="InboxRound" :size="100" />
@@ -448,7 +448,7 @@ onBeforeUnmount(() => {
       </n-split>
     </div>
     <div class="left" v-else>
-      <n-space justify="space-around" align="center" :wrap="false" style="display: flex; align-items: center;">
+      <n-space class="mobile-toolbar" justify="space-around" align="center" :wrap="false" style="display: flex; align-items: center;">
         <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
         <n-switch v-model:value="autoRefresh" size="small" :round="false">
           <template #checked>
@@ -466,9 +466,9 @@ onBeforeUnmount(() => {
         <n-input v-model:value="localFilterKeyword"
           :placeholder="t('keywordQueryTip')" size="small" clearable />
       </div>
-      <div style="overflow: auto; min-height: 60vh; max-height: 100vh;">
+      <div class="mobile-list-pane">
         <n-list hoverable clickable>
-          <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
+          <n-list-item class="mailbox-row" v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
             <n-thing :title="row.subject">
               <template #description>
                 <n-tag type="info">

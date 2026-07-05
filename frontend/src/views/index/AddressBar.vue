@@ -39,7 +39,7 @@ onMounted(async () => {
         <n-card :bordered="false" embedded v-if="!settings.fetched">
             <n-skeleton style="height: 50vh" />
         </n-card>
-        <div v-else-if="settings.address">
+        <div v-else-if="settings.address" class="address-strip">
             <n-alert type="info" :show-icon="false" :bordered="false">
                 <AddressSelect>
                     <template #actions>
@@ -57,11 +57,11 @@ onMounted(async () => {
         </div>
         <div v-else-if="userJwt" class="center">
             <n-card :bordered="false" embedded style="max-width: 900px; width: 100%;">
-                <AddressManagement />
+            <AddressManagement />
             </n-card>
         </div>
         <div v-else class="center">
-            <n-card :bordered="false" embedded style="max-width: 600px;">
+            <n-card class="login-card" :bordered="false" embedded>
                 <n-alert v-if="jwt" type="warning" :show-icon="false" :bordered="false" closable>
                     <span>{{ t('fetchAddressError') }}</span>
                 </n-alert>
@@ -102,7 +102,7 @@ onMounted(async () => {
     text-align: left;
     place-items: center;
     justify-content: center;
-    margin: 20px;
+    margin: 0;
 }
 
 .address-manage {
