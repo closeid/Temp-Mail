@@ -27,6 +27,7 @@
 
 ### Improvements
 
+- style: |前端| 按参考邮箱界面将普通按钮、超链接、页签选中态和信息提示统一为中性灰阶，移除邮箱、用户和后台主工作区由卡片页签生成的空 `n-tabs-pad`；取消 `.app-shell` 内边距，并将普通弹窗统一为 720px 上限和随视窗变化的安全边距
 - style: |前端| 删除管理后台“关于”页与后台 Webhook 禁用态图标，移除邮箱和管理后台页脚及页首应用标题；统一工作区为视窗高度、全宽内容和垂直居中的页首布局，输入控件最低高度调整为 40px，并精简邮件正文容器边界与发件箱空状态标题样式
 - chore: |GitHub Actions| 仅保留 `Tag Build CI`、用于自动触发构建的 `Upstream Sync` 以及构建完成后部署文档的 `Deploy Docs`，删除其他独立部署、测试、镜像与 PR Agent 工作流
 - chore: |部署| 将前端示例构建、ZIP 生成脚本、Telegram 与 SMTP Proxy 配置中的默认 API 地址由 `temp-email-api.xxx.xxx` 更新为 `api.getanemail.net`，并同步中英文部署文档

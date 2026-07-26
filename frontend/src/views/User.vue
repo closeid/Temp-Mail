@@ -38,7 +38,7 @@ watch(
 <template>
     <div class="user-workspace">
         <UserBar />
-        <n-tabs v-if="userSettings.user_email" class="workspace-tabs" type="card" v-model:value="userTab"
+        <n-tabs v-if="userSettings.user_email" class="workspace-tabs" type="bar" v-model:value="userTab"
             :placement="tabPlacement">
             <n-tab-pane name="address_management" class="workspace-pane">
                 <template #tab>

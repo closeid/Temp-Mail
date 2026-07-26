@@ -379,10 +379,6 @@ onMounted(async () => {
   height: 100%;
 }
 
-:deep(.n-result-header__title) {
-  font-size: 18px;
-}
-
 pre {
   white-space: pre-wrap;
   word-wrap: break-word;

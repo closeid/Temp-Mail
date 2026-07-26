@@ -23,10 +23,14 @@ const route = useRoute()
 const theme = computed(() => isDark.value ? darkTheme : null)
 const themeOverrides = computed(() => ({
   common: {
-    primaryColor: isDark.value ? '#a8c7fa' : '#0b57d0',
-    primaryColorHover: isDark.value ? '#c2d7f8' : '#0842a0',
-    primaryColorPressed: isDark.value ? '#8ab4f8' : '#062e6f',
-    primaryColorSuppl: isDark.value ? '#a8c7fa' : '#0b57d0',
+    primaryColor: isDark.value ? '#c4c7c5' : '#5f6368',
+    primaryColorHover: isDark.value ? '#e8eaed' : '#3c4043',
+    primaryColorPressed: isDark.value ? '#9aa0a6' : '#202124',
+    primaryColorSuppl: isDark.value ? '#c4c7c5' : '#5f6368',
+    infoColor: isDark.value ? '#c4c7c5' : '#5f6368',
+    infoColorHover: isDark.value ? '#e8eaed' : '#3c4043',
+    infoColorPressed: isDark.value ? '#9aa0a6' : '#202124',
+    infoColorSuppl: isDark.value ? '#c4c7c5' : '#5f6368',
     borderRadius: '8px',
     borderRadiusSmall: '6px',
     fontFamily: '"Segoe UI Variable", "SF Pro Text", "Noto Sans SC", "Microsoft YaHei", sans-serif',

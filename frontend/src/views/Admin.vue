@@ -120,7 +120,7 @@ onMounted(async () => {
         </n-button>
       </template>
     </n-modal>
-    <n-tabs v-if="showAdminPage" class="workspace-tabs admin-workspace-tabs" type="card"
+    <n-tabs v-if="showAdminPage" class="workspace-tabs admin-workspace-tabs" type="bar"
       v-model:value="adminTab" :placement="tabPlacement">
       <n-tab-pane name="qucickSetup" :tab="t('qucickSetup')">
         <n-tabs type="bar" justify-content="center" animated>

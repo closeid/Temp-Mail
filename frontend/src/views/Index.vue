@@ -126,7 +126,7 @@ onMounted(async () => {
     </div>
     <div v-else>
       <AddressBar />
-      <n-tabs v-if="settings.address" class="workspace-tabs" type="card" v-model:value="indexTab"
+      <n-tabs v-if="settings.address" class="workspace-tabs" type="bar" v-model:value="indexTab"
         :placement="tabPlacement">
         <template #prefix v-if="!isMobile">
           <n-button @click="useSimpleIndex = true" tertiary size="small">

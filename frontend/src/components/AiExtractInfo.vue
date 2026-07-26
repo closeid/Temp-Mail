@@ -8,28 +8,36 @@ import { useGlobalState } from '../store';
 const message = useMessage();
 const { isDark } = useGlobalState();
 
-// Dark mode: use Gmail's softer blue (#A8C7FA) for better readability
 const alertThemeOverrides = computed(() => {
   if (isDark.value) {
     return {
-      colorSuccess: 'rgba(168, 199, 250, 0.15)',
-      borderSuccess: '1px solid rgba(168, 199, 250, 0.3)',
-      iconColorSuccess: '#A8C7FA',
-      titleTextColorSuccess: '#A8C7FA',
+      colorSuccess: 'rgba(196, 199, 197, 0.12)',
+      borderSuccess: '1px solid rgba(196, 199, 197, 0.28)',
+      iconColorSuccess: '#c4c7c5',
+      titleTextColorSuccess: '#c4c7c5',
     }
   }
-  return {}
+  return {
+    colorSuccess: '#f1f3f4',
+    borderSuccess: '1px solid #dadce0',
+    iconColorSuccess: '#5f6368',
+    titleTextColorSuccess: '#3c4043',
+  }
 });
 
 const tagThemeOverrides = computed(() => {
   if (isDark.value) {
     return {
-      colorSuccess: 'rgba(168, 199, 250, 0.15)',
-      borderSuccess: '1px solid rgba(168, 199, 250, 0.3)',
-      textColorSuccess: '#A8C7FA',
+      colorSuccess: 'rgba(196, 199, 197, 0.12)',
+      borderSuccess: '1px solid rgba(196, 199, 197, 0.28)',
+      textColorSuccess: '#c4c7c5',
     }
   }
-  return {}
+  return {
+    colorSuccess: '#f1f3f4',
+    borderSuccess: '1px solid #dadce0',
+    textColorSuccess: '#3c4043',
+  }
 });
 
 const { t } = useScopedI18n('components.AiExtractInfo')
