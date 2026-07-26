@@ -12,17 +12,19 @@ import {
     resolveSupportedLocale,
 } from '../i18n/utils'
 
-const { jwt, preferredLocale } = useGlobalState()
+const { jwt, userJwt, preferredLocale } = useGlobalState()
 
 const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
+            name: 'home',
             path: '/',
             alias: '/:lang/',
             component: Index
         },
         {
+            name: 'user',
             path: '/user',
             alias: '/:lang/user',
             component: User
@@ -75,6 +77,13 @@ router.beforeEach((to, from, next) => {
             replace: true,
         })
         return
+    }
+
+    if (to.name === 'user' && !userJwt.value) {
+        return next({
+            path: replaceLocaleInFullPath('/', resolvedLocale),
+            replace: true,
+        })
     }
 
     if (routeLocale) {

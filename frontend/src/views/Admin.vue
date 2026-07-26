@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 import { useGlobalState } from '../store'
 import { api } from '../api'
 import { getRouterPathWithLang, hashPassword } from '../utils'
+import { useResponsiveTabPlacement } from '../utils/composables'
 import Turnstile from '../components/Turnstile.vue'
 
 import SenderAccess from './admin/SenderAccess.vue'
@@ -38,6 +39,7 @@ const {
 } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
+const tabPlacement = useResponsiveTabPlacement(globalTabplacement)
 
 const SendMail = defineAsyncComponent(() => {
   loading.value = true;
@@ -106,7 +108,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main v-if="userSettings.fetched" class="app-shell app-shell--admin">
+  <div v-if="userSettings.fetched">
     <n-modal v-model:show="showAdminPasswordModal" :closable="false" :closeOnEsc="false" :maskClosable="false"
       preset="dialog" :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
@@ -118,10 +120,10 @@ onMounted(async () => {
         </n-button>
       </template>
     </n-modal>
-    <n-tabs v-if="showAdminPage" class="workspace-tabs admin-workspace-tabs" type="card" v-model:value="adminTab"
-      :placement="globalTabplacement">
+    <n-tabs v-if="showAdminPage" class="workspace-tabs admin-workspace-tabs" type="card"
+      v-model:value="adminTab" :placement="tabPlacement">
       <n-tab-pane name="qucickSetup" :tab="t('qucickSetup')">
-        <n-tabs class="nested-tabs" type="bar" justify-content="center" animated>
+        <n-tabs type="bar" justify-content="center" animated>
           <n-tab-pane name="database" :tab="t('database')">
             <DatabaseManager />
           </n-tab-pane>
@@ -137,7 +139,7 @@ onMounted(async () => {
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="account" :tab="t('account')">
-        <n-tabs class="nested-tabs" type="bar" justify-content="center" animated>
+        <n-tabs type="bar" justify-content="center" animated>
           <n-tab-pane name="account" :tab="t('account')">
             <Account />
           </n-tab-pane>
@@ -162,7 +164,7 @@ onMounted(async () => {
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="user" :tab="t('user')">
-        <n-tabs class="nested-tabs" type="bar" justify-content="center" animated>
+        <n-tabs type="bar" justify-content="center" animated>
           <n-tab-pane name="user_management" :tab="t('user_management')">
             <UserManagement />
           </n-tab-pane>
@@ -178,7 +180,7 @@ onMounted(async () => {
         </n-tabs>
       </n-tab-pane>
       <n-tab-pane name="mails" :tab="t('mails')">
-        <n-tabs class="nested-tabs" type="bar" justify-content="center" animated>
+        <n-tabs type="bar" justify-content="center" animated>
           <n-tab-pane name="mails" :tab="t('mails')">
             <Mails />
           </n-tab-pane>
@@ -203,7 +205,7 @@ onMounted(async () => {
         <Statistics />
       </n-tab-pane>
       <n-tab-pane name="maintenance" :tab="t('maintenance')">
-        <n-tabs class="nested-tabs" type="bar" justify-content="center" animated>
+        <n-tabs type="bar" justify-content="center" animated>
           <n-tab-pane name="database" :tab="t('database')">
             <DatabaseManager />
           </n-tab-pane>
@@ -244,7 +246,7 @@ onMounted(async () => {
         </n-button>
       </template>
     </n-modal>
-  </main>
+  </div>
 </template>
 
 <style scoped>

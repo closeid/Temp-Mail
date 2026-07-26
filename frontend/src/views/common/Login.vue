@@ -4,7 +4,6 @@ import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router'
 import { NewLabelOutlined, EmailOutlined } from '@vicons/material'
 
-import AdminContact from '../common/AdminContact.vue'
 import Turnstile from '../../components/Turnstile.vue'
 
 import { useGlobalState } from '../../store'
@@ -12,10 +11,22 @@ import { api } from '../../api'
 import { getRouterPathWithLang, hashPassword } from '../../utils'
 
 const props = defineProps({
+    loginOnly: {
+        type: Boolean,
+        default: false,
+    },
+    preferCredential: {
+        type: Boolean,
+        default: false,
+    },
+    bindAfterLogin: {
+        type: Boolean,
+        default: true,
+    },
     bindUserAddress: {
         type: Function,
         default: async () => { await api.bindUserAddress(); },
-        required: true
+        required: false
     },
     newAddressPath: {
         type: Function,
@@ -30,9 +41,10 @@ const props = defineProps({
                 }),
             });
         },
-        required: true
+        required: false
     },
 })
+const emit = defineEmits(['authenticated'])
 
 const message = useMessage()
 const notification = useNotification()
@@ -57,10 +69,10 @@ const loginPassword = ref('')
 
 // 根据 openSettings 初始化登录方式
 const initLoginMethod = () => {
-    if (openSettings.value?.enableAddressPassword) {
-        loginMethod.value = 'password';
-    } else {
+    if (props.preferCredential || !openSettings.value?.enableAddressPassword) {
         loginMethod.value = 'credential';
+    } else {
+        loginMethod.value = 'password';
     }
 }
 
@@ -82,11 +94,14 @@ const login = async () => {
             });
             jwt.value = res.jwt;
             await api.getSettings();
-            try {
-                await props.bindUserAddress();
-            } catch (error) {
-                message.error(`${t('bindUserAddressError')}: ${error.message}`);
+            if (props.bindAfterLogin) {
+                try {
+                    await props.bindUserAddress();
+                } catch (error) {
+                    message.error(`${t('bindUserAddressError')}: ${error.message}`);
+                }
             }
+            emit('authenticated')
             await router.push(getRouterPathWithLang("/", locale.value));
         } catch (error) {
             message.error(error.message || "error");
@@ -108,11 +123,14 @@ const login = async () => {
         });
         jwt.value = credential.value;
         await api.getSettings();
-        try {
-            await props.bindUserAddress();
-        } catch (error) {
-            message.error(`${t('bindUserAddressError')}: ${error.message}`);
+        if (props.bindAfterLogin) {
+            try {
+                await props.bindUserAddress();
+            } catch (error) {
+                message.error(`${t('bindUserAddressError')}: ${error.message}`);
+            }
         }
+        emit('authenticated')
         await router.push(getRouterPathWithLang("/", locale.value));
     } catch (error) {
         message.error(error.message || "error");
@@ -229,13 +247,9 @@ const domainsOptions = computed(() => {
     });
 });
 
-const showNewAddressTab = computed(() => {
-    if (openSettings.value.disableAnonymousUserCreateEmail
-        && !userSettings.value.user_email
-    ) {
-        return false;
-    }
-    return openSettings.value.enableUserCreateEmail;
+const canCreateNewAddress = computed(() => {
+    return openSettings.value.enableUserCreateEmail
+        && (!openSettings.value.disableAnonymousUserCreateEmail || userSettings.value.user_email);
 });
 
 onMounted(async () => {
@@ -248,11 +262,13 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div>
+    <section class="auth-panel">
         <n-alert v-if="userSettings.user_email" :show-icon="false" :bordered="false" closable>
             <span>{{ t('bindUserInfo') }}</span>
         </n-alert>
-        <n-tabs v-if="openSettings.fetched" v-model:value="tabValue" size="large" justify-content="space-evenly">
+        <n-tabs v-if="openSettings.fetched" class="auth-tabs" :class="{ 'auth-tabs--single': loginOnly }"
+            v-model:value="tabValue" size="large"
+            justify-content="space-evenly">
             <n-tab-pane name="signin" :tab="loginAndBindTag">
                 <n-form>
                     <div v-if="loginMethod === 'password'">
@@ -282,13 +298,14 @@ onMounted(async () => {
                         </n-button>
                     </div>
 
-                    <n-button @click="login" :loading="loading" type="primary" block secondary strong>
+                    <n-button class="auth-submit" @click="login" :loading="loading" type="primary" block strong>
                         <template #icon>
                             <n-icon :component="EmailOutlined" />
                         </template>
                         {{ loginAndBindTag }}
                     </n-button>
-                    <n-button v-if="showNewAddressTab" @click="tabValue = 'register'" block secondary strong>
+                    <n-button v-if="!loginOnly" class="auth-register-button" @click="tabValue = 'register'" block
+                        secondary strong>
                         <template #icon>
                             <n-icon :component="NewLabelOutlined" />
                         </template>
@@ -296,8 +313,11 @@ onMounted(async () => {
                     </n-button>
                 </n-form>
             </n-tab-pane>
-            <n-tab-pane v-if="showNewAddressTab" name="register" :tab="t('getNewEmail')">
-                <n-spin :show="generateNameLoading">
+            <n-tab-pane v-if="!loginOnly" name="register" :tab="t('getNewEmail')">
+                <n-alert v-if="!canCreateNewAddress" type="warning" :show-icon="false" :bordered="false">
+                    {{ t('createEmailUnavailable') }}
+                </n-alert>
+                <n-spin v-else :show="generateNameLoading">
                     <n-form>
                         <span>
                             <p v-if="!openSettings.disableCustomAddressName">{{ t("getNewEmailTip1") +
@@ -329,7 +349,7 @@ onMounted(async () => {
                             </p>
                         </n-form-item-row>
                         <Turnstile v-model:value="cfToken" />
-                        <n-button type="primary" block secondary strong @click="newEmail" :loading="loading">
+                        <n-button class="auth-submit" type="primary" block strong @click="newEmail" :loading="loading">
                             <template #icon>
                                 <n-icon :component="NewLabelOutlined" />
                             </template>
@@ -338,14 +358,8 @@ onMounted(async () => {
                     </n-form>
                 </n-spin>
             </n-tab-pane>
-            <n-tab-pane name="help" :tab="t('help')">
-                <n-alert :show-icon="false" :bordered="false">
-                    <span>{{ t('pleaseGetNewEmail') }}</span>
-                </n-alert>
-                <AdminContact />
-            </n-tab-pane>
         </n-tabs>
-    </div>
+    </section>
 </template>
 
 

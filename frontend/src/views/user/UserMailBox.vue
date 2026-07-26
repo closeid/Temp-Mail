@@ -60,8 +60,8 @@ onMounted(() => {
 </script>
 
 <template>
-    <div style="margin-top: 10px;">
-        <n-input-group>
+    <div class="user-mailbox-view">
+        <n-input-group class="user-mailbox-filter">
             <n-select v-model:value="addressFilter" :options="addressFilterOptions" clearable
                 :placeholder="t('addressQueryTip')" />
             <n-button @click="queryMail" type="primary" tertiary>

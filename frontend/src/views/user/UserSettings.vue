@@ -157,7 +157,7 @@ const renamePasskey = async () => {
 
 <template>
     <div class="center" v-if="userSettings.user_email">
-        <n-card :bordered="false" embedded>
+        <n-card class="settings-card" :bordered="false" embedded>
             <n-button @click="showPasskeyList = true; fetchPasskeyList();" secondary block strong>
                 {{ t('showPasskeyList') }}
             </n-button>

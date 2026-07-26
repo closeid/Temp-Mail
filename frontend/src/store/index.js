@@ -37,8 +37,6 @@ export const useGlobalState = createGlobalState(
             enableWebhook: false,
             isS3Enabled: false,
             enableSendMail: false,
-            showGithub: true,
-            showGithubForUser: true,
             disableAdminPasswordCheck: false,
             enableAddressPassword: false,
             enableAgentEmailInfo: false,
@@ -87,17 +85,17 @@ export const useGlobalState = createGlobalState(
         const adminTab = useSessionStorage('adminTab', "account");
         const adminMailTabAddress = ref("");
         const adminSendBoxTabAddress = ref("");
-        const mailboxSplitSize = useStorage('mailboxSplitSize', 0.25);
-        const mailListView = useStorage('mailListView', false);
-        const mailListPreviewLineClamp = useStorage('mailListPreviewLineClamp', 2);
+        const mailboxSplitSize = useStorage('mailboxSplitSize', 0.32);
+        const mailListView = useStorage('mailListView', true);
+        const mailListPreviewLineClamp = useStorage('mailListPreviewLineClamp', 1);
         const useIframeShowMail = useStorage('useIframeShowMail', false);
         const preferShowTextMail = useStorage('preferShowTextMail', false);
         const userJwt = useStorage('userJwt', '');
         const preferredLocale = useStorage('preferredLocale', '');
         const userTab = useSessionStorage('userTab', 'address_management');
         const indexTab = useSessionStorage('indexTab', 'mailbox');
-        const globalTabplacement = useStorage('globalTabplacement', 'top');
-        const useSideMargin = useStorage('useSideMargin', true);
+        const globalTabplacement = useStorage('globalTabplacement', 'left');
+        const useSideMargin = useStorage('useSideMargin', false);
         const useUTCDate = useStorage('useUTCDate', false);
         const autoRefresh = useStorage('autoRefresh', false);
         const configAutoRefreshInterval = useStorage("configAutoRefreshInterval", 60);

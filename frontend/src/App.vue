@@ -5,82 +5,64 @@ import {
 import { computed, onMounted, watchEffect } from 'vue'
 import { useScript } from '@unhead/vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
 import Footer from './views/Footer.vue';
-import { api } from './api'
+import SiteAccessGuard from './components/SiteAccessGuard.vue'
 import { getNaiveLocaleConfig } from './i18n/naive-locale'
 import { DEFAULT_LOCALE, isSupportedLocale } from './i18n/utils'
 
 const {
-  isDark, loading, useSideMargin, telegramApp, isTelegram
+  isDark, loading, useSideMargin, telegramApp, isTelegram, settings, userSettings
 } = useGlobalState()
 const adClient = import.meta.env.VITE_GOOGLE_AD_CLIENT;
 const adSlot = import.meta.env.VITE_GOOGLE_AD_SLOT;
 const { locale } = useI18n({ useScope: 'global' });
+const route = useRoute()
 const theme = computed(() => isDark.value ? darkTheme : null)
-const sharedThemeOverrides = {
+const themeOverrides = computed(() => ({
   common: {
-    borderRadius: '7px',
-    borderRadiusSmall: '5px',
+    primaryColor: isDark.value ? '#a8c7fa' : '#0b57d0',
+    primaryColorHover: isDark.value ? '#c2d7f8' : '#0842a0',
+    primaryColorPressed: isDark.value ? '#8ab4f8' : '#062e6f',
+    primaryColorSuppl: isDark.value ? '#a8c7fa' : '#0b57d0',
+    borderRadius: '8px',
+    borderRadiusSmall: '6px',
     fontFamily: '"Segoe UI Variable", "SF Pro Text", "Noto Sans SC", "Microsoft YaHei", sans-serif',
-    fontSize: '14px',
-    primaryColor: '#1677a8',
-    primaryColorHover: '#11678f',
-    primaryColorPressed: '#0d5678',
-    primaryColorSuppl: '#1677a8',
-    infoColor: '#1677a8',
-    successColor: '#24835b',
-    warningColor: '#a76818',
-    errorColor: '#c43d4b',
   },
   Button: {
-    borderRadiusSmall: '5px',
-    borderRadiusMedium: '7px',
-    borderRadiusLarge: '7px',
-    fontWeight: '600',
+    borderRadiusMedium: '8px',
+    borderRadiusSmall: '7px',
   },
   Card: {
     borderRadius: '8px',
-    paddingMedium: '18px',
-  },
-  Input: {
-    borderRadius: '7px',
-  },
-  Select: {
-    peers: {
-      InternalSelection: {
-        borderRadius: '7px',
-      },
-    },
-  },
-  Tag: {
-    borderRadius: '5px',
-  },
-  Tabs: {
-    tabFontSizeMedium: '13px',
-  },
-}
-
-const themeOverrides = computed(() => ({
-  ...sharedThemeOverrides,
-  common: {
-    ...sharedThemeOverrides.common,
-    bodyColor: isDark.value ? '#181a1d' : '#f3f5f7',
-    cardColor: isDark.value ? '#222529' : '#fdfdfd',
-    modalColor: isDark.value ? '#222529' : '#fdfdfd',
-    popoverColor: isDark.value ? '#26292e' : '#fdfdfd',
-    tableColor: isDark.value ? '#222529' : '#fdfdfd',
-    borderColor: isDark.value ? '#373b41' : '#dfe3e8',
-    dividerColor: isDark.value ? '#30343a' : '#e7eaee',
   },
 }))
 const localeConfig = computed(() => getNaiveLocaleConfig(isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE))
+const isUserAuthView = computed(() => {
+  const isUserRoute = route.path === '/user' || route.path.endsWith('/user')
+  return isUserRoute && !isTelegram.value && !userSettings.value.user_email
+})
+const isHomeAuthView = computed(() => {
+  return route.name === 'home'
+    && !isTelegram.value
+    && !settings.value.address
+    && !userSettings.value.user_email
+})
+const isAuthView = computed(() => isUserAuthView.value || isHomeAuthView.value)
 const isMobile = useIsMobile()
-const showSideMargin = computed(() => !isMobile.value && useSideMargin.value);
-const showAd = computed(() => !isMobile.value && adClient && adSlot);
+const showSideMargin = computed(() => !isAuthView.value && !isMobile.value && useSideMargin.value);
+const showAd = computed(() => !isAuthView.value && !isMobile.value && adClient && adSlot);
 const gridMaxCols = computed(() => showAd.value ? 8 : 12);
+const isWorkspaceView = computed(() => {
+  if (isAuthView.value) return false
+  return !!settings.value.address
+    || !!userSettings.value.user_email
+    || route.path === '/admin'
+    || route.path.endsWith('/admin')
+})
 
 watchEffect(() => {
   if (typeof document === 'undefined') return
@@ -97,12 +79,6 @@ if (showAd.value) {
 }
 
 onMounted(async () => {
-  try {
-    await api.getUserSettings();
-  } catch (error) {
-    console.error(error);
-  }
-
   const token = import.meta.env.VITE_CF_WEB_ANALY_TOKEN;
 
   const exist = document.querySelector('script[src="https://static.cloudflareinsights.com/beacon.min.js"]') !== null
@@ -148,6 +124,7 @@ onMounted(async () => {
     <n-spin description="loading..." :show="loading">
       <n-notification-provider container-style="margin-top: 60px;">
         <n-message-provider container-style="margin-top: 20px;">
+          <SiteAccessGuard />
           <n-grid class="app-grid" x-gap="12" :cols="gridMaxCols">
             <n-gi v-if="showSideMargin" span="1">
               <div class="side" v-if="showAd">
@@ -156,13 +133,19 @@ onMounted(async () => {
               </div>
             </n-gi>
             <n-gi :span="!showSideMargin ? gridMaxCols : (gridMaxCols - 2)">
-              <div class="app-main">
+              <div class="app-main" :class="{ 'app-main--auth': isAuthView }">
                 <n-space class="app-stack" vertical>
                   <n-layout class="app-layout">
-                    <Header />
-                    <router-view></router-view>
+                    <Header v-if="!isAuthView" />
+                    <main class="app-shell" :class="{
+                      'app-shell--auth': isAuthView,
+                      'app-shell--workspace': isWorkspaceView,
+                      'app-shell--welcome': !isAuthView && !isWorkspaceView,
+                    }">
+                      <router-view></router-view>
+                    </main>
                   </n-layout>
-                  <Footer />
+                  <Footer v-if="!isAuthView" />
                 </n-space>
               </div>
             </n-gi>
@@ -183,8 +166,8 @@ onMounted(async () => {
 
 <style>
 .n-switch {
-  margin-left: 4px;
-  margin-right: 4px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 @media (hover: none) and (pointer: coarse) and (max-width: 1024px) {
@@ -201,22 +184,5 @@ onMounted(async () => {
 <style scoped>
 .side {
   min-height: 100dvh;
-}
-
-.app-main {
-  min-height: 100dvh;
-  text-align: left;
-}
-
-.n-grid {
-  height: 100%;
-}
-
-.n-gi {
-  height: 100%;
-}
-
-.app-stack {
-  height: 100%;
 }
 </style>

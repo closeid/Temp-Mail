@@ -1,12 +1,15 @@
 <script setup>
-import { defineAsyncComponent, onMounted, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, watch } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import { useRoute } from 'vue-router'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
-import { useIsMobile } from '../utils/composables'
-import { FullscreenExitOutlined } from '@vicons/material'
+import { useIsMobile, useResponsiveTabPlacement } from '../utils/composables'
+import {
+  AttachmentRound, EditRound, FullscreenExitOutlined, InboxRound, InfoRound,
+  ManageAccountsRound, PaletteRound, ReplyRound, SendRound, WebhookRound,
+} from '@vicons/material'
 
 import AddressBar from './index/AddressBar.vue';
 import MailBox from '../components/MailBox.vue';
@@ -18,11 +21,22 @@ import Webhook from './index/Webhook.vue';
 import Attachment from './index/Attachment.vue';
 import About from './common/About.vue';
 import SimpleIndex from './index/SimpleIndex.vue';
+import WorkspaceTabLabel from '../components/WorkspaceTabLabel.vue';
+import HomeAuth from './HomeAuth.vue';
 
-const { loading, settings, openSettings, indexTab, globalTabplacement, useSimpleIndex } = useGlobalState()
+const {
+  loading, settings, openSettings, indexTab, globalTabplacement, useSimpleIndex,
+  userSettings, isTelegram,
+} = useGlobalState()
 const message = useMessage()
 const route = useRoute()
 const isMobile = useIsMobile()
+const tabPlacement = useResponsiveTabPlacement(globalTabplacement)
+const sessionReady = computed(() => settings.value.fetched && userSettings.value.fetched)
+const showHomeAuth = computed(() => sessionReady.value
+  && !isTelegram.value
+  && !settings.value.address
+  && !userSettings.value.user_email)
 
 const SendMail = defineAsyncComponent(() => {
   loading.value = true;
@@ -89,7 +103,8 @@ watch(route, () => {
   }
 })
 
-onMounted(() => {
+onMounted(async () => {
+  await api.getSettings()
   if (route.query.mail_id) {
     showMailIdQuery.value = true;
     mailIdQuery.value = route.query.mail_id;
@@ -99,14 +114,20 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="app-shell" :class="{ 'app-shell--mail': settings.address, 'app-shell--welcome': !settings.address }">
-    <div v-if="useSimpleIndex">
+  <div class="mail-workspace">
+    <HomeAuth v-if="showHomeAuth" />
+    <section v-else-if="!sessionReady" class="home-auth-shell">
+      <n-card class="home-auth-card" :bordered="false" embedded>
+        <n-skeleton text :repeat="6" />
+      </n-card>
+    </section>
+    <div v-else-if="useSimpleIndex">
       <SimpleIndex />
     </div>
-    <div v-else class="mail-workspace">
+    <div v-else>
       <AddressBar />
       <n-tabs v-if="settings.address" class="workspace-tabs" type="card" v-model:value="indexTab"
-        :placement="globalTabplacement">
+        :placement="tabPlacement">
         <template #prefix v-if="!isMobile">
           <n-button @click="useSimpleIndex = true" tertiary size="small">
             <template #icon>
@@ -117,7 +138,10 @@ onMounted(() => {
             {{ t('enterSimpleMode') }}
           </n-button>
         </template>
-        <n-tab-pane class="workspace-pane workspace-pane--mail" name="mailbox" :tab="t('mailbox')">
+        <n-tab-pane name="mailbox" class="workspace-pane workspace-pane--mail">
+          <template #tab>
+            <WorkspaceTabLabel :icon="InboxRound" :label="t('mailbox')" />
+          </template>
           <div v-if="showMailIdQuery" style="margin-bottom: 10px;">
             <n-input-group>
               <n-input v-model:value="mailIdQuery" />
@@ -130,33 +154,56 @@ onMounted(() => {
             :saveToS3="saveToS3" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
             :fetchMailData="fetchMailData" :deleteMail="deleteMail" :showFilterInput="true" />
         </n-tab-pane>
-        <n-tab-pane v-if="openSettings.enableSendMail" class="workspace-pane workspace-pane--mail" name="sendbox"
-          :tab="t('sendbox')">
+        <n-tab-pane v-if="openSettings.enableSendMail" name="sendbox" class="workspace-pane workspace-pane--mail">
+          <template #tab>
+            <WorkspaceTabLabel :icon="SendRound" :label="t('sendbox')" />
+          </template>
           <SendBox :fetchMailData="fetchSenboxData" :enableUserDeleteEmail="openSettings.enableUserDeleteEmail"
             :deleteMail="deleteSenboxMail" />
         </n-tab-pane>
-        <n-tab-pane v-if="openSettings.enableSendMail" class="workspace-pane" name="sendmail" :tab="t('sendmail')">
+        <n-tab-pane v-if="openSettings.enableSendMail" name="sendmail" class="workspace-pane">
+          <template #tab>
+            <WorkspaceTabLabel :icon="EditRound" :label="t('sendmail')" />
+          </template>
           <SendMail />
         </n-tab-pane>
-        <n-tab-pane class="workspace-pane" name="accountSettings" :tab="t('accountSettings')">
+        <n-tab-pane name="accountSettings" class="workspace-pane">
+          <template #tab>
+            <WorkspaceTabLabel :icon="ManageAccountsRound" :label="t('accountSettings')" />
+          </template>
           <AccountSettings />
         </n-tab-pane>
-        <n-tab-pane class="workspace-pane" name="appearance" :tab="t('appearance')">
+        <n-tab-pane name="appearance" class="workspace-pane">
+          <template #tab>
+            <WorkspaceTabLabel :icon="PaletteRound" :label="t('appearance')" />
+          </template>
           <Appearance :showUseSimpleIndex="true" />
         </n-tab-pane>
-        <n-tab-pane v-if="openSettings.enableAutoReply" class="workspace-pane" name="auto_reply" :tab="t('auto_reply')">
+        <n-tab-pane v-if="openSettings.enableAutoReply" name="auto_reply" class="workspace-pane">
+          <template #tab>
+            <WorkspaceTabLabel :icon="ReplyRound" :label="t('auto_reply')" />
+          </template>
           <AutoReply />
         </n-tab-pane>
-        <n-tab-pane v-if="openSettings.enableWebhook" class="workspace-pane" name="webhook" :tab="t('webhookSettings')">
+        <n-tab-pane v-if="openSettings.enableWebhook" name="webhook" class="workspace-pane">
+          <template #tab>
+            <WorkspaceTabLabel :icon="WebhookRound" :label="t('webhookSettings')" />
+          </template>
           <Webhook />
         </n-tab-pane>
-        <n-tab-pane v-if="openSettings.isS3Enabled" class="workspace-pane" name="s3_attachment" :tab="t('s3Attachment')">
+        <n-tab-pane v-if="openSettings.isS3Enabled" name="s3_attachment" class="workspace-pane">
+          <template #tab>
+            <WorkspaceTabLabel :icon="AttachmentRound" :label="t('s3Attachment')" />
+          </template>
           <Attachment />
         </n-tab-pane>
-        <n-tab-pane v-if="openSettings.enableIndexAbout" class="workspace-pane" name="about" :tab="t('about')">
+        <n-tab-pane v-if="openSettings.enableIndexAbout" name="about" class="workspace-pane">
+          <template #tab>
+            <WorkspaceTabLabel :icon="InfoRound" :label="t('about')" />
+          </template>
           <About />
         </n-tab-pane>
       </n-tabs>
     </div>
-  </main>
+  </div>
 </template>

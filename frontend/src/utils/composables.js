@@ -6,3 +6,8 @@ export function useIsMobile() {
         return breakpointRef.value === 'xs'
     })
 }
+
+export function useResponsiveTabPlacement(placementRef) {
+    const isMobile = useIsMobile()
+    return useMemo(() => isMobile.value ? 'top' : placementRef.value)
+}

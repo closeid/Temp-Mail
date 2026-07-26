@@ -46,10 +46,10 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
       },
       manifest: {
-        name: 'Temp Email',
-        short_name: 'Temp Email',
-        description: 'Temp Email - Temporary Email',
-        theme_color: '#ffffff',
+        name: 'Get an Email',
+        short_name: 'Get an Email',
+        description: 'Get an Email',
+        theme_color: '#f6f8fc',
         icons: [
           {
             src: '/logo.png',
@@ -67,8 +67,5 @@ export default defineConfig({
         replacement: fileURLToPath(new URL('./src', import.meta.url))
       }
     ]
-  },
-  define: {
-    'import.meta.env.PACKAGE_VERSION': JSON.stringify(process.env.npm_package_version),
   }
 })

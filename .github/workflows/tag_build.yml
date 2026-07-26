@@ -1,16 +1,47 @@
 name: Tag Build CI
 
 on:
-  push:
-    tags:
-      - "*"
+  workflow_run:
+    workflows: [Upstream Sync]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: tag-build-release
+  cancel-in-progress: false
 
 jobs:
+  prepare-release:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      commit_sha: ${{ steps.release.outputs.commit_sha }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - name: Checkout release source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_run' && github.event.repository.default_branch || github.ref }}
+
+      - name: Generate release tag
+        id: release
+        env:
+          TZ: Asia/Shanghai
+        run: |
+          echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "tag_name=v$(date +'%Y%m%d-%H%M%S')" >> "$GITHUB_OUTPUT"
+
   build-frontend:
+    needs: prepare-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare-release.outputs.commit_sha }}
 
       - name: Install Node.js
         uses: actions/setup-node@v6
@@ -36,10 +67,13 @@ jobs:
           path: frontend/frontend.zip
 
   build-telegram-frontend:
+    needs: prepare-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare-release.outputs.commit_sha }}
 
       - name: Install Node.js
         uses: actions/setup-node@v6
@@ -65,10 +99,13 @@ jobs:
           path: frontend/telegram-frontend.zip
 
   build-backend:
+    needs: prepare-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare-release.outputs.commit_sha }}
 
       - name: Install Node.js
         uses: actions/setup-node@v6
@@ -114,25 +151,40 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: [build-frontend, build-telegram-frontend, build-backend]
+    needs: [prepare-release, build-frontend, build-telegram-frontend, build-backend]
     permissions:
       contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare-release.outputs.commit_sha }}
 
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
           path: artifacts
 
-      - name: Upload Assets to Release
+      - name: Create Release and upload assets
         run: |
-          gh release upload "${{ github.ref_name }}" \
-            artifacts/frontend/frontend.zip \
-            artifacts/telegram-frontend/telegram-frontend.zip \
-            artifacts/worker-js/worker.js \
-            artifacts/worker-wasm/worker-with-wasm-mail-parser.zip \
-            --clobber
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" \
+              artifacts/frontend/frontend.zip \
+              artifacts/telegram-frontend/telegram-frontend.zip \
+              artifacts/worker-js/worker.js \
+              artifacts/worker-wasm/worker-with-wasm-mail-parser.zip \
+              --clobber
+          else
+            gh release create "$TAG_NAME" \
+              artifacts/frontend/frontend.zip \
+              artifacts/telegram-frontend/telegram-frontend.zip \
+              artifacts/worker-js/worker.js \
+              artifacts/worker-wasm/worker-with-wasm-mail-parser.zip \
+              --target "$COMMIT_SHA" \
+              --title "$TAG_NAME" \
+              --generate-notes
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_SHA: ${{ needs.prepare-release.outputs.commit_sha }}
+          TAG_NAME: ${{ needs.prepare-release.outputs.tag_name }}

@@ -2,7 +2,7 @@
 import { useMessage } from 'naive-ui'
 import { onMounted, ref } from "vue";
 import { useScopedI18n } from '@/i18n/app'
-import { KeyFilled } from '@vicons/material'
+import { EmailOutlined, KeyFilled, LogInRound, PersonAddRound } from '@vicons/material'
 
 import { api } from '../../api';
 import { useGlobalState } from '../../store'
@@ -10,6 +10,7 @@ import { hashPassword } from '../../utils';
 import { startAuthentication } from '@simplewebauthn/browser';
 
 import Turnstile from '../../components/Turnstile.vue';
+import AddressLogin from '../common/Login.vue';
 
 const {
     userJwt, userOpenSettings, openSettings,
@@ -20,7 +21,8 @@ const message = useMessage();
 const { t } = useScopedI18n('views.user.UserLogin')
 
 const tabValue = ref("signin");
-const showModal = ref(false);
+const showForgotPassword = ref(false);
+const showAddressLogin = ref(false);
 const user = ref({
     email: "",
     password: "",
@@ -69,7 +71,7 @@ const sendVerificationCode = async () => {
         message.error(t('pleaseInputEmail'));
         return;
     }
-    const currentCfToken = showModal.value ? resetCfToken.value : signupCfToken.value;
+    const currentCfToken = showForgotPassword.value ? resetCfToken.value : signupCfToken.value;
     if (openSettings.value.cfTurnstileSiteKey && !currentCfToken && userOpenSettings.value.enableMailVerify) {
         message.error(t('pleaseCompleteTurnstile'));
         return;
@@ -96,7 +98,7 @@ const sendVerificationCode = async () => {
     } catch (error) {
         message.error(error.message || "send verification code failed");
     }
-    if (showModal.value) {
+    if (showForgotPassword.value) {
         resetTurnstileRef.value?.refresh?.();
     } else {
         signupTurnstileRef.value?.refresh?.();
@@ -120,7 +122,7 @@ const emailSignup = async () => {
                 // hash password
                 password: await hashPassword(user.value.password),
                 code: user.value.code,
-                cf_token: showModal.value ? resetCfToken.value : signupCfToken.value
+                cf_token: showForgotPassword.value ? resetCfToken.value : signupCfToken.value
             }),
             message: message
         });
@@ -128,7 +130,7 @@ const emailSignup = async () => {
             tabValue.value = "signin";
             message.success(t('pleaseLogin'));
         }
-        showModal.value = false;
+        showForgotPassword.value = false;
     } catch (error) {
         message.error(error.message || "register failed");
     }
@@ -174,13 +176,17 @@ const oauth2Login = async (clientID) => {
 };
 
 onMounted(async () => {
-
+    await api.getUserOpenSettings(message);
 });
 </script>
 
 <template>
-    <div class="center">
-        <n-tabs v-model:value="tabValue" size="large" v-if="userOpenSettings.fetched" justify-content="space-evenly">
+    <section class="auth-panel">
+        <div class="auth-brand">
+            <n-avatar class="auth-brand__logo" src="/logo.png" />
+        </div>
+        <n-tabs class="auth-tabs" v-model:value="tabValue" size="large" type="line"
+            v-if="userOpenSettings.fetched" justify-content="space-evenly">
             <n-tab-pane name="signin" :tab="t('login')">
                 <n-form>
                     <n-form-item-row :label="t('email')" required>
@@ -191,13 +197,25 @@ onMounted(async () => {
                             @keyup.enter="emailLogin" />
                     </n-form-item-row>
                     <Turnstile ref="loginTurnstileRef" v-if="openSettings.enableGlobalTurnstileCheck" v-model:value="loginCfToken" />
-                    <n-button @click="emailLogin" type="primary" block secondary strong>
+                    <n-button class="auth-submit" @click="emailLogin" type="primary" block strong>
+                        <template #icon>
+                            <n-icon :component="LogInRound" />
+                        </template>
                         {{ t('login') }}
                     </n-button>
-                    <n-button @click="showModal = true" type="info" quaternary size="tiny">
-                        {{ t('forgotPassword') }}
-                    </n-button>
+                    <div class="auth-forgot-password">
+                        <n-button @click="showForgotPassword = true" type="info" quaternary size="tiny">
+                            {{ t('forgotPassword') }}
+                        </n-button>
+                    </div>
                     <n-divider />
+                    <n-button class="auth-method-button" @click="showAddressLogin = true" type="primary" block
+                        secondary strong>
+                        <template #icon>
+                            <n-icon :component="EmailOutlined" />
+                        </template>
+                        {{ t('loginWithAddressCredential') }}
+                    </n-button>
                     <n-button @click="passkeyLogin" type="primary" block secondary strong>
                         <template #icon>
                             <n-icon :component="KeyFilled" />
@@ -213,34 +231,50 @@ onMounted(async () => {
                     </n-button>
                 </n-form>
             </n-tab-pane>
-            <n-tab-pane v-if="userOpenSettings.enable" name="signup" :tab="t('register')">
-                <n-form>
-                    <n-form-item-row :label="t('email')" required>
-                        <n-input v-model:value="user.email" />
-                    </n-form-item-row>
-                    <n-form-item-row :label="t('password')" required>
-                        <n-input v-model:value="user.password" type="password" show-password-on="click"
-                            @keyup.enter="emailSignup" />
-                    </n-form-item-row>
-                    <Turnstile ref="signupTurnstileRef" v-if="userOpenSettings.enableMailVerify" v-model:value="signupCfToken" />
-                    <n-form-item-row v-if="userOpenSettings.enableMailVerify" :label="t('verifyCode')" required>
-                        <n-input-group>
-                            <n-input v-model:value="user.code" />
-                            <n-button @click="sendVerificationCode" style="margin-bottom: 0" type="primary" ghost
-                                :disabled="verifyCodeTimeout > 0">
-                                {{ verifyCodeTimeout > 0 ? t('waitforVerifyCode', { timeout: verifyCodeTimeout })
-                                    : t('sendVerificationCode') }}
-                            </n-button>
-                        </n-input-group>
-                    </n-form-item-row>
-                    <Turnstile ref="signupTurnstileRef" v-if="!userOpenSettings.enableMailVerify" v-model:value="signupCfToken" />
-                </n-form>
-                <n-button @click="emailSignup" type="primary" block secondary strong>
-                    {{ t('register') }}
-                </n-button>
+            <n-tab-pane name="signup" :tab="t('register')">
+                <n-alert v-if="!userOpenSettings.enable" type="warning" :show-icon="false" :bordered="false">
+                    {{ t('registrationUnavailable') }}
+                </n-alert>
+                <template v-else>
+                    <n-form>
+                        <n-form-item-row :label="t('email')" required>
+                            <n-input v-model:value="user.email" />
+                        </n-form-item-row>
+                        <n-form-item-row :label="t('password')" required>
+                            <n-input v-model:value="user.password" type="password" show-password-on="click"
+                                @keyup.enter="emailSignup" />
+                        </n-form-item-row>
+                        <Turnstile ref="signupTurnstileRef" v-if="userOpenSettings.enableMailVerify"
+                            v-model:value="signupCfToken" />
+                        <n-form-item-row v-if="userOpenSettings.enableMailVerify" :label="t('verifyCode')" required>
+                            <n-input-group>
+                                <n-input v-model:value="user.code" />
+                                <n-button @click="sendVerificationCode" style="margin-bottom: 0" type="primary" ghost
+                                    :disabled="verifyCodeTimeout > 0">
+                                    {{ verifyCodeTimeout > 0 ? t('waitforVerifyCode', { timeout: verifyCodeTimeout })
+                                        : t('sendVerificationCode') }}
+                                </n-button>
+                            </n-input-group>
+                        </n-form-item-row>
+                        <Turnstile ref="signupTurnstileRef" v-if="!userOpenSettings.enableMailVerify"
+                            v-model:value="signupCfToken" />
+                    </n-form>
+                    <n-button class="auth-submit" @click="emailSignup" type="primary" block strong>
+                        <template #icon>
+                            <n-icon :component="PersonAddRound" />
+                        </template>
+                        {{ t('register') }}
+                    </n-button>
+                </template>
             </n-tab-pane>
         </n-tabs>
-        <n-modal v-model:show="showModal" style="max-width: 600px;" preset="card" :title="t('forgotPassword')">
+        <n-modal v-model:show="showAddressLogin" preset="card" :title="t('loginWithAddressCredential')"
+            style="width: min(92vw, 460px);">
+            <AddressLogin login-only prefer-credential :bind-after-login="false"
+                @authenticated="showAddressLogin = false" />
+        </n-modal>
+        <n-modal v-model:show="showForgotPassword" style="max-width: 600px;" preset="card"
+            :title="t('forgotPassword')">
             <n-form v-if="userOpenSettings.enable && userOpenSettings.enableMailVerify">
                 <n-form-item-row :label="t('email')" required>
                     <n-input v-model:value="user.email" />
@@ -270,17 +304,10 @@ onMounted(async () => {
                 </span>
             </n-alert>
         </n-modal>
-    </div>
+    </section>
 </template>
 
 <style scoped>
-.center {
-    display: flex;
-    text-align: center;
-    place-items: center;
-    justify-content: center;
-}
-
 .n-button {
     margin-top: 10px;
 }

@@ -5,7 +5,7 @@ import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
 import { useIsMobile } from '../utils/composables'
 import { utcToLocalDate } from '../utils';
-import { SendRound } from '@vicons/material'
+import { CheckBoxRound, RefreshRound, SendRound } from '@vicons/material'
 
 const message = useMessage()
 const isMobile = useIsMobile()
@@ -177,10 +177,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="mailbox sendbox">
-    <div v-if="!isMobile" class="mailbox-desktop">
+  <div class="mailbox sent-mailbox">
+    <div v-if="!isMobile" class="left mailbox-desktop">
       <div class="mailbox-toolbar">
-        <n-space v-if="multiActionMode" class="mailbox-toolbar__group">
+        <n-space v-if="multiActionMode" class="mailbox-toolbar__group" align="center">
           <n-button @click="multiActionModeClick(false)" tertiary>
             {{ t('cancelMultiAction') }}
           </n-button>
@@ -197,8 +197,11 @@ onMounted(async () => {
             {{ t('deleteMailTip') }}
           </n-popconfirm>
         </n-space>
-        <n-space v-else class="mailbox-toolbar__group">
+        <n-space v-else class="mailbox-toolbar__group" align="center">
           <n-button v-if="showMultiActionMode" @click="multiActionModeClick(true)" type="primary" tertiary>
+            <template #icon>
+              <n-icon :component="CheckBoxRound" />
+            </template>
             {{ t('multiAction') }}
           </n-button>
           <div style="display: inline-block; margin-right: 10px;">
@@ -206,6 +209,9 @@ onMounted(async () => {
               :page-sizes="[20, 50, 100]" show-size-picker />
           </div>
           <n-button @click="refresh" type="primary" tertiary>
+            <template #icon>
+              <n-icon :component="RefreshRound" />
+            </template>
             {{ t('refresh') }}
           </n-button>
         </n-space>
@@ -221,24 +227,21 @@ onMounted(async () => {
           <div class="mailbox-list-pane">
             <n-list class="mailbox-list" hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
-                :class="['mailbox-row', mailItemClass(row)]">
+                :class="[mailItemClass(row), 'mailbox-row']">
                 <template #prefix v-if="multiActionMode">
                   <n-checkbox v-model:checked="row.checked" />
                 </template>
-                <n-thing class="mailbox-row__content" :title="row.subject">
+                <n-thing class="mailbox-row__content">
+                  <template #header>
+                    <n-ellipsis class="mailbox-row__subject">{{ row.subject }}</n-ellipsis>
+                    <time class="mailbox-row__date">{{ utcToLocalDate(row.created_at, useUTCDate) }}</time>
+                  </template>
                   <template #description>
-                    <n-tag type="info">
-                      ID: {{ row.id }}
-                    </n-tag>
-                    <n-tag type="info">
-                      {{ utcToLocalDate(row.created_at, useUTCDate) }}
-                    </n-tag>
-                    <n-tag v-if="showEMailFrom" type="info">
-                      FROM: {{ row.address }}
-                    </n-tag>
-                    <n-tag type="info">
-                      TO: {{ row.to_mail }}
-                    </n-tag>
+                    <div class="mailbox-row__meta">
+                      <n-ellipsis v-if="showEMailFrom" class="mailbox-row__sender">FROM: {{ row.address }}</n-ellipsis>
+                      <n-ellipsis class="mailbox-row__recipient">TO: {{ row.to_mail }}</n-ellipsis>
+                      <span class="mailbox-row__id">#{{ row.id }}</span>
+                    </div>
                   </template>
                 </n-thing>
               </n-list-item>
@@ -246,21 +249,16 @@ onMounted(async () => {
           </div>
         </template>
         <template #2>
-          <n-card :bordered="false" embedded v-if="curMail" class="mail-item mailbox-detail-card"
-            :title="curMail.subject">
-            <n-space>
-              <n-tag type="info">
-                ID: {{ curMail.id }}
-              </n-tag>
-              <n-tag type="info">
-                {{ utcToLocalDate(curMail.created_at, useUTCDate) }}
-              </n-tag>
-              <n-tag type="info">
-                FROM: {{ curMail.address }}
-              </n-tag>
-              <n-tag type="info">
-                TO: {{ curMail.to_mail }}
-              </n-tag>
+          <n-card :bordered="false" embedded v-if="curMail"
+            class="mail-item mailbox-detail-card sent-mail-detail-card" :title="curMail.subject">
+            <div class="message-toolbar">
+              <div class="message-meta">
+                <span class="message-meta__sender">{{ curMail.address }}</span>
+                <span>TO: {{ curMail.to_mail }}</span>
+                <time class="message-meta__date">{{ utcToLocalDate(curMail.created_at, useUTCDate) }}</time>
+                <span class="message-meta__id">#{{ curMail.id }}</span>
+              </div>
+              <n-space class="message-actions">
               <n-button size="small" tertiary type="info" @click="showCode = !showCode">
                 {{ t('showCode') }}
               </n-button>
@@ -270,7 +268,8 @@ onMounted(async () => {
                 </template>
                 {{ t('deleteMailTip') }}
               </n-popconfirm>
-            </n-space>
+              </n-space>
+            </div>
             <pre v-if="showCode" style="margin-top: 10px;">{{ curMail.raw }}</pre>
             <pre v-else-if="!curMail.is_html" style="margin-top: 10px;">{{ curMail.content }}</pre>
             <div v-else v-html="curMail.content" style="margin-top: 10px;"></div>
@@ -278,39 +277,39 @@ onMounted(async () => {
           <n-card :bordered="false" embedded class="mail-item mailbox-empty" v-else>
             <n-result status="info" :title="count === 0 ? t('emptySent') : t('pleaseSelectMail')">
               <template #icon>
-                <n-icon :component="SendRound" :size="56" />
+                <n-icon :component="SendRound" :size="100" />
               </template>
             </n-result>
           </n-card>
         </template>
       </n-split>
     </div>
-    <div class="mailbox-mobile" v-else>
-      <div class="mobile-toolbar center">
+    <div class="left mailbox-mobile" v-else>
+      <div class="center mobile-toolbar">
         <div style="display: inline-block; margin-right: 10px;">
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
         </div>
         <n-button @click="refresh" size="small" type="primary">
+          <template #icon>
+            <n-icon :component="RefreshRound" />
+          </template>
           {{ t('refresh') }}
         </n-button>
       </div>
       <div class="mobile-list-pane">
         <n-list class="mailbox-list" hoverable clickable>
           <n-list-item class="mailbox-row" v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
-            <n-thing :title="row.subject">
+            <n-thing class="mailbox-row__content">
+              <template #header>
+                <n-ellipsis class="mailbox-row__subject">{{ row.subject }}</n-ellipsis>
+                <time class="mailbox-row__date">{{ utcToLocalDate(row.created_at, useUTCDate) }}</time>
+              </template>
               <template #description>
-                <n-tag type="info">
-                  ID: {{ row.id }}
-                </n-tag>
-                <n-tag type="info">
-                  {{ utcToLocalDate(row.created_at, useUTCDate) }}
-                </n-tag>
-                <n-tag v-if="showEMailFrom" type="info">
-                  FROM: {{ row.address }}
-                </n-tag>
-                <n-tag type="info">
-                  TO: {{ row.to_mail }}
-                </n-tag>
+                <div class="mailbox-row__meta">
+                  <n-ellipsis v-if="showEMailFrom" class="mailbox-row__sender">FROM: {{ row.address }}</n-ellipsis>
+                  <n-ellipsis class="mailbox-row__recipient">TO: {{ row.to_mail }}</n-ellipsis>
+                  <span class="mailbox-row__id">#{{ row.id }}</span>
+                </div>
               </template>
             </n-thing>
           </n-list-item>
@@ -350,12 +349,11 @@ onMounted(async () => {
         </n-drawer-content>
       </n-drawer>
     </div>
-  </section>
+  </div>
 </template>
 
 <style scoped>
-.mailbox-desktop,
-.mailbox-mobile {
+.left {
   text-align: left;
 }
 
@@ -365,14 +363,16 @@ onMounted(async () => {
 
 .overlay {
   width: 100%;
+  height: 100%;
+  z-index: 1000;
 }
 
 .overlay-dark-backgroud {
-  background-color: var(--app-accent-soft) !important;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .overlay-light-backgroud {
-  background-color: var(--app-accent-soft) !important;
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .mail-item {
@@ -392,14 +392,14 @@ pre {
 }
 
 .split-handle__grip {
-  width: 3px;
-  height: 36px;
+  width: 4px;
+  height: 32px;
   border-radius: 2px;
-  background-color: var(--app-border-strong);
+  background-color: var(--n-resize-trigger-color);
   transition: background-color 0.2s;
 }
 
 .split-handle:hover .split-handle__grip {
-  background-color: var(--app-accent);
+  background-color: var(--n-resize-trigger-color-hover);
 }
 </style>

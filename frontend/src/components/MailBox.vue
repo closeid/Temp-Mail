@@ -3,7 +3,10 @@ import { watch, onMounted, ref, onBeforeUnmount, computed } from "vue";
 import { useMessage } from 'naive-ui'
 import { useScopedI18n } from '@/i18n/app'
 import { useGlobalState } from '../store'
-import { CloudDownloadRound, ArrowBackIosNewFilled, ArrowForwardIosFilled, InboxRound } from '@vicons/material'
+import {
+  ArrowBackIosNewFilled, ArrowForwardIosFilled, CheckBoxRound,
+  CloudDownloadRound, InboxRound, RefreshRound, SearchRound,
+} from '@vicons/material'
 import { useIsMobile } from '../utils/composables'
 import { processItem } from '../utils/email-parser'
 import { utcToLocalDate } from '../utils';
@@ -338,8 +341,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="mailbox">
-    <div v-if="!isMobile" class="mailbox-desktop">
+  <div class="mailbox">
+    <div v-if="!isMobile" class="left mailbox-desktop">
       <div class="mailbox-toolbar">
         <n-space v-if="multiActionMode" class="mailbox-toolbar__group" align="center">
           <n-button @click="multiActionModeClick(false)" tertiary>
@@ -366,6 +369,9 @@ onBeforeUnmount(() => {
         </n-space>
         <n-space v-else class="mailbox-toolbar__group" align="center">
           <n-button @click="multiActionModeClick(true)" type="primary" tertiary>
+            <template #icon>
+              <n-icon :component="CheckBoxRound" />
+            </template>
             {{ t('multiAction') }}
           </n-button>
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" :page-sizes="[20, 50, 100]"
@@ -379,13 +385,20 @@ onBeforeUnmount(() => {
             </template>
           </n-switch>
           <n-button @click="backFirstPageAndRefresh" type="primary" tertiary>
+            <template #icon>
+              <n-icon :component="RefreshRound" />
+            </template>
             {{ t('refresh') }}
           </n-button>
-          <n-input v-if="showFilterInput" v-model:value="localFilterKeyword" class="mailbox-search"
-            :placeholder="t('keywordQueryTip')" clearable />
+          <n-input v-if="showFilterInput" v-model:value="localFilterKeyword"
+            class="mailbox-search" :placeholder="t('keywordQueryTip')" clearable>
+            <template #prefix>
+              <n-icon :component="SearchRound" />
+            </template>
+          </n-input>
         </n-space>
       </div>
-      <n-split class="mailbox-split" direction="horizontal" :max="0.75" :min="0" :resize-trigger-size="8"
+      <n-split class="left mailbox-split" direction="horizontal" :max="0.75" :min="0" :resize-trigger-size="8"
         :default-size="mailboxSplitSize" :on-update:size="onSpiltSizeChange" v-if="!mailListView || curMail">
         <template #resize-trigger>
           <div class="split-handle">
@@ -396,28 +409,22 @@ onBeforeUnmount(() => {
           <div class="mailbox-list-pane">
             <n-list class="mailbox-list" hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
-                :class="['mailbox-row', mailItemClass(row)]">
+                :class="[mailItemClass(row), 'mailbox-row']">
                 <template #prefix v-if="multiActionMode">
                   <n-checkbox v-model:checked="row.checked" />
                 </template>
                 <n-thing class="mailbox-row__content">
                   <template #header>
                     <n-ellipsis class="mailbox-row__subject">{{ row.subject }}</n-ellipsis>
-                  </template>
-                  <template #header-extra>
-                    <span class="mailbox-row__date">{{ utcToLocalDate(row.created_at, useUTCDate) }}</span>
+                    <time class="mailbox-row__date">{{ utcToLocalDate(row.created_at, useUTCDate) }}</time>
                   </template>
                   <template #description>
                     <div class="mailbox-row__meta">
-                      <span class="mailbox-row__sender">
-                        <n-ellipsis>
+                      <n-ellipsis class="mailbox-row__sender">
                         {{ showEMailTo ? "FROM: " + row.source : row.source }}
-                        </n-ellipsis>
-                      </span>
+                      </n-ellipsis>
+                      <n-ellipsis v-if="showEMailTo" class="mailbox-row__recipient">TO: {{ row.address }}</n-ellipsis>
                       <span class="mailbox-row__id">#{{ row.id }}</span>
-                      <span v-if="showEMailTo" class="mailbox-row__recipient">
-                        <n-ellipsis>TO: {{ row.address }}</n-ellipsis>
-                      </span>
                       <AiExtractInfo :metadata="row.metadata" compact />
                     </div>
                   </template>
@@ -466,7 +473,7 @@ onBeforeUnmount(() => {
           <n-card :bordered="false" embedded class="mail-item mailbox-empty" v-else>
             <n-result status="info" :title="count === 0 ? t('emptyInbox') : t('pleaseSelectMail')">
               <template #icon>
-                <n-icon :component="InboxRound" :size="56" />
+                <n-icon :component="InboxRound" :size="100" />
               </template>
             </n-result>
           </n-card>
@@ -475,46 +482,35 @@ onBeforeUnmount(() => {
       <div v-else class="mail-list-scroll mailbox-full-list">
         <n-list class="mailbox-list" hoverable clickable>
           <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
-            :class="['mailbox-row', 'mailbox-row--preview', mailItemClass(row)]">
+            :class="[mailItemClass(row), 'mailbox-row', 'mailbox-row--wide']">
             <template #prefix v-if="multiActionMode">
               <n-checkbox v-model:checked="row.checked" />
             </template>
-            <n-thing class="mail-list-thing">
-              <template #header>
-                <n-ellipsis class="mail-list-title">
-                  {{ row.subject }}
-                </n-ellipsis>
-              </template>
-              <template #header-extra>
-                <span class="mailbox-row__date">{{ utcToLocalDate(row.created_at, useUTCDate) }}</span>
-              </template>
-              <template #description>
-                <div class="mail-list-meta mailbox-row__meta">
-                  <span class="mailbox-row__sender">
-                    <n-ellipsis class="mail-list-meta-text">
-                      {{ showEMailTo ? "FROM: " + row.source : row.source }}
-                    </n-ellipsis>
-                  </span>
-                  <span class="mailbox-row__id">#{{ row.id }}</span>
-                  <span v-if="showEMailTo" class="mailbox-row__recipient">
-                    <n-ellipsis class="mail-list-meta-text">
-                      TO: {{ row.address }}
-                    </n-ellipsis>
-                  </span>
-                  <AiExtractInfo :metadata="row.metadata" compact />
-                </div>
-              </template>
-              <n-ellipsis v-if="row.text && mailListPreviewLineClampValue > 0"
-                :line-clamp="mailListPreviewLineClampValue" class="mail-list-preview" :tooltip="false">
-                {{ row.text }}
+            <div class="mail-wide-row">
+              <n-ellipsis class="mail-wide-row__sender">
+                {{ showEMailTo ? "FROM: " + row.source : row.source }}
               </n-ellipsis>
-            </n-thing>
+              <div class="mail-wide-row__message">
+                <n-ellipsis class="mail-wide-row__subject">{{ row.subject }}</n-ellipsis>
+                <span v-if="row.text && mailListPreviewLineClampValue > 0" class="mail-wide-row__separator">-</span>
+                <n-ellipsis v-if="row.text && mailListPreviewLineClampValue > 0"
+                  class="mail-wide-row__preview" :tooltip="false">
+                  {{ row.text }}
+                </n-ellipsis>
+              </div>
+              <span class="mailbox-row__id">#{{ row.id }}</span>
+              <time class="mailbox-row__date">{{ utcToLocalDate(row.created_at, useUTCDate) }}</time>
+              <div v-if="showEMailTo || row.metadata" class="mail-wide-row__extra">
+                <n-ellipsis v-if="showEMailTo" class="mailbox-row__recipient">TO: {{ row.address }}</n-ellipsis>
+                <AiExtractInfo :metadata="row.metadata" compact />
+              </div>
+            </div>
           </n-list-item>
         </n-list>
       </div>
     </div>
-    <div class="mailbox-mobile" v-else>
-      <n-space class="mobile-toolbar" justify="space-between" align="center" :wrap="false">
+    <div class="left mailbox-mobile" v-else>
+      <n-space class="mobile-toolbar" justify="space-around" align="center" :wrap="false">
         <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
         <n-switch v-model:value="autoRefresh" size="small" :round="false">
           <template #checked>
@@ -525,12 +521,19 @@ onBeforeUnmount(() => {
           </template>
         </n-switch>
         <n-button @click="backFirstPageAndRefresh" tertiary size="small" type="primary">
+          <template #icon>
+            <n-icon :component="RefreshRound" />
+          </template>
           {{ t('refresh') }}
         </n-button>
       </n-space>
       <div v-if="showFilterInput" class="mobile-search">
         <n-input v-model:value="localFilterKeyword"
-          :placeholder="t('keywordQueryTip')" size="small" clearable />
+          :placeholder="t('keywordQueryTip')" size="small" clearable>
+          <template #prefix>
+            <n-icon :component="SearchRound" />
+          </template>
+        </n-input>
       </div>
       <div class="mobile-list-pane">
         <n-list class="mailbox-list" hoverable clickable>
@@ -538,21 +541,17 @@ onBeforeUnmount(() => {
             <n-thing class="mailbox-row__content">
               <template #header>
                 <n-ellipsis class="mailbox-row__subject">{{ row.subject }}</n-ellipsis>
-              </template>
-              <template #header-extra>
-                <span class="mailbox-row__date">{{ utcToLocalDate(row.created_at, useUTCDate) }}</span>
+                <time class="mailbox-row__date">{{ utcToLocalDate(row.created_at, useUTCDate) }}</time>
               </template>
               <template #description>
                 <div class="mailbox-row__meta">
-                  <span class="mailbox-row__sender">
-                    <n-ellipsis>
+                  <n-ellipsis class="mailbox-row__sender">
                     {{ showEMailTo ? "FROM: " + row.source : row.source }}
-                    </n-ellipsis>
-                  </span>
+                  </n-ellipsis>
+                  <n-ellipsis v-if="showEMailTo" class="mailbox-row__recipient">
+                    TO: {{ row.address }}
+                  </n-ellipsis>
                   <span class="mailbox-row__id">#{{ row.id }}</span>
-                  <span v-if="showEMailTo" class="mailbox-row__recipient">
-                    <n-ellipsis>TO: {{ row.address }}</n-ellipsis>
-                  </span>
                   <AiExtractInfo :metadata="row.metadata" compact />
                 </div>
               </template>
@@ -592,12 +591,11 @@ onBeforeUnmount(() => {
         </n-progress>
       </n-space>
     </n-modal>
-  </section>
+  </div>
 </template>
 
 <style scoped>
-.mailbox-desktop,
-.mailbox-mobile {
+.left {
   text-align: left;
 }
 
@@ -607,14 +605,16 @@ onBeforeUnmount(() => {
 
 .overlay {
   width: 100%;
+  height: 100%;
+  z-index: 1000;
 }
 
 .overlay-dark-backgroud {
-  background-color: var(--app-accent-soft) !important;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .overlay-light-backgroud {
-  background-color: var(--app-accent-soft) !important;
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .mail-item {
@@ -624,6 +624,8 @@ onBeforeUnmount(() => {
 .mail-list-scroll {
   overflow-y: auto;
   overflow-x: hidden;
+  min-height: 60vh;
+  max-height: 100vh;
 }
 
 .mail-list-thing,
@@ -654,6 +656,10 @@ onBeforeUnmount(() => {
   max-width: 100%;
 }
 
+.mail-list-meta :deep(.n-tag) {
+  max-width: 100%;
+}
+
 .mail-list-meta-text {
   max-width: min(240px, 100%);
 }
@@ -681,14 +687,14 @@ pre {
 }
 
 .split-handle__grip {
-  width: 3px;
-  height: 36px;
+  width: 4px;
+  height: 32px;
   border-radius: 2px;
-  background-color: var(--app-border-strong);
+  background-color: var(--n-resize-trigger-color);
   transition: background-color 0.2s;
 }
 
 .split-handle:hover .split-handle__grip {
-  background-color: var(--app-accent);
+  background-color: var(--n-resize-trigger-color-hover);
 }
 </style>

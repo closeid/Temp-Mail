@@ -92,7 +92,7 @@ const changePassword = async () => {
 
 <template>
     <div class="center" v-if="settings.address">
-        <n-card :bordered="false" embedded class="account-card">
+        <n-card :bordered="false" embedded class="account-card settings-card">
             <n-button @click="showAddressCredential = true" type="primary" secondary block strong>
                 {{ t('showAddressCredential') }}
             </n-button>

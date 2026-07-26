@@ -553,8 +553,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "状态"
     },
     "title": {
-      "en": "Cloudflare Temp Email",
-      "zh": "Cloudflare 临时邮件"
+      "en": "Get an Email",
+      "zh": "Get an Email"
     },
     "user": {
       "en": "User",
@@ -760,6 +760,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Login with {provider}",
       "zh": "使用 {provider} 登录"
     },
+    "loginWithAddressCredential": {
+      "en": "Login with Email Credential",
+      "zh": "使用邮箱凭据登录"
+    },
     "loginWithPasskey": {
       "en": "Login with Passkey",
       "zh": "使用 Passkey 登录"
@@ -792,6 +796,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Register",
       "zh": "注册"
     },
+    "registrationUnavailable": {
+      "en": "Registration is currently unavailable",
+      "zh": "当前暂未开放注册"
+    },
     "resetPassword": {
       "en": "Reset Password",
       "zh": "重置密码"
@@ -817,10 +825,6 @@ export const MESSAGE_REGISTRY = {
     "currentUser": {
       "en": "Current Login User",
       "zh": "当前登录用户"
-    },
-    "fetchUserSettingsError": {
-      "en": "Login password is invalid or account not exist, it may be network connection issue, please try again later.",
-      "zh": "登录信息已过期或账号不存在，也可能是网络连接异常，请稍后再尝试。"
     }
   },
   "views.user.AddressManagement": {
@@ -1196,10 +1200,6 @@ export const MESSAGE_REGISTRY = {
       "en": "Address Password",
       "zh": "地址密码"
     },
-    "fetchAddressError": {
-      "en": "Mail address credential is invalid or account not exist, it may be network connection issue, please try again later.",
-      "zh": "邮箱地址凭证无效或邮箱地址不存在，也可能是网络连接异常，请稍后再尝试。"
-    },
     "linkWithAddressCredential": {
       "en": "Open to auto login email link",
       "zh": "打开即可自动登录邮箱的链接"
@@ -1207,10 +1207,6 @@ export const MESSAGE_REGISTRY = {
     "ok": {
       "en": "OK",
       "zh": "确定"
-    },
-    "userLogin": {
-      "en": "User Login",
-      "zh": "用户登录"
     }
   },
   "views.admin.SendBox": {
@@ -2005,7 +2001,7 @@ export const MESSAGE_REGISTRY = {
       "zh": "打开即可自动登录邮箱的链接"
     },
     "randomSubdomainTip": {
-      "en": "When enabled, the created address will use a random subdomain. Recommended for receiving only. Requires a wildcard MX DNS record on the base domain — see the random subdomain docs.",
+      "en": "When enabled, the created address will use a random subdomain. Recommended for receiving only. Requires a wildcard MX DNS record on the base domain. See the random subdomain docs.",
       "zh": "启用后，创建出来的地址会自动挂在随机子域名下，建议仅用于收件。需要在基础域名 DNS 中配置通配 MX 记录，详见随机子域名文档。"
     },
     "successTip": {
@@ -2478,6 +2474,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Credential Login",
       "zh": "凭据登录"
     },
+    "createEmailUnavailable": {
+      "en": "Creating a new email address is currently unavailable",
+      "zh": "当前暂未开放注册邮箱"
+    },
     "email": {
       "en": "Email",
       "zh": "邮箱"
@@ -2510,10 +2510,6 @@ export const MESSAGE_REGISTRY = {
       "en": "You can choose a domain from the dropdown list.",
       "zh": "你可以从下拉列表中选择一个域名。"
     },
-    "help": {
-      "en": "Help",
-      "zh": "帮助"
-    },
     "login": {
       "en": "Login",
       "zh": "登录"
@@ -2534,12 +2530,8 @@ export const MESSAGE_REGISTRY = {
       "en": "Password Login",
       "zh": "密码登录"
     },
-    "pleaseGetNewEmail": {
-      "en": "Please login or click \"Get New Email\" button to get a new email address",
-      "zh": "请\"登录\"或点击 \"注册新邮箱\" 按钮来获取一个新的邮箱地址"
-    },
     "randomSubdomainTip": {
-      "en": "When enabled, the created address will use a random subdomain. Recommended for receiving only. Requires a wildcard MX DNS record on the base domain — see the random subdomain docs.",
+      "en": "When enabled, the created address will use a random subdomain. Recommended for receiving only. Requires a wildcard MX DNS record on the base domain. See the random subdomain docs.",
       "zh": "启用后，创建出来的地址会自动挂在随机子域名下，建议仅用于收件。需要在基础域名 DNS 中配置通配 MX 记录，详见随机子域名文档。"
     }
   },

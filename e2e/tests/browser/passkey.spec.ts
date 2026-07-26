@@ -94,17 +94,18 @@ test.describe('Passkey Browser Flow', () => {
       await expect(logoutModal).toBeVisible({ timeout: 5_000 });
       await logoutModal.getByRole('button', { name: 'Logout' }).click();
 
-      // Wait for logout to complete and navigate to user page
+      // Wait for logout to complete and open the unified home sign-in page.
       await page.waitForTimeout(2000);
-      await page.goto(`${FRONTEND_URL}/en/user`);
+      await page.goto(`${FRONTEND_URL}/en/`);
 
       // === Step 6: Login with passkey ===
       const passkeyBtn = page.getByRole('button', { name: 'Login with Passkey' });
       await expect(passkeyBtn).toBeVisible({ timeout: 10_000 });
       await passkeyBtn.click();
 
-      // Virtual authenticator handles the WebAuthn ceremony automatically
-      // Wait for login to complete — user email should appear
+      // Virtual authenticator handles the WebAuthn ceremony automatically.
+      await page.waitForTimeout(2000);
+      await page.goto(`${FRONTEND_URL}/en/user`);
       await expect(page.getByText(TEST_USER_EMAIL)).toBeVisible({ timeout: 15_000 });
     } finally {
       await cdp.send('WebAuthn.removeVirtualAuthenticator', { authenticatorId });
