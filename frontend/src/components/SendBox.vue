@@ -177,10 +177,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
-    <div v-if="!isMobile" class="left mailbox-layout">
+  <section class="mailbox sendbox">
+    <div v-if="!isMobile" class="mailbox-desktop">
       <div class="mailbox-toolbar">
-        <n-space v-if="multiActionMode">
+        <n-space v-if="multiActionMode" class="mailbox-toolbar__group">
           <n-button @click="multiActionModeClick(false)" tertiary>
             {{ t('cancelMultiAction') }}
           </n-button>
@@ -197,7 +197,7 @@ onMounted(async () => {
             {{ t('deleteMailTip') }}
           </n-popconfirm>
         </n-space>
-        <n-space v-else>
+        <n-space v-else class="mailbox-toolbar__group">
           <n-button v-if="showMultiActionMode" @click="multiActionModeClick(true)" type="primary" tertiary>
             {{ t('multiAction') }}
           </n-button>
@@ -210,17 +210,22 @@ onMounted(async () => {
           </n-button>
         </n-space>
       </div>
-      <n-split direction="horizontal" :max="0.75" :min="0.25" :default-size="mailboxSplitSize"
-        :on-update:size="onSpiltSizeChange">
+      <n-split class="mailbox-split" direction="horizontal" :max="0.75" :min="0" :resize-trigger-size="8"
+        :default-size="mailboxSplitSize" :on-update:size="onSpiltSizeChange">
+        <template #resize-trigger>
+          <div class="split-handle">
+            <div class="split-handle__grip" />
+          </div>
+        </template>
         <template #1>
           <div class="mailbox-list-pane">
-            <n-list hoverable clickable>
+            <n-list class="mailbox-list" hoverable clickable>
               <n-list-item v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)"
                 :class="['mailbox-row', mailItemClass(row)]">
                 <template #prefix v-if="multiActionMode">
                   <n-checkbox v-model:checked="row.checked" />
                 </template>
-                <n-thing :title="row.subject">
+                <n-thing class="mailbox-row__content" :title="row.subject">
                   <template #description>
                     <n-tag type="info">
                       ID: {{ row.id }}
@@ -241,8 +246,8 @@ onMounted(async () => {
           </div>
         </template>
         <template #2>
-          <n-card :bordered="false" embedded v-if="curMail" class="mail-item mailbox-detail-card" :title="curMail.subject"
-            style="overflow: auto; max-height: 100vh;">
+          <n-card :bordered="false" embedded v-if="curMail" class="mail-item mailbox-detail-card"
+            :title="curMail.subject">
             <n-space>
               <n-tag type="info">
                 ID: {{ curMail.id }}
@@ -273,15 +278,15 @@ onMounted(async () => {
           <n-card :bordered="false" embedded class="mail-item mailbox-empty" v-else>
             <n-result status="info" :title="count === 0 ? t('emptySent') : t('pleaseSelectMail')">
               <template #icon>
-                <n-icon :component="SendRound" :size="100" />
+                <n-icon :component="SendRound" :size="56" />
               </template>
             </n-result>
           </n-card>
         </template>
       </n-split>
     </div>
-    <div class="left" v-else>
-      <div class="center mobile-toolbar">
+    <div class="mailbox-mobile" v-else>
+      <div class="mobile-toolbar center">
         <div style="display: inline-block; margin-right: 10px;">
           <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
         </div>
@@ -290,7 +295,7 @@ onMounted(async () => {
         </n-button>
       </div>
       <div class="mobile-list-pane">
-        <n-list hoverable clickable>
+        <n-list class="mailbox-list" hoverable clickable>
           <n-list-item class="mailbox-row" v-for="row in data" v-bind:key="row.id" @click="() => clickRow(row)">
             <n-thing :title="row.subject">
               <template #description>
@@ -314,7 +319,7 @@ onMounted(async () => {
       <n-drawer v-model:show="curMail" width="100%" placement="bottom" :trap-focus="false" :block-scroll="false"
         style="height: 80vh;">
         <n-drawer-content :title="curMail ? curMail.subject : ''" closable>
-          <n-card :bordered="false" embedded style="overflow: auto;">
+          <n-card class="mobile-message-card" :bordered="false" embedded>
             <n-space>
               <n-tag type="info">
                 ID: {{ curMail.id }}
@@ -345,11 +350,12 @@ onMounted(async () => {
         </n-drawer-content>
       </n-drawer>
     </div>
-  </div>
+  </section>
 </template>
 
 <style scoped>
-.left {
+.mailbox-desktop,
+.mailbox-mobile {
   text-align: left;
 }
 
@@ -359,16 +365,14 @@ onMounted(async () => {
 
 .overlay {
   width: 100%;
-  height: 100%;
-  z-index: 1000;
 }
 
 .overlay-dark-backgroud {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--app-accent-soft) !important;
 }
 
 .overlay-light-backgroud {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: var(--app-accent-soft) !important;
 }
 
 .mail-item {
@@ -378,5 +382,24 @@ onMounted(async () => {
 pre {
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+.split-handle {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.split-handle__grip {
+  width: 3px;
+  height: 36px;
+  border-radius: 2px;
+  background-color: var(--app-border-strong);
+  transition: background-color 0.2s;
+}
+
+.split-handle:hover .split-handle__grip {
+  background-color: var(--app-accent);
 }
 </style>

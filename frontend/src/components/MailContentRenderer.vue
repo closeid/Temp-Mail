@@ -89,67 +89,61 @@ const handleSaveToS3 = async (filename, blob) => {
 
 <template>
   <div class="mail-content-renderer">
-    <!-- 邮件信息标签 -->
-    <n-space>
-      <n-tag type="info">
-        ID: {{ mail.id }}
-      </n-tag>
-      <n-tag type="info">
-        {{ utcToLocalDate(mail.created_at, useUTCDate.value) }}
-      </n-tag>
-      <n-tag type="info">
-        FROM: {{ mail.source }}
-      </n-tag>
-      <n-tag v-if="showEMailTo" type="info">
-        TO: {{ mail.address }}
-      </n-tag>
+    <div class="message-toolbar">
+      <div class="message-meta">
+        <span class="message-meta__sender">{{ mail.source }}</span>
+        <span v-if="showEMailTo" class="message-meta__recipient">TO: {{ mail.address }}</span>
+        <span class="message-meta__date">{{ utcToLocalDate(mail.created_at, useUTCDate.value) }}</span>
+        <span class="message-meta__id">#{{ mail.id }}</span>
+      </div>
 
-      <!-- 操作按钮 -->
-      <n-popconfirm v-if="enableUserDeleteEmail" @positive-click="handleDelete">
-        <template #trigger>
-          <n-button tertiary type="error" size="small">{{ t('delete') }}</n-button>
-        </template>
-        {{ t('deleteMailTip') }}
-      </n-popconfirm>
+      <n-space class="message-actions" align="center" size="small">
+        <n-button v-if="showReply" size="small" tertiary type="info" @click="handleReply">
+          <template #icon>
+            <n-icon :component="ReplyFilled" />
+          </template>
+          {{ t('reply') }}
+        </n-button>
 
-      <n-button v-if="mail.attachments && mail.attachments.length > 0" size="small" tertiary type="info"
-        @click="handleViewAttachments">
-        {{ t('attachments') }}
-      </n-button>
+        <n-button v-if="showReply" size="small" tertiary type="info" @click="handleForward">
+          <template #icon>
+            <n-icon :component="ForwardFilled" />
+          </template>
+          {{ t('forward') }}
+        </n-button>
 
-      <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="mail.id + '.eml'"
-        :href="getDownloadEmlUrl(mail.raw)">
-        <template #icon>
-          <n-icon :component="CloudDownloadRound" />
-        </template>
-        {{ t('downloadMail') }}
-      </n-button>
+        <n-button v-if="mail.attachments && mail.attachments.length > 0" size="small" tertiary type="info"
+          @click="handleViewAttachments">
+          {{ t('attachments') }}
+        </n-button>
 
-      <n-button v-if="showReply" size="small" tertiary type="info" @click="handleReply">
-        <template #icon>
-          <n-icon :component="ReplyFilled" />
-        </template>
-        {{ t('reply') }}
-      </n-button>
+        <n-button tag="a" target="_blank" tertiary type="info" size="small" :download="mail.id + '.eml'"
+          :href="getDownloadEmlUrl(mail.raw)">
+          <template #icon>
+            <n-icon :component="CloudDownloadRound" />
+          </template>
+          {{ t('downloadMail') }}
+        </n-button>
 
-      <n-button v-if="showReply" size="small" tertiary type="info" @click="handleForward">
-        <template #icon>
-          <n-icon :component="ForwardFilled" />
-        </template>
-        {{ t('forward') }}
-      </n-button>
+        <n-button size="small" tertiary type="info" @click="showTextMail = !showTextMail">
+          {{ showTextMail ? t('showHtmlMail') : t('showTextMail') }}
+        </n-button>
 
-      <n-button size="small" tertiary type="info" @click="showTextMail = !showTextMail">
-        {{ showTextMail ? t('showHtmlMail') : t('showTextMail') }}
-      </n-button>
+        <n-button size="small" tertiary type="info" @click="showFullscreen = true">
+          <template #icon>
+            <n-icon :component="FullscreenRound" />
+          </template>
+          {{ t('fullscreen') }}
+        </n-button>
 
-      <n-button size="small" tertiary type="info" @click="showFullscreen = true">
-        <template #icon>
-          <n-icon :component="FullscreenRound" />
-        </template>
-        {{ t('fullscreen') }}
-      </n-button>
-    </n-space>
+        <n-popconfirm v-if="enableUserDeleteEmail" @positive-click="handleDelete">
+          <template #trigger>
+            <n-button tertiary type="error" size="small">{{ t('delete') }}</n-button>
+          </template>
+          {{ t('deleteMailTip') }}
+        </n-popconfirm>
+      </n-space>
+    </div>
 
     <!-- AI 提取信息 -->
     <AiExtractInfo :metadata="mail.metadata" />
@@ -212,22 +206,23 @@ const handleSaveToS3 = async (filename, blob) => {
 .mail-content-renderer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .mail-content {
-  margin-top: 10px;
   flex: 1;
+  min-width: 0;
 }
 
 .mail-text {
   white-space: pre-wrap;
   word-wrap: break-word;
   margin: 0;
-  padding: 0;
+  padding: 18px;
   font-family: inherit;
   font-size: inherit;
-  line-height: inherit;
+  line-height: 1.65;
 }
 
 .dark-mode .mail-text {
@@ -238,7 +233,8 @@ const handleSaveToS3 = async (filename, blob) => {
   width: 100%;
   height: 100%;
   border: none;
-  min-height: 400px;
+  min-height: 480px;
+  background: #fdfdfd;
 }
 
 .dark-mode .mail-iframe {
@@ -248,6 +244,8 @@ const handleSaveToS3 = async (filename, blob) => {
 .mail-html {
   width: 100%;
   height: 100%;
+  min-height: 420px;
+  padding: 18px;
 }
 
 .center {

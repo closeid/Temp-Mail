@@ -1,98 +1,81 @@
 <script setup>
 import {
   darkTheme,
-} from "naive-ui"
-import { computed, onMounted, watchEffect } from "vue"
-import { useScript } from "@unhead/vue"
-import { useI18n } from "vue-i18n"
-import { useGlobalState } from "./store"
-import { useIsMobile } from "./utils/composables"
-import Header from "./views/Header.vue";
-import Footer from "./views/Footer.vue";
-import { api } from "./api"
-import { getNaiveLocaleConfig } from "./i18n/naive-locale"
-import { DEFAULT_LOCALE, isSupportedLocale } from "./i18n/utils"
+} from 'naive-ui'
+import { computed, onMounted, watchEffect } from 'vue'
+import { useScript } from '@unhead/vue'
+import { useI18n } from 'vue-i18n'
+import { useGlobalState } from './store'
+import { useIsMobile } from './utils/composables'
+import Header from './views/Header.vue';
+import Footer from './views/Footer.vue';
+import { api } from './api'
+import { getNaiveLocaleConfig } from './i18n/naive-locale'
+import { DEFAULT_LOCALE, isSupportedLocale } from './i18n/utils'
 
 const {
   isDark, loading, useSideMargin, telegramApp, isTelegram
 } = useGlobalState()
 const adClient = import.meta.env.VITE_GOOGLE_AD_CLIENT;
 const adSlot = import.meta.env.VITE_GOOGLE_AD_SLOT;
-const { locale } = useI18n({ useScope: "global" });
-
-const themeOverrides = {
+const { locale } = useI18n({ useScope: 'global' });
+const theme = computed(() => isDark.value ? darkTheme : null)
+const sharedThemeOverrides = {
   common: {
-    borderRadius: "8px",
-    fontSize: "14px",
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
-    primaryColor: "#1a73e8",
-    primaryColorHover: "#1558b0",
-    primaryColorPressed: "#174ea6",
-    primaryColorSuppl: "#1a73e8",
-    infoColor: "#1a73e8",
-    infoColorHover: "#1558b0",
-    successColor: "#188038",
-    warningColor: "#f9ab00",
-    errorColor: "#d93025",
+    borderRadius: '7px',
+    borderRadiusSmall: '5px',
+    fontFamily: '"Segoe UI Variable", "SF Pro Text", "Noto Sans SC", "Microsoft YaHei", sans-serif',
+    fontSize: '14px',
+    primaryColor: '#1677a8',
+    primaryColorHover: '#11678f',
+    primaryColorPressed: '#0d5678',
+    primaryColorSuppl: '#1677a8',
+    infoColor: '#1677a8',
+    successColor: '#24835b',
+    warningColor: '#a76818',
+    errorColor: '#c43d4b',
   },
   Button: {
-    borderRadiusSmall: "4px",
-    borderRadiusMedium: "6px",
-    borderRadiusLarge: "8px",
+    borderRadiusSmall: '5px',
+    borderRadiusMedium: '7px',
+    borderRadiusLarge: '7px',
+    fontWeight: '600',
   },
   Card: {
-    borderRadius: "8px",
-    paddingMedium: "18px",
+    borderRadius: '8px',
+    paddingMedium: '18px',
   },
   Input: {
-    borderRadius: "6px",
+    borderRadius: '7px',
+  },
+  Select: {
+    peers: {
+      InternalSelection: {
+        borderRadius: '7px',
+      },
+    },
   },
   Tag: {
-    borderRadius: "4px",
+    borderRadius: '5px',
   },
   Tabs: {
-    tabFontSizeMedium: "14px",
+    tabFontSizeMedium: '13px',
   },
 }
 
-const darkThemeOverrides = {
+const themeOverrides = computed(() => ({
+  ...sharedThemeOverrides,
   common: {
-    bodyColor: "#202124",
-    cardColor: "#2b2c2f",
-    modalColor: "#2b2c2f",
-    popoverColor: "#2b2c2f",
-    borderColor: "#3c4043",
-    dividerColor: "#3c4043",
+    ...sharedThemeOverrides.common,
+    bodyColor: isDark.value ? '#181a1d' : '#f3f5f7',
+    cardColor: isDark.value ? '#222529' : '#fdfdfd',
+    modalColor: isDark.value ? '#222529' : '#fdfdfd',
+    popoverColor: isDark.value ? '#26292e' : '#fdfdfd',
+    tableColor: isDark.value ? '#222529' : '#fdfdfd',
+    borderColor: isDark.value ? '#373b41' : '#dfe3e8',
+    dividerColor: isDark.value ? '#30343a' : '#e7eaee',
   },
-}
-
-const lightThemeOverrides = {
-  common: {
-    bodyColor: "#f6f8fc",
-    cardColor: "#ffffff",
-    modalColor: "#ffffff",
-    popoverColor: "#ffffff",
-    borderColor: "#dadce0",
-    dividerColor: "#e8eaed",
-  },
-}
-
-const theme = computed(() => {
-  if (!isDark.value) return null
-  return darkTheme
-})
-const themeConfig = computed(() => {
-  const modeOverrides = isDark.value ? darkThemeOverrides : lightThemeOverrides
-  return {
-    ...themeOverrides,
-    ...modeOverrides,
-    common: {
-      ...themeOverrides.common,
-      ...modeOverrides.common,
-    },
-  }
-})
-
+}))
 const localeConfig = computed(() => getNaiveLocaleConfig(isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE))
 const isMobile = useIsMobile()
 const showSideMargin = computed(() => !isMobile.value && useSideMargin.value);
@@ -100,10 +83,11 @@ const showAd = computed(() => !isMobile.value && adClient && adSlot);
 const gridMaxCols = computed(() => showAd.value ? 8 : 12);
 
 watchEffect(() => {
-  if (typeof document === "undefined") return
+  if (typeof document === 'undefined') return
   document.documentElement.lang = isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE
 })
 
+// Load Google Ad script at top level (not inside onMounted)
 if (showAd.value) {
   useScript({
     src: `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`,
@@ -121,29 +105,32 @@ onMounted(async () => {
 
   const token = import.meta.env.VITE_CF_WEB_ANALY_TOKEN;
 
-  const exist = document.querySelector("script[src=\"https://static.cloudflareinsights.com/beacon.min.js\"]") !== null
+  const exist = document.querySelector('script[src="https://static.cloudflareinsights.com/beacon.min.js"]') !== null
   if (token && !exist) {
-    const script = document.createElement("script");
+    const script = document.createElement('script');
     script.defer = true;
-    script.src = "https://static.cloudflareinsights.com/beacon.min.js";
+    script.src = 'https://static.cloudflareinsights.com/beacon.min.js';
     script.dataset.cfBeacon = `{ token: ${token} }`;
     document.body.appendChild(script);
   }
 
+  // check if google ad is enabled
   if (showAd.value) {
     (window.adsbygoogle = window.adsbygoogle || []).push({});
     (window.adsbygoogle = window.adsbygoogle || []).push({});
   }
 
+
+  // check if telegram is enabled
   const enableTelegram = import.meta.env.VITE_IS_TELEGRAM;
   if (
-    (typeof enableTelegram === "boolean" && enableTelegram === true)
+    (typeof enableTelegram === 'boolean' && enableTelegram === true)
     ||
-    (typeof enableTelegram === "string" && enableTelegram === "true")
+    (typeof enableTelegram === 'string' && enableTelegram === 'true')
   ) {
     await new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = "https://telegram.org/js/telegram-web-app.js";
+      const script = document.createElement('script');
+      script.src = 'https://telegram.org/js/telegram-web-app.js';
       script.onload = resolve;
       script.onerror = reject;
       document.body.appendChild(script);
@@ -155,20 +142,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <n-config-provider :locale="localeConfig.locale" :date-locale="localeConfig.dateLocale" :theme="theme" :theme-overrides="themeConfig">
+  <n-config-provider :locale="localeConfig.locale" :date-locale="localeConfig.dateLocale" :theme="theme"
+    :theme-overrides="themeOverrides">
     <n-global-style />
-    <n-spin :show="loading">
-      <template #icon>
-        <div class="gmail-loader" aria-label="loading">
-          <span class="gmail-loader__bar gmail-loader__bar--blue"></span>
-          <span class="gmail-loader__bar gmail-loader__bar--red"></span>
-          <span class="gmail-loader__bar gmail-loader__bar--yellow"></span>
-          <span class="gmail-loader__bar gmail-loader__bar--green"></span>
-        </div>
-      </template>
+    <n-spin description="loading..." :show="loading">
       <n-notification-provider container-style="margin-top: 60px;">
         <n-message-provider container-style="margin-top: 20px;">
-          <n-grid x-gap="12" :cols="gridMaxCols">
+          <n-grid class="app-grid" x-gap="12" :cols="gridMaxCols">
             <n-gi v-if="showSideMargin" span="1">
               <div class="side" v-if="showAd">
                 <ins class="adsbygoogle" style="display:block" :data-ad-client="adClient" :data-ad-slot="adSlot"
@@ -176,9 +156,9 @@ onMounted(async () => {
               </div>
             </n-gi>
             <n-gi :span="!showSideMargin ? gridMaxCols : (gridMaxCols - 2)">
-              <div class="main">
-                <n-space vertical>
-                  <n-layout style="min-height: 80vh;">
+              <div class="app-main">
+                <n-space class="app-stack" vertical>
+                  <n-layout class="app-layout">
                     <Header />
                     <router-view></router-view>
                   </n-layout>
@@ -203,8 +183,8 @@ onMounted(async () => {
 
 <style>
 .n-switch {
-  margin-left: 10px;
-  margin-right: 10px;
+  margin-left: 4px;
+  margin-right: 4px;
 }
 
 @media (hover: none) and (pointer: coarse) and (max-width: 1024px) {
@@ -216,27 +196,15 @@ onMounted(async () => {
     --n-font-size: 16px !important;
   }
 }
-
-body {
-  margin: 0;
-  background: var(--n-color-body, #fafafa);
-  color: #202124;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
-  box-sizing: border-box;
-}
 </style>
 
 <style scoped>
 .side {
-  height: 100vh;
+  min-height: 100dvh;
 }
 
-.main {
-  min-height: 100vh;
+.app-main {
+  min-height: 100dvh;
   text-align: left;
 }
 
@@ -248,53 +216,7 @@ body {
   height: 100%;
 }
 
-.n-space {
+.app-stack {
   height: 100%;
-}
-
-.gmail-loader {
-  display: grid;
-  grid-template-columns: repeat(4, 9px);
-  gap: 3px;
-  align-items: end;
-  height: 30px;
-}
-
-.gmail-loader__bar {
-  width: 9px;
-  height: 10px;
-  border-radius: 999px;
-  animation: gmail-loader-bounce 0.92s ease-in-out infinite;
-}
-
-.gmail-loader__bar--blue {
-  background: #4285f4;
-}
-
-.gmail-loader__bar--red {
-  background: #ea4335;
-  animation-delay: 0.1s;
-}
-
-.gmail-loader__bar--yellow {
-  background: #fbbc04;
-  animation-delay: 0.2s;
-}
-
-.gmail-loader__bar--green {
-  background: #34a853;
-  animation-delay: 0.3s;
-}
-
-@keyframes gmail-loader-bounce {
-  0%, 100% {
-    height: 10px;
-    opacity: 0.55;
-  }
-
-  50% {
-    height: 28px;
-    opacity: 1;
-  }
 }
 </style>

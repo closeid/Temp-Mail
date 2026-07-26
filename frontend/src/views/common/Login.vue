@@ -4,6 +4,7 @@ import { useScopedI18n } from '@/i18n/app'
 import { useRouter } from 'vue-router'
 import { NewLabelOutlined, EmailOutlined } from '@vicons/material'
 
+import AdminContact from '../common/AdminContact.vue'
 import Turnstile from '../../components/Turnstile.vue'
 
 import { useGlobalState } from '../../store'
@@ -247,7 +248,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="login-form">
+    <div>
         <n-alert v-if="userSettings.user_email" :show-icon="false" :bordered="false" closable>
             <span>{{ t('bindUserInfo') }}</span>
         </n-alert>
@@ -337,6 +338,12 @@ onMounted(async () => {
                     </n-form>
                 </n-spin>
             </n-tab-pane>
+            <n-tab-pane name="help" :tab="t('help')">
+                <n-alert :show-icon="false" :bordered="false">
+                    <span>{{ t('pleaseGetNewEmail') }}</span>
+                </n-alert>
+                <AdminContact />
+            </n-tab-pane>
         </n-tabs>
     </div>
 </template>
@@ -361,22 +368,5 @@ onMounted(async () => {
 
 .n-form {
     text-align: left;
-}
-
-.login-form :deep(.n-tabs-nav) {
-    margin-bottom: 12px;
-}
-
-.login-form :deep(.n-tabs-tab) {
-    font-weight: 600;
-}
-
-.login-form :deep(.n-form-item-label) {
-    color: var(--app-text-muted);
-    font-weight: 600;
-}
-
-.login-form :deep(.n-button) {
-    min-height: 38px;
 }
 </style>

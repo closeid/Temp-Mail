@@ -40,6 +40,7 @@ const apiBaseUrl = computed(() => (configuredApiBaseUrl || frontendBaseUrl.value
 const docLocale = computed(() => locale.value === 'zh' ? 'zh' : 'en')
 const agentDocUrl = computed(() => `https://temp-mail-docs.awsl.uk/${docLocale.value}/guide/feature/agent-email.html`)
 const smtpImapDocUrl = computed(() => `https://temp-mail-docs.awsl.uk/${docLocale.value}/guide/feature/config-smtp-proxy.html`)
+const agentSkillUrl = 'https://github.com/dreamhunter2333/cloudflare_temp_email/blob/main/skills/cf-temp-mail-agent-mail/SKILL.md'
 const autoLoginUrl = computed(() => `${frontendBaseUrl.value}/?jwt=${encodeURIComponent(props.jwt)}`)
 const showAgent = computed(() => !!openSettings.value.enableAgentEmailInfo)
 const smtpImapConfig = computed(() => openSettings.value.smtpImapProxyConfig || {})
@@ -57,6 +58,7 @@ const agentConfigJson = computed(() => JSON.stringify({
 const agentText = computed(() => [
   `${t('currentAddress')}: ${props.address || '-'}`,
   `${t('apiBase')}: ${apiBaseUrl.value}`,
+  `${t('agentSkill')}: ${agentSkillUrl}`,
   `${t('agentConfig')}:`,
   agentConfigJson.value,
 ].join('\n'))
@@ -153,6 +155,7 @@ const copyText = async (text) => {
           <div class="credential-field">
             <span class="credential-label">{{ t('agentSkill') }}</span>
             <code class="credential-code">
+              <a :href="agentSkillUrl" target="_blank" rel="noopener noreferrer">{{ agentSkillUrl }}</a>
             </code>
           </div>
           <div class="credential-field">

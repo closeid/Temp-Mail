@@ -9,7 +9,7 @@ import {
     AdminPanelSettingsFilled, MonitorHeartFilled,
     KeyboardArrowDownOutlined, OpenInNewOutlined
 } from '@vicons/material'
-import { Language, User, Home } from '@vicons/fa'
+import { GithubAlt, Language, User, Home } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -33,7 +33,7 @@ const isMobile = useIsMobile()
 const showMobileMenu = ref(false)
 const menuValue = computed(() => {
     if (route.path.includes("user")) return "user";
-    if (route.path.includes("dashboard")) return "admin";
+    if (route.path.includes("admin")) return "admin";
     return "home";
 });
 
@@ -102,6 +102,12 @@ const changeLocale = async (lang) => {
     if (localeSwitched) preferredLocale.value = lang;
 }
 
+const version = import.meta.env.PACKAGE_VERSION ? `v${import.meta.env.PACKAGE_VERSION}` : "";
+const showGithubForCurrentUser = computed(() => {
+    if (!openSettings.value.showGithub) return false;
+    if (openSettings.value.showGithubForUser) return true;
+    return showAdminPage.value;
+});
 
 const menuOptions = computed(() => [
     {
@@ -153,13 +159,13 @@ const menuOptions = computed(() => [
                 style: "width: 100%",
                 onClick: async () => {
                     loading.value = true;
-                    await router.push(getRouterPathWithLang('/dashboard', locale.value));
+                    await router.push(getRouterPathWithLang('/admin', locale.value));
                     loading.value = false;
                     showMobileMenu.value = false;
                 }
             },
             {
-                default: () => t('dashboard'),
+                default: () => "Admin",
                 icon: () => h(NIcon, { component: AdminPanelSettingsFilled }),
             }
         ),
@@ -214,21 +220,21 @@ useHead({
 
 const logoClickCount = ref(0);
 const logoClick = async () => {
-    if (route.path.includes("dashboard")) {
+    if (route.path.includes("admin")) {
         logoClickCount.value = 0;
         return;
     }
     if (logoClickCount.value >= 5) {
         logoClickCount.value = 0;
-        message.info("Change to dashboard");
+        message.info("Change to admin Page");
         loading.value = true;
-        await router.push(getRouterPathWithLang('/dashboard', locale.value));
+        await router.push(getRouterPathWithLang('/admin', locale.value));
         loading.value = false;
     } else {
         logoClickCount.value++;
     }
     if (logoClickCount.value > 0) {
-        message.info(`Click ${5 - logoClickCount.value + 1} times to enter the dashboard`);
+        message.info(`Click ${5 - logoClickCount.value + 1} times to enter the admin page`);
     }
 }
 
@@ -240,20 +246,21 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="app-header">
-        <n-page-header>
+    <header class="app-header">
+        <n-page-header class="app-header__inner">
             <template #title>
-                <h3>{{ openSettings.title || t('title') }}</h3>
+                <h3 class="app-brand__name">{{ openSettings.title || t('title') }}</h3>
             </template>
             <template #avatar>
-                <div @click="logoClick">
-                    <n-avatar style="margin-left: 10px;" src="/logo.png" />
+                <div class="app-brand__mark" @click="logoClick">
+                    <n-avatar class="app-brand__avatar" src="/logo.png" />
                 </div>
             </template>
             <template #extra>
                 <n-space align="center" class="header-extra">
-                    <n-menu v-if="!isMobile" mode="horizontal" :options="menuOptions" responsive />
-                    <n-button v-else :text="true" @click="showMobileMenu = !showMobileMenu">
+                    <n-menu v-if="!isMobile" class="app-primary-nav" mode="horizontal" :options="menuOptions" responsive />
+                    <n-button v-else class="app-menu-button" :text="true" :aria-label="t('menu')"
+                        @click="showMobileMenu = !showMobileMenu">
                         <template #icon>
                             <n-icon :component="MenuFilled" />
                         </template>
@@ -268,6 +275,20 @@ onMounted(async () => {
                             <n-icon :component="KeyboardArrowDownOutlined" style="margin-left: 4px;" />
                         </n-button>
                     </n-dropdown>
+                    <n-button
+                        v-if="!isMobile && showGithubForCurrentUser"
+                        text
+                        size="small"
+                        class="header-version-button"
+                        tag="a"
+                        target="_blank"
+                        href="https://github.com/dreamhunter2333/cloudflare_temp_email"
+                    >
+                        <template #icon>
+                            <n-icon :component="GithubAlt" />
+                        </template>
+                        {{ version || 'Github' }}
+                    </n-button>
                 </n-space>
             </template>
         </n-page-header>
@@ -282,6 +303,17 @@ onMounted(async () => {
                             <n-icon :component="KeyboardArrowDownOutlined" class="mobile-menu-action-arrow" />
                         </button>
                     </n-dropdown>
+                    <a
+                        v-if="showGithubForCurrentUser"
+                        class="mobile-menu-utility-button"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        href="https://github.com/dreamhunter2333/cloudflare_temp_email"
+                    >
+                        <n-icon :component="GithubAlt" />
+                        <span class="mobile-menu-action-label">{{ version || 'Github' }}</span>
+                        <n-icon :component="OpenInNewOutlined" class="mobile-menu-action-arrow" />
+                    </a>
                 </div>
             </n-drawer-content>
         </n-drawer>
@@ -296,7 +328,7 @@ onMounted(async () => {
                 </n-button>
             </template>
         </n-modal>
-    </div>
+    </header>
 </template>
 
 <style scoped>
@@ -327,6 +359,16 @@ onMounted(async () => {
 }
 
 .header-locale-button :deep(.n-icon) {
+    display: inline-flex;
+    align-items: center;
+}
+
+.header-version-button {
+    display: inline-flex;
+    align-items: center;
+}
+
+.header-version-button :deep(.n-button__content) {
     display: inline-flex;
     align-items: center;
 }

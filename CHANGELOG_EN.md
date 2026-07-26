@@ -10,14 +10,26 @@
 
 ### Features
 
+- feat: |Frontend| Add a "Full-width mailbox list view" toggle in Appearance settings. When enabled, the mailbox shows a full-width list of subjects and body previews by default; clicking a mail expands it into the two-pane split view, clicking the same mail again returns to the list view; in multi-select mode, clicking a mail updates both its checked state and the right-side preview while disabling same-mail collapse, and the split width still follows the "Left list width in two-column mailbox view" setting. Defaults to off, preserving the original two-pane behavior
+- feat: |Frontend| Add "Body Preview Lines" in Appearance settings for the full-width mailbox list view, allowing runtime control over the body-preview clamp. It defaults to 2 lines, and 0 disables previews
+
 ### Bug Fixes
 
+- fix: |Worker| Align junk-mail checking with authentication standards: treat SPF, DKIM, and DMARC `none` plus SPF/DKIM `neutral` as absent, and ignore unregistered results and unsupported method versions; `JUNK_MAIL_FORCE_PASS_LIST` still requires an explicit supported `pass`
+- fix: |Admin| When deleting an address from the admin panel, delete its mails, sender records, sendbox and auto-reply entries before removing the address row itself; previously the address row was deleted first, so the name-based subqueries matched nothing and the mails were left orphaned in the database
+- fix: |AI Extract| Strengthen the prompt to keep original link domains from the email, preventing small models from rewriting verification-link domains (issue #1072)
 - fix: |AI Extract| Convert HTML-only mail bodies into compact readable text before sending them to Workers AI, preventing long templates from pushing verification codes past the 4000-character truncation window
 - fix: |Frontend| Add mobile Header page padding so the title and menu button no longer sit too close to the screen edge
 
+### Testing
+
+- test: |Worker| Add junk_mail_policy regression tests (issue #1084): `none`/`neutral` results for SPF/DKIM/DMARC are treated as the method being absent, explicit `fail` results are still rejected, and `JUNK_MAIL_FORCE_PASS_LIST` only accepts an explicit `pass`
+
 ### Improvements
 
-- style: |Frontend| Restyle the homepage, authenticated mailbox, user center, admin panel, and loading state with a more restrained Gmail/admin-console layout
+- docs: |README| Add a complete Japanese README and Japanese navigation links to the Chinese and English READMEs
+- feat: |Frontend| Lower the "Left list width in two-column mailbox view" minimum from 0.25 to 0 so the left list pane can fully collapse for a near-fullscreen content view, with a 0 mark added; applies to both the inbox and send-box two-pane splits, and clarifies the Appearance setting label so it is clear the value controls the left mail list width
+- style: |Frontend| Redesign the frontend styling and responsive layout with a consistent application shell, navigation, forms, and light/dark themes; organize the inbox and send box around compact mail lists, action bars, and reading panes while preserving existing routes, settings, and interactions
 
 ## v1.9.0
 

@@ -42,6 +42,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Auto Refresh",
       "zh": "自动刷新"
     },
+    "backToList": {
+      "en": "Back to List",
+      "zh": "返回列表"
+    },
     "cancelMultiAction": {
       "en": "Cancel Multi Action",
       "zh": "取消多选"
@@ -549,12 +553,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "状态"
     },
     "title": {
-      "en": "GetAnEmail",
-      "zh": "GetAnEmail"
-    },
-    "dashboard": {
-      "en": "Dashboard",
-      "zh": "后台"
+      "en": "Cloudflare Temp Email",
+      "zh": "Cloudflare 临时邮件"
     },
     "user": {
       "en": "User",
@@ -574,11 +574,11 @@ export const MESSAGE_REGISTRY = {
     },
     "accessHeader": {
       "en": "Admin Password",
-      "zh": "管理员密码"
+      "zh": "Admin 密码"
     },
     "accessTip": {
       "en": "Please enter the admin password",
-      "zh": "请输入管理员密码"
+      "zh": "请输入 Admin 密码"
     },
     "account": {
       "en": "Account",
@@ -626,7 +626,7 @@ export const MESSAGE_REGISTRY = {
     },
     "loginViaPassword": {
       "en": "Admin Password Login",
-      "zh": "管理员密码登录"
+      "zh": "Admin 密码登录"
     },
     "loginViaUserAdmin": {
       "en": "User Admin Permission",
@@ -2111,8 +2111,20 @@ export const MESSAGE_REGISTRY = {
       "zh": "左侧"
     },
     "mailboxSplitSize": {
-      "en": "Mailbox Split Size",
-      "zh": "邮箱界面分栏大小"
+      "en": "Left list width in two-column mailbox view",
+      "zh": "邮箱双栏视图左侧列表宽度占比"
+    },
+    "mailListView": {
+      "en": "Full-width mailbox list view",
+      "zh": "邮箱全宽列表视图"
+    },
+    "mailListPreviewLineClamp": {
+      "en": "Body Preview Lines",
+      "zh": "正文预览行数"
+    },
+    "off": {
+      "en": "Off",
+      "zh": "关闭"
     },
     "preferShowTextMail": {
       "en": "Display text Mail by default",
