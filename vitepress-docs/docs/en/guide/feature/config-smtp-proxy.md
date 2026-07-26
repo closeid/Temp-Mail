@@ -15,7 +15,7 @@ If you are using `resend`, you can directly use `resend`'s `SMTP` service withou
 ```bash
 cd smtp_proxy_server/
 # Copy configuration file and modify it
-# Your worker address, proxy_url=https://temp-email-api.xxx.xxx
+# Your worker address, proxy_url=https://api.getanemail.net
 # Your SMTP service port, port=8025
 cp .env.example .env
 python3 -m venv venv
@@ -46,7 +46,7 @@ services:
       - "8025:8025"
       - "11143:11143"
     environment:
-      - proxy_url=https://temp-email-api.xxx.xxx
+      - proxy_url=https://api.getanemail.net
       - port=8025
       - imap_port=11143
 ```

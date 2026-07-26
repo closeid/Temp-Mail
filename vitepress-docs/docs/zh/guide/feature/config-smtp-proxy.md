@@ -15,7 +15,7 @@
 ```bash
 cd smtp_proxy_server/
 # 复制配置文件, 并修改配置文件
-# 你的 worker 地址，proxy_url=https://temp-email-api.xxx.xxx
+# 你的 worker 地址，proxy_url=https://api.getanemail.net
 # 你的 SMTP 服务端口，port=8025
 cp .env.example .env
 python3 -m venv venv
@@ -46,7 +46,7 @@ services:
       - "8025:8025"
       - "11143:11143"
     environment:
-      - proxy_url=https://temp-email-api.xxx.xxx
+      - proxy_url=https://api.getanemail.net
       - port=8025
       - imap_port=11143
 ```

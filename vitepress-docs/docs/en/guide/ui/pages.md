@@ -75,7 +75,7 @@ const generate = async () => {
                 console.log(relativePath);
                 if (relativePath.startsWith("assets/index-") && relativePath.endsWith(".js")){
                     let content = await zipEntry.async("string");
-                    content = content.replaceAll("https://temp-email-api.xxx.xxx", normalizedDomain);
+                    content = content.replaceAll("https://api.getanemail.net", normalizedDomain);
                     target_path = relativePath;
                     zip.file(relativePath, content);
                     break;
@@ -135,7 +135,7 @@ const generate = async () => {
     >
     > Modify the index-xxx.js file in the archive, where xx is a random string
     >
-    > Search for `https://temp-email-api.xxx.xxx` and replace it with your worker's backend API root URL, then deploy the new zip file. If you replace it with the frontend Pages domain, common symptoms are the `map` error or `405` responses from API requests
+    > Search for `https://api.getanemail.net` and replace it with your worker's backend API root URL, then deploy the new zip file. If you replace it with the frontend Pages domain, common symptoms are the `map` error or `405` responses from API requests
     >
     > If you entered the wrong address the first time and still see errors after redeploying, test in an incognito window or clear browser cache so the browser stops using the old frontend assets.
 

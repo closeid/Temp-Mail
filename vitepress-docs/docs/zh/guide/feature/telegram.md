@@ -104,7 +104,7 @@ Telegram Bot 支持 **每用户独立推送**，用户绑定地址后，该地�
 >
 > 修改压缩包里面的 index-xxx.js 文件 ，xx 是随机的字符串
 >
-> 搜索 `https://temp-email-api.xxx.xxx` ，替换成你worker 的域名，然后部署新的zip文件
+> 搜索 `https://api.getanemail.net` ，替换成你worker 的域名，然后部署新的zip文件
 
 ### 命令行部署
 

@@ -27,7 +27,8 @@
 
 ### Improvements
 
-- style: |Frontend| Simplify the home authentication brand area to the enlarged logo, use 600 weight for both Login/Register tabs, and center the Forgot Password action
+- chore: |Deployment| Change the default API address in the frontend example build, ZIP generator, Telegram, and SMTP Proxy configuration from `temp-email-api.xxx.xxx` to `api.getanemail.net`, and update both deployment guides
+- style: |Frontend| Simplify the home authentication brand area to the enlarged logo, use 600 weight for both Login/Register tabs, and center the Forgot Password action with a 30px height and 10px horizontal padding
 - refactor: |Frontend| Consolidate anonymous authentication on the home page with Login/Register tabs for user login, registration, password reset, email-address credentials, Passkey, and OAuth; keep `/user` exclusively as the authenticated account workspace and redirect anonymous visits home. The authentication home no longer instantiates the Header or Footer, while site initialization and global access verification are extracted from the Header and the duplicate home/user login branches are removed
 - fix: |Frontend| Keep the create-email registration entry visible on the address credential sign-in page, remove its Help tab and the Header GitHub/version links, and use the same standalone headerless and footerless authentication layout as user sign-in; server-side mailbox creation permissions and all existing authentication flows remain unchanged
 - style: |Frontend| Rename the application to `Get an Email`, remove the header navigation from login and registration, and restyle the inbox, sent mail, reader, settings navigation, light and dark themes, and mobile layout to match the supplied reference while preserving existing APIs and workflows

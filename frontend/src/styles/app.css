@@ -1001,6 +1001,11 @@ html.dark .n-spin-container > .n-spin-body {
   justify-content: center;
 }
 
+.auth-forgot-password .n-button {
+  height: 30px;
+  padding: 0 10px;
+}
+
 .auth-tabs .n-divider {
   margin: 18px 0 8px;
 }

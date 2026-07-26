@@ -75,7 +75,7 @@ const generate = async () => {
                 console.log(relativePath);
                 if (relativePath.startsWith("assets/index-") && relativePath.endsWith(".js")){
                     let content = await zipEntry.async("string");
-                    content = content.replaceAll("https://temp-email-api.xxx.xxx", normalizedDomain);
+                    content = content.replaceAll("https://api.getanemail.net", normalizedDomain);
                     target_path = relativePath;
                     zip.file(relativePath, content);
                     break;
@@ -135,7 +135,7 @@ const generate = async () => {
     >
     > 修改压缩包里面的 index-xxx.js 文件 ，xx 是随机的字符串
     >
-    > 搜索 `https://temp-email-api.xxx.xxx` ，替换成你 worker 的后端 API 根地址，然后部署新的 zip 文件。如果填成前端 Pages 域名，常见现象就是页面报 `map` 错误或接口返回 `405`
+    > 搜索 `https://api.getanemail.net` ，替换成你 worker 的后端 API 根地址，然后部署新的 zip 文件。如果填成前端 Pages 域名，常见现象就是页面报 `map` 错误或接口返回 `405`
     >
     > 如果第一次填错后重新部署仍然报错，请用无痕窗口测试或清理浏览器缓存，避免浏览器继续使用旧的前端资源。
 

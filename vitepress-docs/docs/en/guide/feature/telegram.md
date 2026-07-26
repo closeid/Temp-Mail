@@ -104,7 +104,7 @@ For other steps, refer to `Frontend and Backend Separation Deployment` in [UI De
 >
 > Modify the index-xxx.js file in the zip, where xx is a random string
 >
-> Search for `https://temp-email-api.xxx.xxx`, replace it with your worker domain, then deploy the new zip file
+> Search for `https://api.getanemail.net`, replace it with your worker domain, then deploy the new zip file
 
 ### Command Line Deployment
 
