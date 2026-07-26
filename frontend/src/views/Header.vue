@@ -2,7 +2,7 @@
 import { ref, h, computed } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import { useHead } from '@unhead/vue'
-import { useRoute, useRouter, RouterLink } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useIsMobile } from '../utils/composables'
 import {
     DarkModeFilled, LightModeFilled, MenuFilled,
@@ -216,9 +216,6 @@ const logoClick = async () => {
 <template>
     <header class="app-header">
         <n-page-header class="app-header__inner">
-            <template #title>
-                <h1 class="app-brand__name">{{ APP_NAME }}</h1>
-            </template>
             <template #avatar>
                 <div class="app-brand__mark" @click="logoClick">
                     <n-avatar class="app-brand__avatar" src="/logo.png" />
@@ -359,17 +356,6 @@ const logoClick = async () => {
 @media (max-width: 640px) {
     :deep(.n-page-header) {
         padding: 10px;
-    }
-
-    :deep(.n-page-header__title) {
-        min-width: 0;
-    }
-
-    :deep(.n-page-header__title h3) {
-        max-width: calc(100vw - 136px);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 }
 </style>

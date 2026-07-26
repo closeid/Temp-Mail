@@ -74,7 +74,10 @@ onMounted(async () => {
                 </n-select>
             </n-form-item-row>
         </n-card>
-        <n-result v-else status="404" :title="t('notEnabled')" :description="errorInfo" />
+        <div v-else class="webhook-disabled" role="status">
+            <n-text tag="h2" class="webhook-disabled__title">{{ t('notEnabled') }}</n-text>
+            <n-text v-if="errorInfo" depth="3">{{ errorInfo }}</n-text>
+        </div>
     </div>
 </template>
 
@@ -84,5 +87,20 @@ onMounted(async () => {
     text-align: left;
     place-items: center;
     justify-content: center;
+}
+
+.webhook-disabled {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 48px 24px;
+    text-align: center;
+}
+
+.webhook-disabled__title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
 }
 </style>

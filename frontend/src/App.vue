@@ -9,7 +9,6 @@ import { useRoute } from 'vue-router'
 import { useGlobalState } from './store'
 import { useIsMobile } from './utils/composables'
 import Header from './views/Header.vue';
-import Footer from './views/Footer.vue';
 import SiteAccessGuard from './components/SiteAccessGuard.vue'
 import { getNaiveLocaleConfig } from './i18n/naive-locale'
 import { DEFAULT_LOCALE, isSupportedLocale } from './i18n/utils'
@@ -134,19 +133,16 @@ onMounted(async () => {
             </n-gi>
             <n-gi :span="!showSideMargin ? gridMaxCols : (gridMaxCols - 2)">
               <div class="app-main" :class="{ 'app-main--auth': isAuthView }">
-                <n-space class="app-stack" vertical>
-                  <n-layout class="app-layout">
-                    <Header v-if="!isAuthView" />
-                    <main class="app-shell" :class="{
-                      'app-shell--auth': isAuthView,
-                      'app-shell--workspace': isWorkspaceView,
-                      'app-shell--welcome': !isAuthView && !isWorkspaceView,
-                    }">
-                      <router-view></router-view>
-                    </main>
-                  </n-layout>
-                  <Footer v-if="!isAuthView" />
-                </n-space>
+                <div class="app-layout">
+                  <Header v-if="!isAuthView" />
+                  <main class="app-shell" :class="{
+                    'app-shell--auth': isAuthView,
+                    'app-shell--workspace': isWorkspaceView,
+                    'app-shell--welcome': !isAuthView && !isWorkspaceView,
+                  }">
+                    <router-view></router-view>
+                  </main>
+                </div>
               </div>
             </n-gi>
             <n-gi v-if="showSideMargin" span="1">

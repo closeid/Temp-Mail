@@ -21,7 +21,6 @@ import UserOauth2Settings from './admin/UserOauth2Settings.vue';
 import RoleAddressConfig from './admin/RoleAddressConfig.vue';
 import Mails from './admin/Mails.vue';
 import MailsUnknow from './admin/MailsUnknow.vue';
-import About from './common/About.vue';
 import Maintenance from './admin/Maintenance.vue';
 import DatabaseManager from './admin/DatabaseManager.vue';
 import Appearance from './common/Appearance.vue';
@@ -100,6 +99,7 @@ const currentLoginMethod = computed(() => {
 })
 
 onMounted(async () => {
+  if (adminTab.value === 'about') adminTab.value = 'account';
   // make sure openSettings is fetched for turnstile check
   if (!openSettings.value.fetched) await api.getOpenSettings(message);
   // make sure user_id is fetched
@@ -108,7 +108,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="userSettings.fetched">
+  <div v-if="userSettings.fetched" class="admin-workspace">
     <n-modal v-model:show="showAdminPasswordModal" :closable="false" :closeOnEsc="false" :maskClosable="false"
       preset="dialog" :title="t('accessHeader')">
       <p>{{ t('accessTip') }}</p>
@@ -221,8 +221,8 @@ onMounted(async () => {
         <Appearance />
       </n-tab-pane>
       <n-tab-pane name="adminAccount" :tab="t('adminAccount')">
-        <div style="display: flex; justify-content: center; padding: 20px;">
-          <n-card style="width: 600px;">
+        <div class="admin-account-panel">
+          <n-card class="admin-account-card">
             <n-space vertical>
               <n-text strong>{{ t('loginMethod') }}</n-text>
               <n-text>{{ currentLoginMethod }}</n-text>
@@ -233,9 +233,6 @@ onMounted(async () => {
             </n-space>
           </n-card>
         </div>
-      </n-tab-pane>
-      <n-tab-pane name="about" :tab="t('about')">
-        <About />
       </n-tab-pane>
     </n-tabs>
     <n-modal v-model:show="showLogoutModal" preset="dialog" :title="t('logoutConfirmTitle')">
@@ -253,5 +250,14 @@ onMounted(async () => {
 .n-pagination {
   margin-top: 10px;
   margin-bottom: 10px;
+}
+
+.admin-account-panel,
+.admin-account-card {
+  width: 100%;
+}
+
+.admin-account-panel {
+  padding: 20px 0;
 }
 </style>

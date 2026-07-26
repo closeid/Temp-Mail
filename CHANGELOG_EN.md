@@ -27,6 +27,8 @@
 
 ### Improvements
 
+- style: |Frontend| Remove the admin About page and the disabled Webhook icon, drop the mailbox/admin footer and visible app title, standardize workspace pages on viewport height, full-width content, vertically centered headers, and 40px-minimum inputs, and simplify the mail-body container and sent-box empty-state title styling
+- chore: |GitHub Actions| Keep only `Tag Build CI`, its automatic `Upstream Sync` trigger, and the downstream `Deploy Docs` workflow; remove the other standalone deployment, test, image, and PR Agent workflows
 - chore: |Deployment| Change the default API address in the frontend example build, ZIP generator, Telegram, and SMTP Proxy configuration from `temp-email-api.xxx.xxx` to `api.getanemail.net`, and update both deployment guides
 - style: |Frontend| Simplify the home authentication brand area to the enlarged logo, use 600 weight for both Login/Register tabs, and center the Forgot Password action with a 30px height and 10px horizontal padding
 - refactor: |Frontend| Consolidate anonymous authentication on the home page with Login/Register tabs for user login, registration, password reset, email-address credentials, Passkey, and OAuth; keep `/user` exclusively as the authenticated account workspace and redirect anonymous visits home. The authentication home no longer instantiates the Header or Footer, while site initialization and global access verification are extracted from the Header and the duplicate home/user login branches are removed

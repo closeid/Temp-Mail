@@ -108,19 +108,29 @@ code {
 .app-grid,
 .app-grid > .n-grid-item,
 .app-main,
-.app-stack,
 .app-layout {
   min-height: 100dvh;
+}
+
+.app-main,
+.app-layout {
+  height: 100dvh;
+}
+
+.app-main {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
 }
 
 .app-layout,
 .n-layout,
 .n-layout-scroll-container {
   background: transparent !important;
-}
-
-.app-stack {
-  gap: 0 !important;
 }
 
 .n-button {
@@ -257,6 +267,10 @@ html.dark .n-spin-container > .n-spin-body {
   position: sticky;
   top: 0;
   z-index: 20;
+  display: flex;
+  flex: 0 0 var(--app-header-height);
+  align-items: center;
+  height: var(--app-header-height);
   min-height: var(--app-header-height);
   background: var(--app-bg);
   border-bottom: 0;
@@ -264,15 +278,26 @@ html.dark .n-spin-container > .n-spin-body {
 
 .app-header__inner.n-page-header {
   width: 100%;
+  height: 100%;
   min-height: var(--app-header-height);
   margin: 0 auto;
   padding: 9px 16px !important;
 }
 
+.app-header .n-page-header-header,
 .app-header .n-page-header__main,
 .app-header .n-page-header__avatar,
 .app-header .n-page-header__extra {
+  display: flex;
   align-items: center !important;
+}
+
+.app-header .n-page-header-header {
+  height: 100%;
+}
+
+.app-header .n-page-header__extra {
+  margin-left: auto;
 }
 
 .app-brand__mark {
@@ -295,18 +320,6 @@ html.dark .n-spin-container > .n-spin-body {
   height: 34px;
   background: transparent !important;
   border-radius: var(--app-radius) !important;
-}
-
-.app-brand__name {
-  max-width: min(32vw, 360px);
-  margin: 0;
-  overflow: hidden;
-  color: var(--app-text);
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .app-header .header-extra,
@@ -336,9 +349,11 @@ html.dark .n-spin-container > .n-spin-body {
 }
 
 .app-shell {
+  flex: 1 1 auto;
   width: 100%;
-  min-height: calc(100dvh - var(--app-header-height));
+  min-height: 0;
   margin: 0 auto;
+  overflow: auto;
   padding: 4px 12px 12px;
 }
 
@@ -348,7 +363,6 @@ html.dark .n-spin-container > .n-spin-body {
 
 .app-shell--auth {
   width: 100%;
-  min-height: 100dvh;
   padding: 0;
 }
 
@@ -359,7 +373,18 @@ html.dark .n-spin-container > .n-spin-body {
   padding-top: 48px;
 }
 
-.mail-workspace {
+.mail-workspace,
+.user-workspace,
+.admin-workspace {
+  width: 100%;
+  min-width: 0;
+}
+
+.app-shell--workspace > *,
+.mail-workspace > *,
+.user-workspace > *,
+.admin-workspace > * {
+  width: 100%;
   min-width: 0;
 }
 
@@ -866,9 +891,6 @@ html.dark .n-spin-container > .n-spin-body {
 
 .mail-content {
   overflow: hidden;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius);
 }
 
 .mail-content .mail-html {
@@ -1030,11 +1052,30 @@ html.dark .n-spin-container > .n-spin-body {
 
 .settings-card.n-card,
 .workspace-pane .center > .n-card {
-  width: min(100%, 820px);
-  max-width: 820px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   background: transparent !important;
   border: 0 !important;
+}
+
+.app-shell--workspace :where(.center, .settings-page),
+.app-shell--workspace :where(.center > div) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+.app-shell--workspace :where(.center > .n-card, .center > div > .n-card, .settings-card.n-card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+.app-shell--workspace :where(.n-input, .n-input-number, .n-base-selection, .n-input-group-label) {
+  min-height: 40px;
 }
 
 .settings-card > .n-card__content,
@@ -1088,19 +1129,6 @@ html.dark .n-spin-container > .n-spin-body {
   font-variant-numeric: tabular-nums;
 }
 
-.app-footer {
-  color: var(--app-text-subtle);
-}
-
-.app-footer__inner {
-  padding: 14px 20px 20px;
-  text-align: center;
-}
-
-.app-footer .footer-divider {
-  display: none;
-}
-
 .credential-code {
   color: var(--app-text);
   background: var(--app-surface-soft) !important;
@@ -1146,13 +1174,8 @@ html.dark .n-spin-container > .n-spin-body {
     height: 30px;
   }
 
-  .app-brand__name {
-    max-width: calc(100vw - 150px);
-    font-size: 16px;
-  }
-
   .app-shell {
-    min-height: calc(100dvh - var(--app-header-height));
+    min-height: 0;
     padding: 8px;
   }
 
@@ -1250,9 +1273,6 @@ html.dark .n-spin-container > .n-spin-body {
     border-radius: var(--app-radius) var(--app-radius) 0 0 !important;
   }
 
-  .app-footer__inner {
-    padding: 10px 12px 16px;
-  }
 }
 
 @media (max-width: 520px) {

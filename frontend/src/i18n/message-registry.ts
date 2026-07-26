@@ -455,12 +455,6 @@ export const MESSAGE_REGISTRY = {
       "zh": "Webhook 设置"
     }
   },
-  "views.Footer": {
-    "copyright": {
-      "en": "Copyright",
-      "zh": "版权所有"
-    }
-  },
   "views.user.UserSettings": {
     "actions": {
       "en": "Actions",
@@ -568,10 +562,6 @@ export const MESSAGE_REGISTRY = {
     }
   },
   "views.Admin": {
-    "about": {
-      "en": "About",
-      "zh": "关于"
-    },
     "accessHeader": {
       "en": "Admin Password",
       "zh": "Admin 密码"
