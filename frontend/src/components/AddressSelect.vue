@@ -4,7 +4,7 @@ import { useLocalStorage } from '@vueuse/core'
 import { useScopedI18n } from '@/i18n/app'
 import { useMessage } from 'naive-ui'
 import useClipboard from 'vue-clipboard3'
-import { Copy } from '@vicons/fa'
+import { ContentCopyRound } from '@vicons/material'
 
 import { useGlobalState } from '../store'
 import { api } from '../api'
@@ -219,7 +219,7 @@ watch([userJwt, isTelegram, () => settings.value.address], async () => {
             class="address-select" />
         <slot name="actions" />
         <n-button v-if="showCopy" class="address-copy" @click="copy" :size="size" tertiary type="primary">
-            <n-icon :component="Copy" /> {{ t('copy') }}
+            <n-icon :component="ContentCopyRound" /> {{ t('copy') }}
         </n-button>
     </n-flex>
 </template>

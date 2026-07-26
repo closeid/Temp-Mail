@@ -11,6 +11,7 @@ import { startAuthentication } from '@simplewebauthn/browser';
 
 import Turnstile from '../../components/Turnstile.vue';
 import AddressLogin from '../common/Login.vue';
+import BrandMark from '../../components/BrandMark.vue';
 
 const {
     userJwt, userOpenSettings, openSettings,
@@ -183,7 +184,7 @@ onMounted(async () => {
 <template>
     <section class="auth-panel">
         <div class="auth-brand">
-            <n-avatar class="auth-brand__logo" src="/logo.png" />
+            <BrandMark class="auth-brand__logo" :size="72" />
         </div>
         <n-tabs class="auth-tabs" v-model:value="tabValue" size="large" type="line"
             v-if="userOpenSettings.fetched" justify-content="space-evenly">

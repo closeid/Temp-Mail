@@ -182,8 +182,8 @@ const handleCreated = (editor) => {
                         <n-card :bordered="false" embedded v-if="isPreview">
                             <div v-html="sendMailModel.content" />
                         </n-card>
-                        <div v-else-if="sendMailModel.contentType == 'rich'" style="border: 1px solid #ccc">
-                            <Toolbar style="border-bottom: 1px solid #ccc" :defaultConfig="toolbarConfig"
+                        <div v-else-if="sendMailModel.contentType == 'rich'" class="rich-editor-shell">
+                            <Toolbar class="rich-editor-toolbar" :defaultConfig="toolbarConfig"
                                 :editor="editorRef" mode="default" />
                             <Editor style="height: 500px; overflow-y: hidden;" v-model="sendMailModel.content"
                                 :defaultConfig="editorConfig" mode="default" @onCreated="handleCreated" />

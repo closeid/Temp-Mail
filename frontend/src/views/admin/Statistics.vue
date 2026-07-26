@@ -1,8 +1,7 @@
 <script setup>
 import { ref, h, onMounted, watch } from 'vue';
 import { useScopedI18n } from '@/i18n/app'
-import { User, UserCheck, MailBulk } from '@vicons/fa'
-import { SendOutlined } from '@vicons/material'
+import { HowToRegRound, MailRound, PersonRound, SendRound } from '@vicons/material'
 
 import { api } from '../../api'
 
@@ -51,21 +50,21 @@ onMounted(async () => {
                 <n-col :span="8">
                     <n-statistic :label="t('addressCount')" :value="statistics.addressCount">
                         <template #prefix>
-                            <n-icon :component="User" />
+                            <n-icon :component="PersonRound" />
                         </template>
                     </n-statistic>
                 </n-col>
                 <n-col :span="8">
                     <n-statistic :label="t('activeAddressCount7days')" :value="statistics.activeAddressCount7days">
                         <template #prefix>
-                            <n-icon :component="UserCheck" />
+                            <n-icon :component="HowToRegRound" />
                         </template>
                     </n-statistic>
                 </n-col>
                 <n-col :span="8">
                     <n-statistic :label="t('activeAddressCount30days')" :value="statistics.activeAddressCount30days">
                         <template #prefix>
-                            <n-icon :component="UserCheck" />
+                            <n-icon :component="HowToRegRound" />
                         </template>
                     </n-statistic>
                 </n-col>
@@ -76,21 +75,21 @@ onMounted(async () => {
                 <n-col :span="8">
                     <n-statistic :label="t('userCount')" :value="statistics.userCount">
                         <template #prefix>
-                            <n-icon :component="User" />
+                            <n-icon :component="PersonRound" />
                         </template>
                     </n-statistic>
                 </n-col>
                 <n-col :span="8">
                     <n-statistic :label="t('mailCount')" :value="statistics.mailCount">
                         <template #prefix>
-                            <n-icon :component="MailBulk" />
+                            <n-icon :component="MailRound" />
                         </template>
                     </n-statistic>
                 </n-col>
                 <n-col :span="8">
                     <n-statistic :label="t('sendMailCount')" :value="statistics.sendMailCount">
                         <template #prefix>
-                            <n-icon :component="SendOutlined" />
+                            <n-icon :component="SendRound" />
                         </template>
                     </n-statistic>
                 </n-col>

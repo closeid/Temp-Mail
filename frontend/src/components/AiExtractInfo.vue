@@ -11,32 +11,32 @@ const { isDark } = useGlobalState();
 const alertThemeOverrides = computed(() => {
   if (isDark.value) {
     return {
-      colorSuccess: 'rgba(196, 199, 197, 0.12)',
-      borderSuccess: '1px solid rgba(196, 199, 197, 0.28)',
-      iconColorSuccess: '#c4c7c5',
-      titleTextColorSuccess: '#c4c7c5',
+      colorSuccess: 'rgba(77, 214, 165, 0.12)',
+      borderSuccess: '1px solid rgba(77, 214, 165, 0.28)',
+      iconColorSuccess: '#4dd6a5',
+      titleTextColorSuccess: '#79e5bd',
     }
   }
   return {
-    colorSuccess: '#f1f3f4',
-    borderSuccess: '1px solid #dadce0',
-    iconColorSuccess: '#5f6368',
-    titleTextColorSuccess: '#3c4043',
+    colorSuccess: '#e7f7f1',
+    borderSuccess: '1px solid #ccefe2',
+    iconColorSuccess: '#15b77e',
+    titleTextColorSuccess: '#0b7652',
   }
 });
 
 const tagThemeOverrides = computed(() => {
   if (isDark.value) {
     return {
-      colorSuccess: 'rgba(196, 199, 197, 0.12)',
-      borderSuccess: '1px solid rgba(196, 199, 197, 0.28)',
-      textColorSuccess: '#c4c7c5',
+      colorSuccess: 'rgba(77, 214, 165, 0.12)',
+      borderSuccess: '1px solid rgba(77, 214, 165, 0.28)',
+      textColorSuccess: '#79e5bd',
     }
   }
   return {
-    colorSuccess: '#f1f3f4',
-    borderSuccess: '1px solid #dadce0',
-    textColorSuccess: '#3c4043',
+    colorSuccess: '#e7f7f1',
+    borderSuccess: '1px solid #ccefe2',
+    textColorSuccess: '#0b7652',
   }
 });
 

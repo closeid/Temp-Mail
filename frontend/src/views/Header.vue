@@ -7,17 +7,23 @@ import { useIsMobile } from '../utils/composables'
 import {
     DarkModeFilled, LightModeFilled, MenuFilled,
     AdminPanelSettingsFilled, MonitorHeartFilled,
-    KeyboardArrowDownOutlined
+    KeyboardArrowDownOutlined, HomeRound, PersonRound, LanguageRound
 } from '@vicons/material'
-import { Language, User, Home } from '@vicons/fa'
 
 import { useGlobalState } from '../store'
 import { getRouterPathWithLang } from '../utils'
 import { DEFAULT_LOCALE, isSupportedLocale, replaceLocaleInFullPath } from '../i18n/utils'
 import { getLocaleLabel, SUPPORTED_LOCALES } from '../i18n/locale-registry'
 import { NButton, NIcon } from 'naive-ui'
+import BrandMark from '../components/BrandMark.vue'
 
 const APP_NAME = 'Get an Email'
+const props = defineProps({
+    workspace: {
+        type: Boolean,
+        default: false,
+    },
+})
 
 const message = useMessage()
 
@@ -97,7 +103,7 @@ const menuOptions = computed(() => [
             },
             {
                 default: () => t('home'),
-                icon: () => h(NIcon, { component: Home })
+                icon: () => h(NIcon, { component: HomeRound })
             }),
         key: "home"
     },
@@ -116,7 +122,7 @@ const menuOptions = computed(() => [
             },
             {
                 default: () => t('user'),
-                icon: () => h(NIcon, { component: User }),
+                icon: () => h(NIcon, { component: PersonRound }),
             }
         ),
         key: "user",
@@ -184,6 +190,77 @@ const menuOptions = computed(() => [
     }
 ]);
 
+const workspaceMenuIcon = (component) => () => h(NIcon, { component })
+const workspaceMenuOptions = computed(() => [
+    {
+        label: t('home'),
+        key: 'workspace-home',
+        icon: workspaceMenuIcon(HomeRound),
+    },
+    {
+        label: t('user'),
+        key: 'workspace-user',
+        icon: workspaceMenuIcon(PersonRound),
+        show: !isTelegram.value,
+    },
+    {
+        label: 'Admin',
+        key: 'workspace-admin',
+        icon: workspaceMenuIcon(AdminPanelSettingsFilled),
+        show: showAdminPage.value,
+    },
+    {
+        type: 'divider',
+        key: 'workspace-divider',
+    },
+    {
+        label: isDark.value ? t('light') : t('dark'),
+        key: 'workspace-theme',
+        icon: workspaceMenuIcon(isDark.value ? LightModeFilled : DarkModeFilled),
+    },
+    {
+        label: currentLocaleLabel.value,
+        key: 'workspace-language',
+        icon: workspaceMenuIcon(LanguageRound),
+        children: languageOptions.map(option => ({
+            label: option.label,
+            key: `workspace-locale:${option.value}`,
+        })),
+    },
+    {
+        label: t('status'),
+        key: 'workspace-status',
+        icon: workspaceMenuIcon(MonitorHeartFilled),
+        show: !!openSettings.value?.statusUrl,
+    },
+])
+
+const handleWorkspaceMenuSelect = async (key) => {
+    if (key === 'workspace-home') {
+        await router.push(getRouterPathWithLang('/', locale.value))
+        return
+    }
+    if (key === 'workspace-user') {
+        await router.push(getRouterPathWithLang('/user', locale.value))
+        return
+    }
+    if (key === 'workspace-admin') {
+        await router.push(getRouterPathWithLang('/admin', locale.value))
+        return
+    }
+    if (key === 'workspace-theme') {
+        toggleDark()
+        return
+    }
+    if (key.startsWith('workspace-locale:')) {
+        await changeLocale(key.slice('workspace-locale:'.length))
+        return
+    }
+    if (key === 'workspace-status' && openSettings.value?.statusUrl) {
+        window.open(openSettings.value.statusUrl, '_blank', 'noopener,noreferrer')
+    }
+}
+
 useHead({
     title: APP_NAME,
     meta: [
@@ -214,11 +291,22 @@ const logoClick = async () => {
 </script>
 
 <template>
-    <header class="app-header">
+    <header v-if="props.workspace" class="app-workspace-menu">
+        <n-dropdown :options="workspaceMenuOptions" placement="top-start" trigger="click"
+            @select="handleWorkspaceMenuSelect">
+            <n-button class="app-workspace-menu__button" quaternary block>
+                <template #icon>
+                    <n-icon :component="MenuFilled" />
+                </template>
+                {{ t('menu') }}
+            </n-button>
+        </n-dropdown>
+    </header>
+    <header v-else class="app-header">
         <n-page-header class="app-header__inner">
             <template #avatar>
                 <div class="app-brand__mark" @click="logoClick">
-                    <n-avatar class="app-brand__avatar" src="/logo.png" />
+                    <BrandMark :size="36" />
                 </div>
             </template>
             <template #extra>
@@ -233,7 +321,7 @@ const logoClick = async () => {
                     <n-dropdown v-if="!isMobile" :options="languageOptions" @select="changeLocale" trigger="click" class="header-locale-dropdown">
                         <n-button text size="small" class="header-locale-button" style="padding: 0 10px;">
                             <template #icon>
-                                <n-icon :component="Language" />
+                                <n-icon :component="LanguageRound" />
                             </template>
                             {{ currentLocaleLabel }}
                             <n-icon :component="KeyboardArrowDownOutlined" style="margin-left: 4px;" />
@@ -248,7 +336,7 @@ const logoClick = async () => {
                 <div class="mobile-menu-actions">
                     <n-dropdown :options="languageOptions" @select="changeLocale" trigger="click" class="header-locale-dropdown">
                         <button type="button" class="mobile-menu-utility-button">
-                            <n-icon :component="Language" />
+                            <n-icon :component="LanguageRound" />
                             <span class="mobile-menu-action-label">{{ currentLocaleLabel }}</span>
                             <n-icon :component="KeyboardArrowDownOutlined" class="mobile-menu-action-arrow" />
                         </button>
@@ -297,7 +385,7 @@ const logoClick = async () => {
     gap: 6px;
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid rgba(128, 128, 128, 0.16);
+    border-top: 1px solid var(--app-border-soft);
 }
 
 .mobile-menu-utility-button {
@@ -309,7 +397,7 @@ const logoClick = async () => {
     min-width: 0;
     padding: 0 8px;
     border: 0;
-    border-radius: 8px;
+    border-radius: var(--app-control-radius);
     background: transparent;
     color: inherit;
     font: inherit;

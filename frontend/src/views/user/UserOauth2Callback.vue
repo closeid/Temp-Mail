@@ -5,6 +5,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api';
+import BrandMark from '../../components/BrandMark.vue';
 
 const {
     userJwt, userOauth2SessionState, userOauth2SessionClientID
@@ -50,8 +51,12 @@ onMounted(async () => {
 </script>
 
 <template>
-    <n-card :bordered="false" embedded>
-        <n-result status="info" :title="t('logging')" :description="errorInfo">
-        </n-result>
-    </n-card>
+    <section class="standalone-status-page">
+        <n-card class="standalone-status-card" :bordered="false" embedded>
+            <div class="standalone-status-brand">
+                <BrandMark :size="56" />
+            </div>
+            <n-result status="info" :title="t('logging')" :description="errorInfo" />
+        </n-card>
+    </section>
 </template>

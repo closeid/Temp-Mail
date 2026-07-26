@@ -45,33 +45,15 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="center">
-        <n-card :bordered="false" embedded v-if="curMail.message" style="max-width: 800px; height: 100%;">
-            <n-tag type="info">
-                ID: {{ curMail.id }}
-            </n-tag>
-            <n-tag type="info">
-                Date: {{ utcToLocalDate(curMail.created_at, useUTCDate) }}
-            </n-tag>
-            <n-tag type="info">
-                FROM: {{ curMail.source }}
-            </n-tag>
-            <n-tag v-if="showEMailTo" type="info">
-                TO: {{ curMail.address }}
-            </n-tag>
-            <iframe :srcdoc="curMail.message" style="margin-top: 10px;width: 100%; height: 100%;">
-            </iframe>
+    <section class="telegram-mail-page">
+        <n-card class="telegram-mail-card" :bordered="false" embedded v-if="curMail.message">
+            <div class="telegram-mail-meta">
+                <n-tag type="info">ID: {{ curMail.id }}</n-tag>
+                <n-tag type="info">Date: {{ utcToLocalDate(curMail.created_at, useUTCDate) }}</n-tag>
+                <n-tag type="info">FROM: {{ curMail.source }}</n-tag>
+                <n-tag v-if="showEMailTo" type="info">TO: {{ curMail.address }}</n-tag>
+            </div>
+            <iframe class="telegram-mail-frame" :srcdoc="curMail.message" />
         </n-card>
-    </div>
+    </section>
 </template>
-
-
-<style scoped>
-.center {
-    display: flex;
-    text-align: left;
-    place-items: center;
-    justify-content: center;
-    height: 80vh;
-}
-</style>

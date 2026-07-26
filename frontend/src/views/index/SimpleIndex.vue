@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="center">
+    <div class="simple-mail-page">
         <div v-if="!settings.address">
             <n-card :bordered="false" embedded>
                 <Login />
@@ -235,15 +235,3 @@ onBeforeUnmount(() => {
         </n-modal>
     </div>
 </template>
-
-<style scoped>
-.center {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.n-card {
-    margin-top: 20px;
-    width: 100%;
-}
-</style>

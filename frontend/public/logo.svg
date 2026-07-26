@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Get an Email</title>
+  <rect x="3" y="3" width="58" height="58" rx="14" fill="#ffffff" stroke="#dfe8ee" stroke-width="2"/>
+  <path d="M15 21.5c0-2.5 2-4.5 4.5-4.5h25c2.5 0 4.5 2 4.5 4.5v21c0 2.5-2 4.5-4.5 4.5h-25A4.5 4.5 0 0 1 15 42.5v-21Z" fill="#f7fafb" stroke="#53697b" stroke-width="2.6"/>
+  <path d="m17.5 21 11.7 9.2a4.5 4.5 0 0 0 5.6 0L46.5 21" fill="none" stroke="#53697b" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.6"/>
+  <circle cx="46" cy="45" r="10" fill="#15b77e" stroke="#fff" stroke-width="3"/>
+  <path d="M46 40.5v9M41.5 45h9" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.4"/>
+</svg>

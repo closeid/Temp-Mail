@@ -49,7 +49,7 @@ export default defineConfig({
         name: 'Get an Email',
         short_name: 'Get an Email',
         description: 'Get an Email',
-        theme_color: '#f6f8fc',
+        theme_color: '#ffffff',
         icons: [
           {
             src: '/logo.png',

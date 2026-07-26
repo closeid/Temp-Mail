@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
-import { ExchangeAlt } from '@vicons/fa'
+import { SwapHorizRound } from '@vicons/material'
 
 import { useGlobalState } from '../../store'
 import TelegramAddress from './TelegramAddress.vue'
@@ -31,7 +31,7 @@ const showAddressManage = ref(false)
                     <template #actions>
                         <n-button class="address-manage" size="small" tertiary type="primary"
                             @click="showAddressManage = true">
-                            <n-icon :component="ExchangeAlt" />
+                            <n-icon :component="SwapHorizRound" />
                             {{ t('addressManage') }}
                         </n-button>
                     </template>

@@ -30,6 +30,18 @@ import MailWebhook from './admin/MailWebhook.vue';
 import WorkerConfig from './admin/WorkerConfig.vue';
 import IpBlacklistSettings from './admin/IpBlacklistSettings.vue';
 import AiExtractSettings from './admin/AiExtractSettings.vue';
+import WorkspaceTabLabel from '../components/WorkspaceTabLabel.vue';
+import {
+  AdminPanelSettingsRound,
+  AlternateEmailRound,
+  BuildRound,
+  MarkEmailReadRound,
+  PaletteRound,
+  PeopleAltRound,
+  QueryStatsRound,
+  RocketLaunchRound,
+  SendRound,
+} from '@vicons/material'
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
@@ -122,8 +134,11 @@ onMounted(async () => {
     </n-modal>
     <n-tabs v-if="showAdminPage" class="workspace-tabs admin-workspace-tabs" type="bar"
       v-model:value="adminTab" :placement="tabPlacement">
-      <n-tab-pane name="qucickSetup" :tab="t('qucickSetup')">
-        <n-tabs type="bar" justify-content="center" animated>
+      <n-tab-pane name="qucickSetup" class="workspace-pane workspace-pane--nested">
+        <template #tab>
+          <WorkspaceTabLabel :icon="RocketLaunchRound" :label="t('qucickSetup')" />
+        </template>
+        <n-tabs class="nested-tabs" type="bar" animated placement="left">
           <n-tab-pane name="database" :tab="t('database')">
             <DatabaseManager />
           </n-tab-pane>
@@ -138,8 +153,11 @@ onMounted(async () => {
           </n-tab-pane>
         </n-tabs>
       </n-tab-pane>
-      <n-tab-pane name="account" :tab="t('account')">
-        <n-tabs type="bar" justify-content="center" animated>
+      <n-tab-pane name="account" class="workspace-pane workspace-pane--nested">
+        <template #tab>
+          <WorkspaceTabLabel :icon="AlternateEmailRound" :label="t('account')" />
+        </template>
+        <n-tabs class="nested-tabs" type="bar" animated placement="left">
           <n-tab-pane name="account" :tab="t('account')">
             <Account />
           </n-tab-pane>
@@ -163,8 +181,11 @@ onMounted(async () => {
           </n-tab-pane>
         </n-tabs>
       </n-tab-pane>
-      <n-tab-pane name="user" :tab="t('user')">
-        <n-tabs type="bar" justify-content="center" animated>
+      <n-tab-pane name="user" class="workspace-pane workspace-pane--nested">
+        <template #tab>
+          <WorkspaceTabLabel :icon="PeopleAltRound" :label="t('user')" />
+        </template>
+        <n-tabs class="nested-tabs" type="bar" animated placement="left">
           <n-tab-pane name="user_management" :tab="t('user_management')">
             <UserManagement />
           </n-tab-pane>
@@ -179,8 +200,11 @@ onMounted(async () => {
           </n-tab-pane>
         </n-tabs>
       </n-tab-pane>
-      <n-tab-pane name="mails" :tab="t('mails')">
-        <n-tabs type="bar" justify-content="center" animated>
+      <n-tab-pane name="mails" class="workspace-pane workspace-pane--nested">
+        <template #tab>
+          <WorkspaceTabLabel :icon="MarkEmailReadRound" :label="t('mails')" />
+        </template>
+        <n-tabs class="nested-tabs" type="bar" animated placement="left">
           <n-tab-pane name="mails" :tab="t('mails')">
             <Mails />
           </n-tab-pane>
@@ -198,14 +222,23 @@ onMounted(async () => {
           </n-tab-pane>
         </n-tabs>
       </n-tab-pane>
-      <n-tab-pane name="telegram" :tab="t('telegram')">
+      <n-tab-pane name="telegram" class="workspace-pane">
+        <template #tab>
+          <WorkspaceTabLabel :icon="SendRound" :label="t('telegram')" />
+        </template>
         <Telegram />
       </n-tab-pane>
-      <n-tab-pane name="statistics" :tab="t('statistics')">
+      <n-tab-pane name="statistics" class="workspace-pane">
+        <template #tab>
+          <WorkspaceTabLabel :icon="QueryStatsRound" :label="t('statistics')" />
+        </template>
         <Statistics />
       </n-tab-pane>
-      <n-tab-pane name="maintenance" :tab="t('maintenance')">
-        <n-tabs type="bar" justify-content="center" animated>
+      <n-tab-pane name="maintenance" class="workspace-pane workspace-pane--nested">
+        <template #tab>
+          <WorkspaceTabLabel :icon="BuildRound" :label="t('maintenance')" />
+        </template>
+        <n-tabs class="nested-tabs" type="bar" animated placement="left">
           <n-tab-pane name="database" :tab="t('database')">
             <DatabaseManager />
           </n-tab-pane>
@@ -217,10 +250,16 @@ onMounted(async () => {
           </n-tab-pane>
         </n-tabs>
       </n-tab-pane>
-      <n-tab-pane name="appearance" :tab="t('appearance')">
+      <n-tab-pane name="appearance" class="workspace-pane">
+        <template #tab>
+          <WorkspaceTabLabel :icon="PaletteRound" :label="t('appearance')" />
+        </template>
         <Appearance />
       </n-tab-pane>
-      <n-tab-pane name="adminAccount" :tab="t('adminAccount')">
+      <n-tab-pane name="adminAccount" class="workspace-pane">
+        <template #tab>
+          <WorkspaceTabLabel :icon="AdminPanelSettingsRound" :label="t('adminAccount')" />
+        </template>
         <div class="admin-account-panel">
           <n-card class="admin-account-card">
             <n-space vertical>

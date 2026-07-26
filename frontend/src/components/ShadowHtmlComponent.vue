@@ -46,8 +46,8 @@ const renderShadowDom = () => {
         if (shadowRoot) {
             const darkModeStyle = props.isDark
                 ? `<style>
-                    :host { color: #e0e0e0; }
-                    a { color: #c4c7c5; }
+                    :host { color: #edf3f6; }
+                    a { color: #4dd6a5; }
                    </style>`
                 : '';
             shadowRoot.innerHTML = darkModeStyle + props.htmlContent;

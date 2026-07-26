@@ -96,7 +96,7 @@ const emailForwardingColumns = [
                     tag: true,
                     placeholder: t('source_patterns_placeholder')
                 }, {
-                    empty: () => h('span', { style: 'color: #999; font-size: 12px;' }, t('manualInputPrompt'))
+                    empty: () => h('span', { style: 'color: var(--app-text-subtle); font-size: 12px;' }, t('manualInputPrompt'))
                 }),
                 h(NRadioGroup, {
                     value: row.sourceMatchMode || 'any',

@@ -23,24 +23,27 @@ const route = useRoute()
 const theme = computed(() => isDark.value ? darkTheme : null)
 const themeOverrides = computed(() => ({
   common: {
-    primaryColor: isDark.value ? '#c4c7c5' : '#5f6368',
-    primaryColorHover: isDark.value ? '#e8eaed' : '#3c4043',
-    primaryColorPressed: isDark.value ? '#9aa0a6' : '#202124',
-    primaryColorSuppl: isDark.value ? '#c4c7c5' : '#5f6368',
-    infoColor: isDark.value ? '#c4c7c5' : '#5f6368',
-    infoColorHover: isDark.value ? '#e8eaed' : '#3c4043',
-    infoColorPressed: isDark.value ? '#9aa0a6' : '#202124',
-    infoColorSuppl: isDark.value ? '#c4c7c5' : '#5f6368',
-    borderRadius: '8px',
-    borderRadiusSmall: '6px',
+    primaryColor: isDark.value ? '#4dd6a5' : '#15b77e',
+    primaryColorHover: isDark.value ? '#6fe1b8' : '#0fa46f',
+    primaryColorPressed: isDark.value ? '#29be8c' : '#0b8d60',
+    primaryColorSuppl: isDark.value ? '#4dd6a5' : '#15b77e',
+    infoColor: isDark.value ? '#8ea7ba' : '#61778a',
+    infoColorHover: isDark.value ? '#a8bbca' : '#4c6376',
+    infoColorPressed: isDark.value ? '#738da1' : '#3d5264',
+    infoColorSuppl: isDark.value ? '#8ea7ba' : '#61778a',
+    successColor: isDark.value ? '#4dd6a5' : '#15b77e',
+    borderRadius: '6px',
+    borderRadiusSmall: '5px',
     fontFamily: '"Segoe UI Variable", "SF Pro Text", "Noto Sans SC", "Microsoft YaHei", sans-serif',
   },
   Button: {
-    borderRadiusMedium: '8px',
-    borderRadiusSmall: '7px',
+    borderRadiusMedium: '6px',
+    borderRadiusSmall: '5px',
+    heightMedium: '40px',
+    heightSmall: '34px',
   },
   Card: {
-    borderRadius: '8px',
+    borderRadius: '6px',
   },
 }))
 const localeConfig = computed(() => getNaiveLocaleConfig(isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE))
@@ -136,9 +139,9 @@ onMounted(async () => {
               </div>
             </n-gi>
             <n-gi :span="!showSideMargin ? gridMaxCols : (gridMaxCols - 2)">
-              <div class="app-main" :class="{ 'app-main--auth': isAuthView }">
+              <div class="app-main" :class="{ 'app-main--auth': isAuthView, 'app-main--workspace': isWorkspaceView }">
                 <div class="app-layout">
-                  <Header v-if="!isAuthView" />
+                  <Header v-if="!isAuthView" :workspace="isWorkspaceView" />
                   <main class="app-shell" :class="{
                     'app-shell--auth': isAuthView,
                     'app-shell--workspace': isWorkspaceView,
