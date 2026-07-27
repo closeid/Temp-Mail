@@ -1,0 +1,146 @@
+import axios from 'axios'
+import { getFingerprint } from '@/utils/fingerprint'
+import { safeBearerHeader, safeHeaderValue } from '@/utils/headers'
+import { appStore, type OpenSettings } from './store'
+
+const instance = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE || '',
+  timeout: 30_000,
+  validateStatus: (status) => status >= 200 && status <= 500,
+})
+
+export type ApiOptions = {
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  body?: unknown
+  userJwt?: string
+  signal?: AbortSignal
+  headers?: Record<string, string>
+}
+
+export async function apiFetch<T = any>(path: string, options: ApiOptions = {}): Promise<T> {
+  appStore.setState((current) => ({ loading: current.loading + 1 }))
+  try {
+    const state = appStore.getState()
+    const headers: Record<string, string> = {
+      'x-lang': document.documentElement.lang || 'zh',
+      'x-fingerprint': await getFingerprint(),
+      'Content-Type': 'application/json',
+      ...options.headers,
+    }
+    const userToken = safeHeaderValue(options.userJwt || state.userJwt)
+    const userAccess = safeHeaderValue(state.userSettings.access_token)
+    const customAuth = safeHeaderValue(state.auth)
+    const adminAuth = safeHeaderValue(state.adminAuth)
+    const authorization = safeBearerHeader(state.jwt)
+    if (userToken) headers['x-user-token'] = userToken
+    if (userAccess) headers['x-user-access-token'] = userAccess
+    if (customAuth) headers['x-custom-auth'] = customAuth
+    if (adminAuth) headers['x-admin-auth'] = adminAuth
+    if (authorization) headers.Authorization = authorization
+
+    const response = await instance.request<T>({
+      url: path,
+      method: options.method || 'GET',
+      data: options.body ?? null,
+      headers,
+      signal: options.signal,
+    })
+    if (response.status === 401 && path.startsWith('/admin')) appStore.setState({ showAdminAuth: true })
+    if (response.status === 401 && state.openSettings.needAuth) appStore.setState({ showSiteAuth: true })
+    if (response.status >= 300) {
+      const detail = typeof response.data === 'string' ? response.data : JSON.stringify(response.data)
+      throw new Error(`[${response.status}]: ${detail || 'Request failed'}`)
+    }
+    return response.data
+  } catch (error: any) {
+    if (error?.response) throw new Error(`Code ${error.response.status}: ${typeof error.response.data === 'string' ? error.response.data : JSON.stringify(error.response.data)}`)
+    throw error
+  } finally {
+    appStore.setState((current) => ({ loading: Math.max(0, current.loading - 1) }))
+  }
+}
+
+export async function fetchOpenSettings() {
+  try {
+    const result = await apiFetch<Record<string, any>>('/open_api/settings')
+    const domains = Array.isArray(result.domains) ? result.domains : []
+    const labels = Array.isArray(result.domainLabels) ? result.domainLabels : []
+    const current = appStore.getState().openSettings
+    const normalized: OpenSettings = {
+      ...current, ...result, fetched: true,
+      title: result.title || '', prefix: result.prefix || '', minAddressLen: result.minAddressLen || 1,
+      maxAddressLen: result.maxAddressLen || 30, needAuth: Boolean(result.needAuth), defaultDomains: result.defaultDomains || [],
+      randomSubdomainDomains: result.randomSubdomainDomains || [],
+      domains: domains.map((value: string, index: number) => ({ label: labels[index] || value, value })),
+      copyright: result.copyright || current.copyright, cfTurnstileSiteKey: result.cfTurnstileSiteKey || '',
+      smtpImapProxyConfig: result.smtpImapProxyConfig || current.smtpImapProxyConfig,
+      statusUrl: result.statusUrl || '',
+    }
+    appStore.setState({ openSettings: normalized, showSiteAuth: Boolean(normalized.needAuth && !appStore.getState().auth) })
+    return normalized
+  } catch (error) {
+    appStore.setState((state) => ({ openSettings: { ...state.openSettings, fetched: true } }))
+    throw error
+  }
+}
+
+export async function fetchAddressSettings() {
+  const { jwt } = appStore.getState()
+  if (!jwt || jwt === 'undefined') {
+    appStore.setState((state) => ({ settings: { ...state.settings, fetched: true } }))
+    return appStore.getState().settings
+  }
+  try {
+    const result = await apiFetch<Record<string, any>>('/api/settings')
+    const settings = { fetched: true, address: result.address || '', auto_reply: result.auto_reply || {}, send_balance: result.send_balance || 0 }
+    appStore.setState({ settings })
+    return settings
+  } catch (error) {
+    appStore.setState((state) => ({ settings: { ...state.settings, fetched: true } }))
+    throw error
+  }
+}
+
+export async function fetchUserOpenSettings() {
+  try {
+    const result = await apiFetch<Record<string, any>>('/user_api/open_settings')
+    const settings = { ...appStore.getState().userOpenSettings, ...result, fetched: true }
+    appStore.setState({ userOpenSettings: settings })
+    return settings
+  } catch (error) {
+    appStore.setState((state) => ({ userOpenSettings: { ...state.userOpenSettings, fetched: true } }))
+    throw error
+  }
+}
+
+export async function fetchUserSettings() {
+  const { userJwt } = appStore.getState()
+  if (!userJwt) {
+    appStore.setState((state) => ({ userSettings: { ...state.userSettings, fetched: true } }))
+    return appStore.getState().userSettings
+  }
+  try {
+    const result = await apiFetch<Record<string, any>>('/user_api/settings')
+    const settings = { ...appStore.getState().userSettings, ...result, fetched: true }
+    appStore.setState({ userSettings: settings })
+    if (settings.new_user_token) {
+      await apiFetch('/user_api/settings', { userJwt: settings.new_user_token })
+      appStore.setState({ userJwt: settings.new_user_token })
+    }
+    return settings
+  } catch (error) {
+    appStore.setState((state) => ({ userSettings: { ...state.userSettings, fetched: true } }))
+    throw error
+  }
+}
+
+export const api = {
+  fetch: apiFetch,
+  getOpenSettings: fetchOpenSettings,
+  getSettings: fetchAddressSettings,
+  getUserOpenSettings: fetchUserOpenSettings,
+  getUserSettings: fetchUserSettings,
+  bindUserAddress: () => apiFetch('/user_api/bind_address', { method: 'POST' }),
+  adminShowAddressCredential: async (id: number | string) => (await apiFetch<{ jwt: string }>(`/admin/show_password/${id}`)).jwt,
+  adminDeleteAddress: (id: number | string) => apiFetch(`/admin/delete_address/${id}`, { method: 'DELETE' }),
+}

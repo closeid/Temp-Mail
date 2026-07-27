@@ -1,7 +1,7 @@
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
-import { useGlobalState } from '../store';
 
-const { browserFingerprint } = useGlobalState();
+let cachedFingerprint = ''
+let pendingFingerprint: Promise<string> | null = null
 
 /**
  * Get browser fingerprint
@@ -10,21 +10,20 @@ const { browserFingerprint } = useGlobalState();
  */
 export const getFingerprint = async (): Promise<string> => {
     // Return cached fingerprint if available
-    if (browserFingerprint.value) {
-        return browserFingerprint.value;
-    }
+    if (cachedFingerprint) return cachedFingerprint;
+    if (pendingFingerprint) return pendingFingerprint;
 
-    try {
-        const fp = await FingerprintJS.load();
-        const result = await fp.get();
-        browserFingerprint.value = result.visitorId;
-        return browserFingerprint.value;
-    } catch (error) {
-        console.error('Failed to get fingerprint:', error);
-        // Return special error value to prevent blocking requests
-        const errorValue = 'ERROR';
-        browserFingerprint.value = errorValue;
-        return errorValue;
-    }
+    pendingFingerprint = FingerprintJS.load()
+        .then((fp) => fp.get())
+        .then((result) => {
+            cachedFingerprint = result.visitorId;
+            return cachedFingerprint;
+        })
+        .catch((error) => {
+            console.error('Failed to get fingerprint:', error);
+            cachedFingerprint = 'ERROR';
+            return cachedFingerprint;
+        })
+        .finally(() => { pendingFingerprint = null })
+    return pendingFingerprint
 };
-
