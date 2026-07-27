@@ -127,7 +127,7 @@ onMounted(async () => {
   <n-config-provider :locale="localeConfig.locale" :date-locale="localeConfig.dateLocale" :theme="theme"
     :theme-overrides="themeOverrides">
     <n-global-style />
-    <n-spin description="loading..." :show="loading">
+    <n-spin :show="loading">
       <n-notification-provider container-style="margin-top: 60px;">
         <n-message-provider container-style="margin-top: 20px;">
           <SiteAccessGuard />
@@ -168,11 +168,6 @@ onMounted(async () => {
 
 
 <style>
-.n-switch {
-  margin-left: 10px;
-  margin-right: 10px;
-}
-
 @media (hover: none) and (pointer: coarse) and (max-width: 1024px) {
   :where(input, textarea, select, [contenteditable="true"]) {
     font-size: 16px !important;

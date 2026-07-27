@@ -1,0 +1,45 @@
+{
+  "cookies": [
+    {
+      "name": "edgeever_session",
+      "value": "bXAZr6DJj6eLY8XEoifzqhyLgslqaWEt37eQpYrElCE",
+      "domain": "notes.closeid.com",
+      "path": "/",
+      "expires": 1819716348.13289,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://notes.closeid.com",
+      "localStorage": [
+        {
+          "name": "edgeever.theme",
+          "value": "system"
+        },
+        {
+          "name": "edgeever.web.device-id",
+          "value": "web-1d3e5773-b5b1-438c-8906-b610396cda68"
+        },
+        {
+          "name": "edgeever.autoSaveInterval",
+          "value": "1m"
+        },
+        {
+          "name": "edgeever.imageCompressionEnabled",
+          "value": "true"
+        },
+        {
+          "name": "edgeever.notebookSort",
+          "value": "name-asc"
+        },
+        {
+          "name": "edgeever.shortcutSettings",
+          "value": "{\"createMemo\":{\"key\":\"n\",\"ctrlOrMeta\":true,\"shift\":false,\"alt\":false},\"createNotebook\":{\"key\":\"n\",\"ctrlOrMeta\":true,\"shift\":true,\"alt\":false},\"focusSearch\":{\"key\":\"f\",\"ctrlOrMeta\":true,\"shift\":false,\"alt\":false},\"focusReplace\":{\"key\":\"h\",\"ctrlOrMeta\":true,\"shift\":false,\"alt\":false}}"
+        }
+      ]
+    }
+  ]
+}

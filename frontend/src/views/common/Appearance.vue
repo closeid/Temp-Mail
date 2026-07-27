@@ -64,7 +64,7 @@ const { t } = useScopedI18n('views.common.Appearance')
                 <n-switch v-model:value="useSideMargin" :round="false" />
             </n-form-item-row>
             <n-form-item-row :label="t('globalTabplacement')">
-                <n-radio-group v-model:value="globalTabplacement">
+                <n-radio-group v-model:value="globalTabplacement" class="tab-placement-control">
                     <n-radio-button value="top" :label="t('top')" />
                     <n-radio-button value="left" :label="t('left')" />
                     <n-radio-button value="right" :label="t('right')" />

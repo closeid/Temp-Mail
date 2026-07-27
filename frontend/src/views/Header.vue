@@ -3,6 +3,7 @@ import { ref, h, computed } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
 import { useHead } from '@unhead/vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useMediaQuery } from '@vueuse/core'
 import { useIsMobile } from '../utils/composables'
 import {
     DarkModeFilled, LightModeFilled, MenuFilled,
@@ -29,11 +30,23 @@ const message = useMessage()
 
 const {
     toggleDark, isDark, isTelegram, showAdminPage,
-    loading, openSettings, preferredLocale
+    loading, openSettings, preferredLocale, globalTabplacement
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
 const isMobile = useIsMobile()
+const useMobileWorkspaceMenu = useMediaQuery('(max-width: 820px)')
+const workspaceMenuPlacement = computed(() => {
+    if (useMobileWorkspaceMenu.value) return 'mobile'
+    return ['top', 'right', 'bottom'].includes(globalTabplacement.value)
+        ? globalTabplacement.value
+        : 'left'
+})
+const workspaceDropdownPlacement = computed(() => {
+    if (workspaceMenuPlacement.value === 'top') return 'bottom-end'
+    if (workspaceMenuPlacement.value === 'right' || workspaceMenuPlacement.value === 'bottom') return 'top-end'
+    return 'top-start'
+})
 
 const showMobileMenu = ref(false)
 const menuValue = computed(() => {
@@ -252,7 +265,7 @@ const handleWorkspaceMenuSelect = async (key) => {
         toggleDark()
         return
     }
-    if (key.startsWith('workspace-locale:')) {
+    if (typeof key === 'string' && key.startsWith('workspace-locale:')) {
         await changeLocale(key.slice('workspace-locale:'.length))
         return
     }
@@ -291,8 +304,47 @@ const logoClick = async () => {
 </script>
 
 <template>
-    <header v-if="props.workspace" class="app-workspace-menu">
-        <n-dropdown :options="workspaceMenuOptions" placement="top-start" trigger="click"
+    <header v-if="props.workspace" class="app-workspace-menu"
+        :class="`app-workspace-menu--${workspaceMenuPlacement}`">
+        <nav v-if="useMobileWorkspaceMenu" class="app-mobile-workspace-nav" :aria-label="t('menu')">
+            <button type="button" class="app-mobile-workspace-nav__item" :class="{ 'is-active': menuValue === 'home' }"
+                :aria-current="menuValue === 'home' ? 'page' : undefined"
+                @click="handleWorkspaceMenuSelect('workspace-home')">
+                <n-icon :component="HomeRound" />
+                <span>{{ t('home') }}</span>
+            </button>
+            <button v-if="!isTelegram" type="button" class="app-mobile-workspace-nav__item"
+                :class="{ 'is-active': menuValue === 'user' }"
+                :aria-current="menuValue === 'user' ? 'page' : undefined"
+                @click="handleWorkspaceMenuSelect('workspace-user')">
+                <n-icon :component="PersonRound" />
+                <span>{{ t('user') }}</span>
+            </button>
+            <button v-if="showAdminPage" type="button" class="app-mobile-workspace-nav__item"
+                :class="{ 'is-active': menuValue === 'admin' }"
+                :aria-current="menuValue === 'admin' ? 'page' : undefined"
+                @click="handleWorkspaceMenuSelect('workspace-admin')">
+                <n-icon :component="AdminPanelSettingsFilled" />
+                <span>Admin</span>
+            </button>
+            <button type="button" class="app-mobile-workspace-nav__item"
+                @click="handleWorkspaceMenuSelect('workspace-theme')">
+                <n-icon :component="isDark ? LightModeFilled : DarkModeFilled" />
+                <span>{{ isDark ? t('light') : t('dark') }}</span>
+            </button>
+            <n-dropdown :options="languageOptions" placement="top" trigger="click" @select="changeLocale">
+                <button type="button" class="app-mobile-workspace-nav__item">
+                    <n-icon :component="LanguageRound" />
+                    <span>{{ currentLocaleLabel }}</span>
+                </button>
+            </n-dropdown>
+            <button v-if="openSettings?.statusUrl" type="button" class="app-mobile-workspace-nav__item"
+                @click="handleWorkspaceMenuSelect('workspace-status')">
+                <n-icon :component="MonitorHeartFilled" />
+                <span>{{ t('status') }}</span>
+            </button>
+        </nav>
+        <n-dropdown v-else :options="workspaceMenuOptions" :placement="workspaceDropdownPlacement" trigger="click"
             @select="handleWorkspaceMenuSelect">
             <n-button class="app-workspace-menu__button" quaternary block>
                 <template #icon>

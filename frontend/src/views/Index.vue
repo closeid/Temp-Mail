@@ -116,11 +116,7 @@ onMounted(async () => {
 <template>
   <div class="mail-workspace">
     <HomeAuth v-if="showHomeAuth" />
-    <section v-else-if="!sessionReady" class="home-auth-shell">
-      <n-card class="home-auth-card" :bordered="false" embedded>
-        <n-skeleton text :repeat="6" />
-      </n-card>
-    </section>
+    <template v-else-if="!sessionReady"></template>
     <div v-else-if="useSimpleIndex">
       <SimpleIndex />
     </div>
