@@ -1,11 +1,8 @@
 <script setup>
-import { watch } from 'vue'
 import { useScopedI18n } from '@/i18n/app'
-import { useRouter } from 'vue-router'
 
 import { useGlobalState } from '../store'
 import { useResponsiveTabPlacement } from '../utils/composables'
-import { getRouterPathWithLang } from '../utils'
 import { AlternateEmailRound, LinkRound, MarkEmailReadRound, SettingsRound } from '@vicons/material'
 
 import AddressMangement from './user/AddressManagement.vue';
@@ -16,22 +13,11 @@ import UserMailBox from './user/UserMailBox.vue';
 import WorkspaceTabLabel from '../components/WorkspaceTabLabel.vue';
 
 const {
-    userTab, globalTabplacement, userSettings
+    userTab, userSettings
 } = useGlobalState()
 
-const { t, locale } = useScopedI18n('views.User')
-const router = useRouter()
-const tabPlacement = useResponsiveTabPlacement(globalTabplacement)
-
-watch(
-    () => [userSettings.value.fetched, userSettings.value.user_email],
-    ([fetched, email]) => {
-        if (fetched && !email) {
-            router.replace(getRouterPathWithLang('/', locale.value))
-        }
-    },
-    { immediate: true },
-)
+const { t } = useScopedI18n('views.User')
+const tabPlacement = useResponsiveTabPlacement()
 
 </script>
 

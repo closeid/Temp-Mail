@@ -45,12 +45,12 @@ import {
 
 const {
   adminAuth, showAdminAuth, adminTab, loading,
-  globalTabplacement, showAdminPage, userSettings,
+  showAdminPage, userSettings,
   openSettings
 } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
-const tabPlacement = useResponsiveTabPlacement(globalTabplacement)
+const tabPlacement = useResponsiveTabPlacement()
 
 const SendMail = defineAsyncComponent(() => {
   loading.value = true;

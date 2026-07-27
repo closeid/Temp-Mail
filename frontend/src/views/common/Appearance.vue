@@ -12,7 +12,7 @@ const props = defineProps({
 
 const {
     mailboxSplitSize, mailListView, mailListPreviewLineClamp, useIframeShowMail, preferShowTextMail, configAutoRefreshInterval,
-    globalTabplacement, useSideMargin, useUTCDate, useSimpleIndex
+    useSideMargin, useUTCDate, useSimpleIndex
 } = useGlobalState()
 const isMobile = useIsMobile()
 
@@ -62,14 +62,6 @@ const { t } = useScopedI18n('views.common.Appearance')
             </n-form-item-row>
             <n-form-item-row v-if="!isMobile" :label="t('useSideMargin')">
                 <n-switch v-model:value="useSideMargin" :round="false" />
-            </n-form-item-row>
-            <n-form-item-row :label="t('globalTabplacement')">
-                <n-radio-group v-model:value="globalTabplacement" class="tab-placement-control">
-                    <n-radio-button value="top" :label="t('top')" />
-                    <n-radio-button value="left" :label="t('left')" />
-                    <n-radio-button value="right" :label="t('right')" />
-                    <n-radio-button value="bottom" :label="t('bottom')" />
-                </n-radio-group>
             </n-form-item-row>
         </n-card>
     </div>

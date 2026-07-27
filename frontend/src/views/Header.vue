@@ -30,28 +30,18 @@ const message = useMessage()
 
 const {
     toggleDark, isDark, isTelegram, showAdminPage,
-    loading, openSettings, preferredLocale, globalTabplacement
+    loading, openSettings, preferredLocale, workspaceSection
 } = useGlobalState()
 const route = useRoute()
 const router = useRouter()
 const isMobile = useIsMobile()
 const useMobileWorkspaceMenu = useMediaQuery('(max-width: 820px)')
-const workspaceMenuPlacement = computed(() => {
-    if (useMobileWorkspaceMenu.value) return 'mobile'
-    return ['top', 'right', 'bottom'].includes(globalTabplacement.value)
-        ? globalTabplacement.value
-        : 'left'
-})
-const workspaceDropdownPlacement = computed(() => {
-    if (workspaceMenuPlacement.value === 'top') return 'bottom-end'
-    if (workspaceMenuPlacement.value === 'right' || workspaceMenuPlacement.value === 'bottom') return 'top-end'
-    return 'top-start'
-})
+const workspaceMenuPlacement = computed(() => useMobileWorkspaceMenu.value ? 'mobile' : 'left')
 
 const showMobileMenu = ref(false)
 const menuValue = computed(() => {
-    if (route.path.includes("user")) return "user";
-    if (route.path.includes("admin")) return "admin";
+    if (route.path.includes("dashboard")) return "admin";
+    if (route.name === 'home' && workspaceSection.value === 'user') return "user";
     return "home";
 });
 
@@ -110,6 +100,7 @@ const menuOptions = computed(() => [
                 type: menuValue.value == "home" ? "primary" : "default",
                 style: "width: 100%",
                 onClick: async () => {
+                    workspaceSection.value = 'mail';
                     await router.push(getRouterPathWithLang('/', locale.value));
                     showMobileMenu.value = false;
                 }
@@ -129,7 +120,8 @@ const menuOptions = computed(() => [
                 type: menuValue.value == "user" ? "primary" : "default",
                 style: "width: 100%",
                 onClick: async () => {
-                    await router.push(getRouterPathWithLang("/user", locale.value));
+                    workspaceSection.value = 'user';
+                    await router.push(getRouterPathWithLang("/", locale.value));
                     showMobileMenu.value = false;
                 }
             },
@@ -151,7 +143,7 @@ const menuOptions = computed(() => [
                 style: "width: 100%",
                 onClick: async () => {
                     loading.value = true;
-                    await router.push(getRouterPathWithLang('/admin', locale.value));
+                    await router.push(getRouterPathWithLang('/dashboard', locale.value));
                     loading.value = false;
                     showMobileMenu.value = false;
                 }
@@ -250,15 +242,17 @@ const workspaceMenuOptions = computed(() => [
 
 const handleWorkspaceMenuSelect = async (key) => {
     if (key === 'workspace-home') {
+        workspaceSection.value = 'mail'
         await router.push(getRouterPathWithLang('/', locale.value))
         return
     }
     if (key === 'workspace-user') {
-        await router.push(getRouterPathWithLang('/user', locale.value))
+        workspaceSection.value = 'user'
+        await router.push(getRouterPathWithLang('/', locale.value))
         return
     }
     if (key === 'workspace-admin') {
-        await router.push(getRouterPathWithLang('/admin', locale.value))
+        await router.push(getRouterPathWithLang('/dashboard', locale.value))
         return
     }
     if (key === 'workspace-theme') {
@@ -283,7 +277,7 @@ useHead({
 
 const logoClickCount = ref(0);
 const logoClick = async () => {
-    if (route.path.includes("admin")) {
+    if (route.path.includes("dashboard")) {
         logoClickCount.value = 0;
         return;
     }
@@ -291,7 +285,7 @@ const logoClick = async () => {
         logoClickCount.value = 0;
         message.info("Change to admin Page");
         loading.value = true;
-        await router.push(getRouterPathWithLang('/admin', locale.value));
+        await router.push(getRouterPathWithLang('/dashboard', locale.value));
         loading.value = false;
     } else {
         logoClickCount.value++;
@@ -307,21 +301,19 @@ const logoClick = async () => {
     <header v-if="props.workspace" class="app-workspace-menu"
         :class="`app-workspace-menu--${workspaceMenuPlacement}`">
         <nav v-if="useMobileWorkspaceMenu" class="app-mobile-workspace-nav" :aria-label="t('menu')">
-            <button type="button" class="app-mobile-workspace-nav__item" :class="{ 'is-active': menuValue === 'home' }"
+            <button type="button" class="app-mobile-workspace-nav__item"
                 :aria-current="menuValue === 'home' ? 'page' : undefined"
                 @click="handleWorkspaceMenuSelect('workspace-home')">
                 <n-icon :component="HomeRound" />
                 <span>{{ t('home') }}</span>
             </button>
             <button v-if="!isTelegram" type="button" class="app-mobile-workspace-nav__item"
-                :class="{ 'is-active': menuValue === 'user' }"
                 :aria-current="menuValue === 'user' ? 'page' : undefined"
                 @click="handleWorkspaceMenuSelect('workspace-user')">
                 <n-icon :component="PersonRound" />
                 <span>{{ t('user') }}</span>
             </button>
             <button v-if="showAdminPage" type="button" class="app-mobile-workspace-nav__item"
-                :class="{ 'is-active': menuValue === 'admin' }"
                 :aria-current="menuValue === 'admin' ? 'page' : undefined"
                 @click="handleWorkspaceMenuSelect('workspace-admin')">
                 <n-icon :component="AdminPanelSettingsFilled" />
@@ -344,7 +336,7 @@ const logoClick = async () => {
                 <span>{{ t('status') }}</span>
             </button>
         </nav>
-        <n-dropdown v-else :options="workspaceMenuOptions" :placement="workspaceDropdownPlacement" trigger="click"
+        <n-dropdown v-else :options="workspaceMenuOptions" placement="top-start" trigger="click"
             @select="handleWorkspaceMenuSelect">
             <n-button class="app-workspace-menu__button" quaternary block>
                 <template #icon>

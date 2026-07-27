@@ -4,7 +4,7 @@
 > You need to configure `ADMIN_PASSWORDS` or `ADMIN_USER_ROLE` to access the admin console
 > Admin role configuration: if the user role equals ADMIN_USER_ROLE, they can access the admin console
 
-After deploying the frontend application, click the upper-left logo 5 times or visit the `/admin` path to enter the management console.
+After deploying the frontend application, click the upper-left logo 5 times or visit `/dashboard` to enter the management console. Worker admin APIs continue to use the `/admin/*` path.
 
 You need to configure `ADMIN_PASSWORDS` in the backend or ensure the current user role is `ADMIN_USER_ROLE`, otherwise access to the console will be denied.
 

@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Index from '../views/Index.vue'
-import User from '../views/User.vue'
 import UserOauth2Callback from '../views/user/UserOauth2Callback.vue'
 import i18n from '../i18n'
 import { useGlobalState } from '../store'
@@ -12,7 +11,7 @@ import {
     resolveSupportedLocale,
 } from '../i18n/utils'
 
-const { jwt, userJwt, preferredLocale } = useGlobalState()
+const { jwt, preferredLocale, workspaceSection } = useGlobalState()
 
 const router = createRouter({
     history: createWebHistory(),
@@ -24,10 +23,18 @@ const router = createRouter({
             component: Index
         },
         {
-            name: 'user',
+            name: 'legacy-user',
             path: '/user',
             alias: '/:lang/user',
-            component: User
+            redirect: (to) => {
+                workspaceSection.value = 'user'
+                const routeLocale = resolveSupportedLocale(to.path.split('/')[1]) || DEFAULT_LOCALE
+                return {
+                    path: replaceLocaleInFullPath('/', routeLocale),
+                    query: to.query,
+                    hash: to.hash,
+                }
+            }
         },
         {
             path: '/user/oauth2/callback',
@@ -35,8 +42,9 @@ const router = createRouter({
             component: UserOauth2Callback
         },
         {
-            path: '/admin',
-            alias: '/:lang/admin',
+            name: 'dashboard',
+            path: '/dashboard',
+            alias: '/:lang/dashboard',
             component: () => import('../views/Admin.vue')
         },
         {
@@ -77,13 +85,6 @@ router.beforeEach((to, from, next) => {
             replace: true,
         })
         return
-    }
-
-    if (to.name === 'user' && !userJwt.value) {
-        return next({
-            path: replaceLocaleInFullPath('/', resolvedLocale),
-            replace: true,
-        })
     }
 
     if (routeLocale) {

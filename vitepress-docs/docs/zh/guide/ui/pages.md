@@ -143,7 +143,7 @@ const generate = async () => {
 
     > [!warning] 重要：SPA 模式
     > 本项目是单页应用（SPA），**必须在部署时展开高级选项，将「未找到处理」设置为 `Single-page application (SPA)`**。
-    > 否则刷新页面或直接访问 `/admin` 等子路径时会返回 404。
+    > 否则刷新页面或直接访问 `/dashboard` 等子路径时会返回 404。
     >
     > ![pages spa setting](/ui_install/pages-spa-setting.jpg)
 

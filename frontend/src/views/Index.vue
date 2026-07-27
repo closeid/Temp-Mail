@@ -23,16 +23,20 @@ import About from './common/About.vue';
 import SimpleIndex from './index/SimpleIndex.vue';
 import WorkspaceTabLabel from '../components/WorkspaceTabLabel.vue';
 import HomeAuth from './HomeAuth.vue';
+import User from './User.vue';
 
 const {
-  loading, settings, openSettings, indexTab, globalTabplacement, useSimpleIndex,
-  userSettings, isTelegram,
+  loading, settings, openSettings, indexTab, useSimpleIndex,
+  userSettings, isTelegram, workspaceSection,
 } = useGlobalState()
 const message = useMessage()
 const route = useRoute()
 const isMobile = useIsMobile()
-const tabPlacement = useResponsiveTabPlacement(globalTabplacement)
+const tabPlacement = useResponsiveTabPlacement()
 const sessionReady = computed(() => settings.value.fetched && userSettings.value.fetched)
+const showUserWorkspace = computed(() => sessionReady.value
+  && workspaceSection.value === 'user'
+  && !!userSettings.value.user_email)
 const showHomeAuth = computed(() => sessionReady.value
   && !isTelegram.value
   && !settings.value.address
@@ -114,7 +118,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mail-workspace">
+  <User v-if="showUserWorkspace" />
+  <div v-else class="mail-workspace">
     <HomeAuth v-if="showHomeAuth" />
     <template v-else-if="!sessionReady"></template>
     <div v-else-if="useSimpleIndex">

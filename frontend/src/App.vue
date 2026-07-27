@@ -47,17 +47,13 @@ const themeOverrides = computed(() => ({
   },
 }))
 const localeConfig = computed(() => getNaiveLocaleConfig(isSupportedLocale(locale.value) ? locale.value : DEFAULT_LOCALE))
-const isUserAuthView = computed(() => {
-  const isUserRoute = route.path === '/user' || route.path.endsWith('/user')
-  return isUserRoute && !isTelegram.value && !userSettings.value.user_email
-})
 const isHomeAuthView = computed(() => {
   return route.name === 'home'
     && !isTelegram.value
     && !settings.value.address
     && !userSettings.value.user_email
 })
-const isAuthView = computed(() => isUserAuthView.value || isHomeAuthView.value)
+const isAuthView = computed(() => isHomeAuthView.value)
 const isMobile = useIsMobile()
 const showSideMargin = computed(() => !isAuthView.value && !isMobile.value && useSideMargin.value);
 const showAd = computed(() => !isAuthView.value && !isMobile.value && adClient && adSlot);
@@ -66,8 +62,8 @@ const isWorkspaceView = computed(() => {
   if (isAuthView.value) return false
   return !!settings.value.address
     || !!userSettings.value.user_email
-    || route.path === '/admin'
-    || route.path.endsWith('/admin')
+    || route.path === '/dashboard'
+    || route.path.endsWith('/dashboard')
 })
 
 watchEffect(() => {

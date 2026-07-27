@@ -24,6 +24,7 @@
   --app-nav-width: 208px;
   --app-modal-width: 720px;
   --app-modal-gutter: 32px;
+  --workspace-gutter: 12px;
   --mailbox-height: calc(100dvh - 168px);
 }
 
@@ -687,6 +688,14 @@ html.dark .n-spin-container > .n-spin-body {
   padding: 0 !important;
 }
 
+.user-session-bar .n-alert-body,
+.user-session-bar .n-alert-body__content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 0;
+}
+
 .address-bar .address-row {
   justify-content: flex-start !important;
 }
@@ -710,7 +719,7 @@ html.dark .n-spin-container > .n-spin-body {
 
 .mailbox-toolbar {
   min-height: 46px;
-  padding: 5px 10px;
+  padding: 5px var(--workspace-gutter);
   background: var(--app-surface);
   border-bottom: 1px solid var(--app-border-soft);
 }
@@ -742,26 +751,27 @@ html.dark .n-spin-container > .n-spin-body {
   max-height: none;
   overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
   background: var(--app-surface);
-  border-right: 1px solid var(--app-border-soft);
 }
 
 .mailbox-list {
+  width: 100%;
   min-width: 0;
+  padding: 0 !important;
 }
 
 .mailbox-row.n-list-item {
+  width: 100%;
   min-width: 0;
   min-height: 56px;
-  padding: 7px 12px !important;
+  padding: 7px var(--workspace-gutter) !important;
   cursor: pointer;
   transition: background-color 140ms ease;
 }
 
 .mailbox-row--wide.n-list-item {
   min-height: 42px;
-  padding: 5px 12px !important;
+  padding: 5px var(--workspace-gutter) !important;
 }
 
 .mail-wide-row {
@@ -929,7 +939,7 @@ html.dark .n-spin-container > .n-spin-body {
 
 .mailbox-detail-nav {
   min-height: 44px;
-  padding: 6px 10px;
+  padding: 6px var(--workspace-gutter);
   background: var(--app-surface);
   border-bottom: 1px solid var(--app-border-soft);
 }
@@ -1612,6 +1622,16 @@ html.dark .n-spin-container > .n-spin-body {
     flex: 0 0 auto;
   }
 
+  .mobile-toolbar .mobile-refresh-label {
+    display: none;
+  }
+
+  .mobile-toolbar .mobile-refresh-button {
+    width: 40px;
+    min-width: 40px;
+    padding: 0 !important;
+  }
+
   .mailbox-row__content .n-thing-header,
   .mail-list-thing .n-thing-header {
     gap: 7px;
@@ -1739,23 +1759,6 @@ html.dark .n-spin-container > .n-spin-body {
   margin: 0;
 }
 
-.tab-placement-control.n-radio-group {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.tab-placement-control .n-radio-button {
-  margin: 0 !important;
-  border-radius: var(--app-control-radius) !important;
-}
-
-.tab-placement-control .n-radio-button__state-border,
-.tab-placement-control .n-radio-button__state-border::before {
-  border-radius: var(--app-control-radius) !important;
-}
-
 /* EdgeEver-inspired workbench pass: a quiet rail, compact controls and a
    centered settings canvas keep every authenticated page in one visual system. */
 .app-main--workspace .app-header {
@@ -1859,7 +1862,7 @@ html.dark .n-spin-container > .n-spin-body {
 
 .mailbox-toolbar {
   min-height: 48px;
-  padding: 7px 12px;
+  padding: 7px var(--workspace-gutter);
   border-color: var(--app-border);
 }
 
@@ -1875,7 +1878,7 @@ html.dark .n-spin-container > .n-spin-body {
 
 .mailbox-row.n-list-item {
   min-height: 64px;
-  padding: 9px 14px !important;
+  padding: 9px var(--workspace-gutter) !important;
   border-bottom: 1px solid var(--app-border-soft);
 }
 
@@ -1989,8 +1992,11 @@ html.dark .n-spin-container > .n-spin-body {
 }
 
 .user-session-bar.n-alert {
-  min-height: 64px;
-  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  min-height: 56px;
+  padding: 0 16px;
   background: var(--app-surface) !important;
   border-color: var(--app-border);
 }
@@ -2255,50 +2261,6 @@ html.dark .home-auth-shell {
   overscroll-behavior-x: contain;
 }
 
-.workspace-tabs.n-tabs.n-tabs--right > .n-tabs-nav .n-tabs-nav-scroll-content {
-  padding-bottom: 52px;
-}
-
-.app-workspace-menu.app-workspace-menu--right {
-  right: 0;
-  left: auto;
-  border-right: 0;
-  border-left: 1px solid var(--app-border);
-}
-
-.app-workspace-menu.app-workspace-menu--top {
-  top: 0;
-  right: 0;
-  bottom: auto;
-  left: auto;
-  width: 132px;
-  border: 0;
-  border-bottom: 1px solid var(--app-border);
-  border-left: 1px solid var(--app-border);
-}
-
-.app-workspace-menu.app-workspace-menu--bottom {
-  right: 0;
-  left: auto;
-  width: 132px;
-  border-right: 0;
-  border-left: 1px solid var(--app-border);
-}
-
-:where(.app-workspace-menu--top, .app-workspace-menu--bottom) .app-workspace-menu__button {
-  justify-content: center;
-}
-
-.app-main--workspace:has(.app-workspace-menu--bottom) .workspace-tabs.n-tabs--bottom > .n-tabs-nav {
-  padding-right: 140px;
-}
-
-.app-main--workspace:has(.app-workspace-menu--top) .workspace-tabs.n-tabs--top > .n-tabs-nav {
-  padding-right: 140px;
-}
-
-.workspace-tabs.n-tabs--top > .n-tabs-nav .n-tabs-nav-scroll-content,
-.workspace-tabs.n-tabs--bottom > .n-tabs-nav .n-tabs-nav-scroll-content,
 .nested-tabs.n-tabs > .n-tabs-nav .n-tabs-nav-scroll-content {
   gap: 4px;
 }
@@ -2456,10 +2418,9 @@ html.dark .home-auth-shell {
     white-space: nowrap;
   }
 
-  .app-mobile-workspace-nav__item:hover,
-  .app-mobile-workspace-nav__item.is-active {
-    color: var(--app-accent-text);
-    background: var(--app-accent-soft);
+  .app-mobile-workspace-nav__item:active {
+    color: var(--app-text);
+    background: var(--app-surface-muted);
   }
 
   .workspace-tabs.n-tabs > .n-tabs-pane-wrapper,
@@ -2498,6 +2459,49 @@ html.dark .home-auth-shell {
 .mobile-toolbar,
 .mobile-search {
   flex: 0 0 auto;
+}
+
+.mobile-toolbar {
+  align-items: center;
+  gap: 8px;
+  padding-right: var(--workspace-gutter);
+  padding-left: var(--workspace-gutter);
+}
+
+.mobile-toolbar .n-pagination {
+  --n-item-size: 40px !important;
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+}
+
+.mobile-toolbar .n-pagination-item,
+.mobile-toolbar .n-pagination-item--button,
+.mobile-toolbar .n-pagination-quick-jumper,
+.mobile-toolbar .n-pagination-quick-jumper .n-input,
+.mobile-toolbar .n-button {
+  height: 40px !important;
+  min-height: 40px !important;
+}
+
+.mobile-toolbar .n-pagination-item,
+.mobile-toolbar .n-pagination-item--button {
+  min-width: 40px;
+}
+
+.mobile-toolbar .n-pagination-quick-jumper .n-input-wrapper {
+  min-height: 40px;
+}
+
+.mobile-toolbar .n-switch {
+  --n-height: 40px !important;
+  --n-rail-height: 40px !important;
+  --n-button-height: 24px !important;
+  --n-button-width: 24px !important;
+  --n-button-width-pressed: 30px !important;
+  --n-offset: 8px !important;
+  min-height: 40px;
+  margin: 0;
 }
 
 :where(.mailbox-split, .mail-list-scroll, .mobile-list-pane) {

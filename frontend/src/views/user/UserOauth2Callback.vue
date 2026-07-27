@@ -5,17 +5,18 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { useGlobalState } from '../../store'
 import { api } from '../../api';
+import { getRouterPathWithLang } from '../../utils';
 import BrandMark from '../../components/BrandMark.vue';
 
 const {
-    userJwt, userOauth2SessionState, userOauth2SessionClientID
+    userJwt, userOauth2SessionState, userOauth2SessionClientID, workspaceSection
 } = useGlobalState()
 
 const message = useMessage();
 const route = useRoute()
 const router = useRouter()
 const errorInfo = ref('')
-const { t } = useScopedI18n('views.user.UserOauth2Callback')
+const { t, locale } = useScopedI18n('views.user.UserOauth2Callback')
 
 onMounted(async () => {
     try {
@@ -39,7 +40,8 @@ onMounted(async () => {
             })
         });
         userJwt.value = res.jwt;
-        router.push('/user');
+        workspaceSection.value = 'user';
+        router.push(getRouterPathWithLang('/', locale.value));
     } catch (error) {
         console.error(error);
         message.error(error.message || 'error');

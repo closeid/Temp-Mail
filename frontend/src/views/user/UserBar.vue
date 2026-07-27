@@ -35,7 +35,10 @@ const { t } = useScopedI18n('views.user.UserBar')
     display: flex;
     align-items: center;
     gap: 9px;
+    width: 100%;
+    height: 100%;
     min-width: 0;
+    line-height: 1.4;
 }
 
 .user-session-bar__content .n-icon {

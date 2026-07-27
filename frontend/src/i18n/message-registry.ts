@@ -2084,18 +2084,6 @@ export const MESSAGE_REGISTRY = {
       "en": "Auto Refresh Interval(Sec)",
       "zh": "自动刷新间隔(秒)"
     },
-    "bottom": {
-      "en": "bottom",
-      "zh": "底部"
-    },
-    "globalTabplacement": {
-      "en": "Global Tab Placement",
-      "zh": "全局选项卡位置"
-    },
-    "left": {
-      "en": "left",
-      "zh": "左侧"
-    },
     "mailboxSplitSize": {
       "en": "Left list width in two-column mailbox view",
       "zh": "邮箱双栏视图左侧列表宽度占比"
@@ -2115,14 +2103,6 @@ export const MESSAGE_REGISTRY = {
     "preferShowTextMail": {
       "en": "Display text Mail by default",
       "zh": "默认以文本显示邮件"
-    },
-    "right": {
-      "en": "right",
-      "zh": "右侧"
-    },
-    "top": {
-      "en": "top",
-      "zh": "顶部"
     },
     "useIframeShowMail": {
       "en": "Use iframe Show HTML Mail",

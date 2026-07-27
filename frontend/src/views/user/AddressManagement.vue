@@ -10,7 +10,7 @@ import { getRouterPathWithLang } from '../../utils'
 
 import Login from '../common/Login.vue';
 
-const { jwt } = useGlobalState()
+const { jwt, workspaceSection } = useGlobalState()
 const message = useMessage()
 const router = useRouter()
 
@@ -31,6 +31,7 @@ const changeMailAddress = async (address_id) => {
             return;
         }
         jwt.value = res.jwt;
+        workspaceSection.value = 'mail';
         await router.push(getRouterPathWithLang("/", locale.value))
         location.reload();
     } catch (error) {

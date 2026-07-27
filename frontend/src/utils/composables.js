@@ -7,7 +7,7 @@ export function useIsMobile() {
     })
 }
 
-export function useResponsiveTabPlacement(placementRef) {
+export function useResponsiveTabPlacement() {
     const isMobile = useIsMobile()
-    return useMemo(() => isMobile.value ? 'top' : placementRef.value)
+    return useMemo(() => isMobile.value ? 'top' : 'left')
 }

@@ -204,10 +204,8 @@ onMounted(async () => {
             </template>
             {{ t('multiAction') }}
           </n-button>
-          <div style="display: inline-block; margin-right: 10px;">
-            <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count"
-              :page-sizes="[20, 50, 100]" show-size-picker />
-          </div>
+          <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count"
+            :page-sizes="[20, 50, 100]" show-size-picker />
           <n-button @click="refresh" type="primary" tertiary>
             <template #icon>
               <n-icon :component="RefreshRound" />
@@ -286,14 +284,13 @@ onMounted(async () => {
     </div>
     <div class="left mailbox-mobile" v-else>
       <div class="center mobile-toolbar">
-        <div style="display: inline-block; margin-right: 10px;">
-          <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
-        </div>
-        <n-button @click="refresh" size="small" type="primary">
+        <n-pagination v-model:page="page" v-model:page-size="pageSize" :item-count="count" simple size="small" />
+        <n-button class="mobile-refresh-button" @click="refresh" size="small" type="primary"
+          :aria-label="t('refresh')" :title="t('refresh')">
           <template #icon>
             <n-icon :component="RefreshRound" />
           </template>
-          {{ t('refresh') }}
+          <span class="mobile-refresh-label">{{ t('refresh') }}</span>
         </n-button>
       </div>
       <div class="mobile-list-pane">
@@ -385,16 +382,19 @@ pre {
 }
 
 .split-handle {
+  width: 100%;
   height: 100%;
+  min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .split-handle__grip {
-  width: 4px;
-  height: 32px;
-  border-radius: 2px;
+  width: 1px;
+  height: 100%;
+  min-height: 100%;
+  border-radius: 0;
   background-color: var(--n-resize-trigger-color);
   transition: background-color 0.2s;
 }

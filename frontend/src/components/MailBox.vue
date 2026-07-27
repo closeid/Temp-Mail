@@ -520,11 +520,12 @@ onBeforeUnmount(() => {
             {{ t('autoRefresh') }}
           </template>
         </n-switch>
-        <n-button @click="backFirstPageAndRefresh" tertiary size="small" type="primary">
+        <n-button class="mobile-refresh-button" @click="backFirstPageAndRefresh" tertiary size="small" type="primary"
+          :aria-label="t('refresh')" :title="t('refresh')">
           <template #icon>
             <n-icon :component="RefreshRound" />
           </template>
-          {{ t('refresh') }}
+          <span class="mobile-refresh-label">{{ t('refresh') }}</span>
         </n-button>
       </n-space>
       <div v-if="showFilterInput" class="mobile-search">
@@ -680,16 +681,19 @@ pre {
 }
 
 .split-handle {
+  width: 100%;
   height: 100%;
+  min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .split-handle__grip {
-  width: 4px;
-  height: 32px;
-  border-radius: 2px;
+  width: 1px;
+  height: 100%;
+  min-height: 100%;
+  border-radius: 0;
   background-color: var(--n-resize-trigger-color);
   transition: background-color 0.2s;
 }
