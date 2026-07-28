@@ -27,6 +27,11 @@
 
 ### Improvements
 
+- fix: |前端| 地址管理的切换、转移和解绑操作在桌面与移动端保持同一行，窄屏通过表格横向滚动承载；重构邮件全屏视图为固定主题/收发件人信息头与独立滚动正文，修复全高弹窗把正文推至页面下半部的问题
+- docs: |README| 按当前 React + Cloudflare Workers 架构重写中英文 README，补充 D1/KV、Email Routing、同源 Worker、独立 Pages、Service Binding、本地开发、Secret、OAuth2、Passkey、Webhook、三种发信通道、升级和排错的可执行说明
+- refactor: |后台管理| 将四个主菜单重组为地址、用户、邮件和配置，并按资源归属重新编排地址规则、用户注册/角色/OAuth2、发信/AI/Webhook/Telegram、Worker/安全/数据库/维护等二级入口；将用户设置“启用”明确为“开启新用户注册”，并移除 API 文档中的旧路径说明
+- style: |前端| 参考 notes.closeid.com 登录页，将登录/注册首页改为浅薄荷背景与居中表单面板，统一标签、输入框、分段页签和主次登录操作，保留地址凭据、Passkey、OAuth2、验证码与忘记密码流程，且不显示 GitHub 仓库入口
+
 - feat: |后台管理| 恢复结构化 OAuth2 提供商配置与发信通道状态页，展示 Cloudflare Email Routing、Resend、SMTP 的部署状态、域名覆盖和匹配优先级；管理员在 `ENABLE_WEBHOOK` 关闭时仍可预先维护 Webhook 配置，并明确区分配置状态与实际投递开关
 - fix: |前端| 统一用户管理查询框、查询按钮、创建用户及分页控件高度；将后台配置项括号内说明改为标题下方的浅色小字，修正“管理员密码登录”翻译，并补齐 OAuth2 与发信配置的六语言文案
 - refactor: |前端| 删除“开启页面左右两侧侧边距”外观选项及其状态、持久化和布局代码，统一工作区内容边界

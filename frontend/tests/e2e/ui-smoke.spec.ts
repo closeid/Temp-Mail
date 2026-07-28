@@ -43,6 +43,8 @@ test('unified login and registration surface', async ({ page }, testInfo) => {
   await expect(page.getByRole('tab', { name: /login|登录/i })).toBeVisible()
   await expect(page.getByRole('tab', { name: /register|注册/i })).toBeVisible()
   await expect(page.locator('header, footer, h1')).toHaveCount(0)
+  await expect(page.locator('main.auth-surface > section')).toBeVisible()
+  await expect(page.locator('a[href*="github.com"]')).toHaveCount(0)
   await expect(page.getByRole('button', { name: /passkey/i })).toBeVisible()
   await expectNoHorizontalOverflow(page)
   await page.screenshot({ path: `test-results/auth-${testInfo.project.name}.png`, fullPage: true })
@@ -67,7 +69,8 @@ test('mail workspace remains dense and responsive', async ({ page }, testInfo) =
   await page.route('**/api/mails?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 12, source: 'sender@example.com', address: 'sample@getanemail.net', created_at: '2026-07-27 00:56:00', raw: 'From: Sender <sender@example.com>\r\nTo: sample@getanemail.net\r\nSubject: Layout verification\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nA compact mailbox message.' }] } }))
   await page.goto('/')
   await expect(page.getByText('sample@getanemail.net').first()).toBeVisible()
-  await expect(page.getByText('Layout verification').filter({ visible: true })).toBeVisible()
+  const mailSubject = page.getByText('Layout verification').filter({ visible: true }).first()
+  await expect(mailSubject).toBeVisible()
   await expectNoHorizontalOverflow(page)
   if (testInfo.project.name === 'mobile') {
     const bottomNav = page.locator('nav.fixed.inset-x-0.bottom-0')
@@ -77,6 +80,39 @@ test('mail workspace remains dense and responsive', async ({ page }, testInfo) =
     expect(box?.y).toBeGreaterThan(700)
   }
   await page.screenshot({ path: `test-results/mail-${testInfo.project.name}.png`, fullPage: true })
+
+  await mailSubject.click()
+  await page.getByTitle(/Fullscreen|全屏/i).filter({ visible: true }).click()
+  const fullscreen = page.getByRole('dialog').last()
+  await expect(fullscreen).toContainText('Layout verification')
+  await expect(fullscreen).toContainText('sender@example.com')
+  await expect(fullscreen).toContainText('sample@getanemail.net')
+  const body = fullscreen.getByText('A compact mailbox message.')
+  await expect(body).toBeVisible()
+  const bodyBox = await body.boundingBox()
+  expect(bodyBox?.y).toBeLessThan(420)
+  await page.screenshot({ path: `test-results/mail-fullscreen-${testInfo.project.name}.png`, fullPage: true })
+})
+
+test('address management actions stay on one row', async ({ page }, testInfo) => {
+  await page.addInitScript(() => localStorage.setItem('userJwt', 'test.user.jwt'))
+  await mockCommon(page)
+  await page.route('**/api/user/settings', (route) => route.fulfill({ json: { user_email: 'owner@example.com', user_id: 8, user_role: 'member', is_admin: false } }))
+  await page.route('**/api/user/bind_address', (route) => route.fulfill({ json: { results: [{ id: 7, name: 'bound@getanemail.net', address: 'bound@getanemail.net', mail_count: 3, send_count: 1 }] } }))
+  await page.goto('/en')
+
+  const actions = [
+    page.getByRole('button', { name: 'Change Address' }),
+    page.getByRole('button', { name: 'Transfer Address' }),
+    page.getByRole('button', { name: 'Unbind Address' }),
+  ]
+  await actions[2].scrollIntoViewIfNeeded()
+  const boxes = await Promise.all(actions.map((action) => action.boundingBox()))
+  expect(boxes.every(Boolean)).toBe(true)
+  const yPositions = boxes.map((box) => Math.round(box?.y || 0))
+  expect(new Set(yPositions).size).toBe(1)
+  await expectNoHorizontalOverflow(page)
+  await page.screenshot({ path: `test-results/address-actions-${testInfo.project.name}.png`, fullPage: true })
 })
 
 test('dashboard uses two-level workspace navigation', async ({ page }, testInfo) => {
@@ -127,4 +163,31 @@ test('dashboard administration settings stay available and aligned', async ({ pa
   await expect(page.getByText(/contact.*administrator/i)).toHaveCount(0)
   await expectNoHorizontalOverflow(page)
   await page.screenshot({ path: `test-results/dashboard-settings-${testInfo.project.name}.png`, fullPage: true })
+})
+
+test('dashboard navigation groups related settings', async ({ page }) => {
+  await mockCommon(page, { disableAdminPasswordCheck: true })
+  await page.route('**/api/admin/address?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
+  await page.route('**/api/admin/user_settings', (route) => route.fulfill({ json: { enable: true, enableMailVerify: false, enableMailAllowList: false, mailAllowList: [], maxAddressCount: 5, enableEmailCheckRegex: false, emailCheckRegex: '' } }))
+  await page.goto('/en/dashboard')
+
+  const primaryNav = page.locator('aside nav').first().or(page.locator('nav.fixed.inset-x-0.bottom-0'))
+  await expect(primaryNav.getByRole('button')).toHaveText(['Addresses', 'User', 'Emails', 'Configuration'])
+
+  const secondaryLabels = async () => page.locator('main nav').getByRole('button').allTextContents()
+  expect(await secondaryLabels()).toEqual(['Addresses', 'Create Address', 'Address Rules', 'Sender Access Control'])
+
+  await primaryNav.getByRole('button', { name: 'User', exact: true }).click()
+  expect(await secondaryLabels()).toEqual(['User Management', 'User Settings', 'Role Address Config', 'Oauth2 Settings', 'Admin'])
+  await page.locator('main nav').getByRole('button', { name: 'User Settings', exact: true }).click()
+  await expect(page.getByText('Allow new user registration', { exact: true })).toBeVisible()
+
+  await primaryNav.getByRole('button', { name: 'Emails', exact: true }).click()
+  expect(await secondaryLabels()).toEqual(['Emails', 'Mails with unknow receiver', 'Send Box', 'Send Mail', 'Sending configuration', 'AI Extract Settings', 'Mail Webhook', 'Webhook Settings', 'Telegram Bot'])
+
+  await primaryNav.getByRole('button', { name: 'Configuration', exact: true }).click()
+  expect(await secondaryLabels()).toEqual(['Worker Config', 'IP Blacklist', 'Database', 'Maintenance', 'Statistics', 'Appearance', 'API documentation'])
+  await page.locator('main nav').getByRole('button', { name: 'API documentation', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'API documentation' })).toBeVisible()
+  await expect(page.getByText(/legacy paths|old paths/i)).toHaveCount(0)
 })

@@ -190,9 +190,25 @@ export const MESSAGE_REGISTRY = {
       "en": "Fullscreen",
       "zh": "全屏"
     },
+    "noSubject": {
+      "en": "No subject",
+      "zh": "无主题"
+    },
+    "receivedAt": {
+      "en": "Received at",
+      "zh": "接收时间"
+    },
+    "recipient": {
+      "en": "Recipient",
+      "zh": "收件人"
+    },
     "reply": {
       "en": "Reply",
       "zh": "回复"
+    },
+    "sender": {
+      "en": "Sender",
+      "zh": "发件人"
     },
     "saveToS3": {
       "en": "Save to S3",
@@ -571,16 +587,16 @@ export const MESSAGE_REGISTRY = {
       "zh": "请输入管理员密码"
     },
     "account": {
-      "en": "Account",
-      "zh": "账号"
+      "en": "Addresses",
+      "zh": "地址"
     },
     "account_create": {
-      "en": "Create Account",
-      "zh": "创建账号"
+      "en": "Create Address",
+      "zh": "创建地址"
     },
     "account_settings": {
-      "en": "Account Settings",
-      "zh": "账号设置"
+      "en": "Address Rules",
+      "zh": "地址规则"
     },
     "adminAccount": {
       "en": "Admin",
@@ -597,6 +613,10 @@ export const MESSAGE_REGISTRY = {
     "confirm": {
       "en": "Confirm",
       "zh": "确认"
+    },
+    "configuration": {
+      "en": "Configuration",
+      "zh": "配置"
     },
     "database": {
       "en": "Database",
@@ -2005,8 +2025,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "邮箱正则校验 (例如 ^[^.]+{'@'}.+$ 禁止{'@'}前面有.)"
     },
     "enable": {
-      "en": "Enable",
-      "zh": "启用"
+      "en": "Allow new user registration",
+      "zh": "开启新用户注册"
     },
     "enableEmailCheckRegex": {
       "en": "Enable Email Check Regex",

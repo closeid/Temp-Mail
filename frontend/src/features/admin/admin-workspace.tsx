@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { KeyRound, LogOut, Mail, Send, ShieldCheck, Users, Wrench } from 'lucide-react'
+import { AtSign, KeyRound, LogOut, Mail, Settings2, ShieldCheck, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { Turnstile, type TurnstileHandle } from '@/components/turnstile'
@@ -89,13 +89,13 @@ export function AdminWorkspace() {
   const sessionT = useScopedI18n('ui.admin').t
   const state = useAppStore((value) => value)
   const primary = ['account', 'user', 'mails'].includes(state.adminTab) ? state.adminTab : 'maintenance'
-  const initialMaintenance = ['telegram', 'statistics', 'appearance', 'adminAccount'].includes(state.adminTab) ? state.adminTab : 'database'
+  const initialMaintenance = ['workerconfig', 'ipBlacklistSettings', 'database', 'maintenance', 'statistics', 'appearance', 'apiDocs'].includes(state.adminTab) ? state.adminTab : 'workerconfig'
   const [secondary, setSecondary] = useState<Record<string, string>>({ account: 'account', user: 'user_management', mails: 'mails', maintenance: initialMaintenance })
   const nav: WorkspaceNavItem[] = [
-    { key: 'account', label: t('account'), icon: Mail },
+    { key: 'account', label: t('account'), icon: AtSign },
     { key: 'user', label: t('user'), icon: Users },
-    { key: 'mails', label: t('mails'), icon: Send },
-    { key: 'maintenance', label: t('maintenance'), icon: Wrench },
+    { key: 'mails', label: t('mails'), icon: Mail },
+    { key: 'maintenance', label: t('configuration'), icon: Settings2 },
   ]
   const groups: Record<string, SecondaryWorkspaceItem[]> = {
     account: [
@@ -103,37 +103,37 @@ export function AdminWorkspace() {
       { key: 'account_create', label: t('account_create'), content: <CreateAddressPage /> },
       { key: 'account_settings', label: t('account_settings'), content: <ObjectSettings endpoint="/api/admin/account_settings" title={t('account_settings')} transformLoad={loadAccountSettings} transformSave={saveAccountSettings} /> },
       { key: 'senderAccess', label: t('senderAccess'), content: <SenderAccessPage /> },
-      { key: 'ipBlacklistSettings', label: t('ipBlacklistSettings'), content: <ObjectSettings endpoint="/api/admin/ip_blacklist/settings" title={t('ipBlacklistSettings')} /> },
-      { key: 'aiExtractSettings', label: t('aiExtractSettings'), content: <ObjectSettings endpoint="/api/admin/ai_extract/settings" title={t('aiExtractSettings')} /> },
-      { key: 'webhook', label: t('webhookSettings'), content: <ObjectSettings endpoint="/api/admin/webhook/settings" title={t('webhookSettings')} description={sessionT('webhookAccessDescription')} /> },
     ],
     user: [
       { key: 'user_management', label: t('user_management'), content: <UserTable /> },
       { key: 'user_settings', label: t('user_settings'), content: <ObjectSettings endpoint="/api/admin/user_settings" title={t('user_settings')} /> },
-      { key: 'userOauth2Settings', label: t('userOauth2Settings'), content: <OAuthSettingsPage /> },
       { key: 'roleAddressConfig', label: t('roleAddressConfig'), content: <RoleAddressConfigPage /> },
+      { key: 'userOauth2Settings', label: t('userOauth2Settings'), content: <OAuthSettingsPage /> },
+      { key: 'adminAccount', label: t('adminAccount'), content: <AdminAccountPage /> },
     ],
     mails: [
       { key: 'mails', label: t('mails'), content: <AdminInbox /> },
       { key: 'unknow', label: t('unknow'), content: <AdminInbox unknown /> },
       { key: 'sendBox', label: t('sendBox'), content: <AdminSentBox /> },
-      { key: 'sendConfiguration', label: sessionT('sendConfiguration'), content: <SendProviderSettingsPage /> },
       { key: 'sendMail', label: t('sendMail'), content: <AdminSendMail /> },
+      { key: 'sendConfiguration', label: sessionT('sendConfiguration'), content: <SendProviderSettingsPage /> },
+      { key: 'aiExtractSettings', label: t('aiExtractSettings'), content: <ObjectSettings endpoint="/api/admin/ai_extract/settings" title={t('aiExtractSettings')} /> },
       { key: 'mailWebhook', label: t('mailWebhook'), content: <AdminMailWebhook /> },
+      { key: 'webhook', label: t('webhookSettings'), content: <ObjectSettings endpoint="/api/admin/webhook/settings" title={t('webhookSettings')} description={sessionT('webhookAccessDescription')} /> },
+      { key: 'telegram', label: t('telegram'), content: <TelegramAdminPage /> },
     ],
     maintenance: [
-      { key: 'database', label: t('database'), content: <DatabasePage /> },
       { key: 'workerconfig', label: t('workerconfig'), content: <WorkerConfigPage /> },
+      { key: 'ipBlacklistSettings', label: t('ipBlacklistSettings'), content: <ObjectSettings endpoint="/api/admin/ip_blacklist/settings" title={t('ipBlacklistSettings')} /> },
+      { key: 'database', label: t('database'), content: <DatabasePage /> },
       { key: 'maintenance', label: t('maintenance'), content: <MaintenancePage /> },
-      { key: 'apiDocs', label: sessionT('apiDocumentation'), content: <ApiDocsPage /> },
-      { key: 'telegram', label: t('telegram'), content: <TelegramAdminPage /> },
       { key: 'statistics', label: t('statistics'), content: <StatisticsPage /> },
       { key: 'appearance', label: t('appearance'), content: <AppearanceSettings /> },
-      { key: 'adminAccount', label: t('adminAccount'), content: <AdminAccountPage /> },
+      { key: 'apiDocs', label: sessionT('apiDocumentation'), content: <ApiDocsPage /> },
     ],
   }
   const group = groups[primary]
-  const content = <SecondaryWorkspace items={group} value={secondary[primary] || group[0].key} onChange={(value) => setSecondary((current) => ({ ...current, [primary]: value }))} ariaLabel={t(primary)} />
+  const content = <SecondaryWorkspace items={group} value={secondary[primary] || group[0].key} onChange={(value) => setSecondary((current) => ({ ...current, [primary]: value }))} ariaLabel={primary === 'maintenance' ? t('configuration') : t(primary)} />
   const method = state.adminAuth ? sessionT('administratorPassword') : state.userSettings.is_admin ? state.userSettings.user_email : sessionT('passwordCheckDisabled')
   return <><WorkspaceShell scope="admin" items={nav} active={primary} onSelect={(value) => appStore.setState({ adminTab: value })} topbar={<div className="flex h-full min-w-0 items-center gap-2 text-sm"><ShieldCheck className="size-4 shrink-0 text-primary" /><strong className="shrink-0">{t('loginMethod')}</strong><span className="truncate text-muted-foreground">{method}</span></div>}>{canShowAdmin(state) ? content : null}</WorkspaceShell><AdminAuthDialog /></>
 }

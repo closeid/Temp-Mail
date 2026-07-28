@@ -27,6 +27,11 @@
 
 ### Improvements
 
+- fix: |Frontend| Keep Switch, Transfer, and Unbind address actions on one row on desktop and mobile, using the table's horizontal overflow on narrow screens; rebuild fullscreen mail as a fixed subject/sender/recipient header with an independently scrolling body, fixing the full-height dialog that pushed content into the lower half of the viewport
+- docs: |README| Rewrite the Chinese and English READMEs for the current React + Cloudflare Workers architecture, with executable D1/KV, Email Routing, same-origin Worker, separate Pages, Service Binding, local development, Secret, OAuth2, passkey, webhook, three-provider outbound mail, upgrade, and troubleshooting instructions
+- refactor: |Administration| Reorganize the four primary menus as Addresses, User, Emails, and Configuration, grouping address rules, registration/roles/OAuth2, sending/AI/webhooks/Telegram, and Worker/security/database/maintenance settings by ownership; clarify the User Settings switch as “Allow new user registration” and remove legacy-path wording from API documentation
+- style: |Frontend| Restyle the login and registration home after the notes.closeid.com sign-in screen with a pale mint canvas and centered form panel; normalize labels, inputs, segmented tabs, and primary/secondary authentication actions while preserving address credentials, passkeys, OAuth2, verification, and password recovery, without a GitHub repository link
+
 - feat: |Administration| Restore structured OAuth2 provider configuration and a sending-provider status page covering Cloudflare Email Routing, Resend, SMTP, domain coverage, and provider priority; administrators can prepare webhook settings while `ENABLE_WEBHOOK` is disabled, with delivery state shown separately
 - fix: |Frontend| Normalize the User Management search, query, create-user, and pagination control heights; move parenthetical setting help below titles as muted text, correct the administrator-password translation, and complete six-language copy for OAuth2 and sending configuration
 - refactor: |Frontend| Remove the side-margin appearance option together with its state, persistence, and workspace layout branches

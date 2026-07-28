@@ -100,6 +100,7 @@ a { color: var(--primary); text-underline-offset: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .numeric { font-variant-numeric: tabular-nums; font-family: "Cascadia Mono", "SFMono-Regular", Consolas, monospace; }
+.auth-surface { background: linear-gradient(180deg, color-mix(in oklch, var(--primary) 12%, var(--background)), color-mix(in oklch, var(--primary) 3%, var(--background)) 72%); }
 .mail-html { color: var(--foreground); line-height: 1.65; overflow-wrap: anywhere; }
 .mail-html img { max-width: 100%; height: auto; }
 .mail-html table { max-width: 100%; }

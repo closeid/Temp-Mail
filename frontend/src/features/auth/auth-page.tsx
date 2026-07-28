@@ -96,35 +96,38 @@ export function AuthPage() {
 
   if (!userOpenSettings.fetched || !openSettings.fetched) return <main className="min-h-[100dvh] bg-background" />
 
-  return <main className="grid min-h-[100dvh] place-items-center bg-background px-4 py-8">
-    <section className="w-full max-w-[420px]">
-      <div className="mb-7 flex justify-center"><Brand compact className="[&>span:first-child]:size-[60px] [&_svg]:size-7" /></div>
+  return <main className="auth-surface grid min-h-[100dvh] place-items-center px-4 py-6 sm:py-8">
+    <section className="w-full max-w-[400px] rounded-lg border border-border/80 bg-card p-5 shadow-[0_20px_60px_rgba(33,84,72,0.12)] sm:p-7 dark:shadow-[0_20px_60px_rgba(0,0,0,0.24)]">
+      <div className="mb-5 flex items-center gap-3">
+        <Brand compact className="[&>span:first-child]:size-12" />
+        <div className="min-w-0"><p className="text-lg font-semibold text-foreground">{tab === 'signin' ? t('login') : t('register')}</p><p className="truncate text-xs text-muted-foreground">Get an Email</p></div>
+      </div>
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="mb-5 grid w-full grid-cols-2 border-b border-border">
-          <TabsTrigger className="h-10 rounded-none border-b-2 border-transparent bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent" value="signin">{t('login')}</TabsTrigger>
-          <TabsTrigger className="h-10 rounded-none border-b-2 border-transparent bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent" value="signup">{t('register')}</TabsTrigger>
+        <TabsList className="mb-5 grid w-full grid-cols-2 rounded-md bg-muted p-1">
+          <TabsTrigger className="h-9 bg-transparent text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm" value="signin">{t('login')}</TabsTrigger>
+          <TabsTrigger className="h-9 bg-transparent text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm" value="signup">{t('register')}</TabsTrigger>
         </TabsList>
         <TabsContent value="signin" className="grid gap-4">
-          <Field label={t('email')}><Input autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
-          <Field label={t('password')}><Input autoComplete="current-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && login()} /></Field>
+          <Field label={t('email')}><Input className="h-11 bg-muted/35" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
+          <Field label={t('password')}><Input className="h-11 bg-muted/35" autoComplete="current-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && login()} /></Field>
           {openSettings.enableGlobalTurnstileCheck && <Turnstile ref={loginTurnstile} value={loginToken} onChange={setLoginToken} />}
-          <Button className="w-full" onClick={login}><LogIn />{t('login')}</Button>
+          <Button className="h-11 w-full shadow-[0_8px_20px_rgba(21,183,126,0.18)]" onClick={login}><LogIn />{t('login')}</Button>
           <div className="flex justify-center"><Button className="h-[30px] px-[10px]" variant="link" onClick={() => setForgotDialog(true)}>{t('forgotPassword')}</Button></div>
           <Separator />
-          <Button className="w-full" variant="secondary" onClick={() => setAddressDialog(true)}><AtSign />{t('loginWithAddressCredential')}</Button>
-          <Button className="w-full" variant="secondary" onClick={passkeyLogin}><KeyRound />{t('loginWithPasskey')}</Button>
-          {userOpenSettings.oauth2ClientIDs.map((provider) => <Button key={provider.clientID} className="w-full" variant="secondary" onClick={() => oauthLogin(provider.clientID)}>
+          <Button className="h-10 w-full justify-start bg-background" variant="secondary" onClick={() => setAddressDialog(true)}><AtSign />{t('loginWithAddressCredential')}</Button>
+          <Button className="h-10 w-full justify-start bg-background" variant="secondary" onClick={passkeyLogin}><KeyRound />{t('loginWithPasskey')}</Button>
+          {userOpenSettings.oauth2ClientIDs.map((provider) => <Button key={provider.clientID} className="h-10 w-full justify-start bg-background" variant="secondary" onClick={() => oauthLogin(provider.clientID)}>
             {provider.icon ? <span className="size-4" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(provider.icon, { USE_PROFILES: { svg: true, svgFilters: true } }) }} /> : <Fingerprint />}
             {t('loginWith', { provider: provider.name })}
           </Button>)}
         </TabsContent>
         <TabsContent value="signup" className="grid gap-4">
-          {!userOpenSettings.enable ? <div className="rounded-md border border-border bg-muted p-3 text-sm text-muted-foreground">{t('registrationUnavailable')}</div> : <>
-            <Field label={t('email')}><Input autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
-            <Field label={t('password')}><Input autoComplete="new-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
-            {userOpenSettings.enableMailVerify && <><Turnstile value={signupToken} onChange={setSignupToken} /><Field label={t('verifyCode')}><div className="flex"><Input className="rounded-r-none" value={code} onChange={(event) => setCode(event.target.value)} /><Button className="rounded-l-none" variant="outline" disabled={seconds > 0} onClick={() => sendCode(false)}><Send />{seconds ? t('waitforVerifyCode', { timeout: seconds }) : t('sendVerificationCode')}</Button></div></Field></>}
+          {!userOpenSettings.enable ? <div className="rounded-md border border-border bg-muted/60 p-3 text-sm text-muted-foreground">{t('registrationUnavailable')}</div> : <>
+            <Field label={t('email')}><Input className="h-11 bg-muted/35" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
+            <Field label={t('password')}><Input className="h-11 bg-muted/35" autoComplete="new-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
+            {userOpenSettings.enableMailVerify && <><Turnstile value={signupToken} onChange={setSignupToken} /><Field label={t('verifyCode')}><div className="flex"><Input className="h-11 rounded-r-none bg-muted/35" value={code} onChange={(event) => setCode(event.target.value)} /><Button className="h-11 rounded-l-none" variant="outline" disabled={seconds > 0} onClick={() => sendCode(false)}><Send />{seconds ? t('waitforVerifyCode', { timeout: seconds }) : t('sendVerificationCode')}</Button></div></Field></>}
             {!userOpenSettings.enableMailVerify && <Turnstile value={signupToken} onChange={setSignupToken} />}
-            <Button className="w-full" onClick={() => register(false)}><UserPlus />{t('register')}</Button>
+            <Button className="h-11 w-full shadow-[0_8px_20px_rgba(21,183,126,0.18)]" onClick={() => register(false)}><UserPlus />{t('register')}</Button>
           </>}
         </TabsContent>
       </Tabs>
