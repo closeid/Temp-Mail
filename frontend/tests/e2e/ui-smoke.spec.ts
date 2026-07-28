@@ -142,6 +142,23 @@ test('address management actions stay on one row', async ({ page }, testInfo) =>
   await page.screenshot({ path: `test-results/address-actions-${testInfo.project.name}.png`, fullPage: true })
 })
 
+test('new address form localizes the address label and aligns its controls', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('userJwt', 'test.user.jwt'))
+  await mockCommon(page)
+  await page.route('**/api/user/settings', (route) => route.fulfill({ json: { user_email: 'owner@example.com', user_id: 8, user_role: 'member', is_admin: false } }))
+  await page.route('**/api/user/bind_address', (route) => route.fulfill({ json: { results: [] } }))
+  await page.goto('/')
+  await page.getByRole('tab', { name: '创建或绑定' }).click()
+  await page.getByRole('button', { name: '创建新邮箱' }).click()
+
+  await expect(page.getByText('邮箱地址', { exact: true })).toBeVisible()
+  const nameInput = page.locator('input').first()
+  const domainSelect = page.getByRole('combobox')
+  const [inputBox, selectBox] = await Promise.all([nameInput.boundingBox(), domainSelect.boundingBox()])
+  expect(inputBox?.height).toBe(40)
+  expect(selectBox?.height).toBe(40)
+})
+
 test('dashboard uses two-level workspace navigation', async ({ page }, testInfo) => {
   await mockCommon(page, { disableAdminPasswordCheck: true })
   await page.route('**/api/admin/address?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 1, name: 'admin@getanemail.net', created_at: '2026-07-27', updated_at: '2026-07-27', source_meta: '127.0.0.1', mail_count: 2, send_count: 1 }] } }))

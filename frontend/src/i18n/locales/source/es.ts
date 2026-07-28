@@ -1,4 +1,5 @@
 export const esMessages = {
+  "views.common.Login.address": "Dirección de correo",
   "views.index.SimpleIndex.mailCount": "{current} / {total} correos",
   "views.admin.Statistics.activeAddressCount30days": "Cantidad de direcciones activas en 30 días",
   "views.admin.Statistics.activeAddressCount7days": "Cantidad de direcciones activas en 7 días",

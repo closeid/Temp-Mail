@@ -1,4 +1,5 @@
 export const ptBRMessages = {
+  "views.common.Login.address": "Endereço de e-mail",
   "views.index.SimpleIndex.mailCount": "{current} / {total} e-mails",
   "views.admin.Statistics.activeAddressCount30days": "Quantidade de endereços ativos em 30 dias",
   "views.admin.Statistics.activeAddressCount7days": "Quantidade de endereços ativos em 7 dias",

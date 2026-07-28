@@ -1,4 +1,5 @@
 export const deMessages = {
+  "views.common.Login.address": "E-Mail-Adresse",
   "views.index.SimpleIndex.mailCount": "{current} / {total} E-Mails",
   "views.admin.Statistics.activeAddressCount30days": "Aktive Adressanzahl in 30 Tagen",
   "views.admin.Statistics.activeAddressCount7days": "Aktive Adressanzahl in 7 Tagen",

@@ -1,4 +1,5 @@
 export const jaMessages = {
+  "views.common.Login.address": "メールアドレス",
   "views.index.SimpleIndex.mailCount": "{current} / {total} 件のメール",
   "views.admin.Statistics.activeAddressCount30days": "30日間のアクティブなアドレス数",
   "views.admin.Statistics.activeAddressCount7days": "7日間のアクティブなアドレス数",

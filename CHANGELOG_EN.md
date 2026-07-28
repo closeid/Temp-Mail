@@ -27,6 +27,7 @@
 
 ### Improvements
 
+- fix: |Frontend| Complete six-language translation for the Create Email “Email address” field so it no longer falls back to `address`; align the mailbox-name input, `@` separator, and domain select at 40px
 - fix: |Frontend| After password, passkey, or OAuth2 user sign-in, automatically select the first bound address and open its inbox; users without a bound address still fall back to Address Management
 - fix: |Frontend| Keep Switch, Transfer, and Unbind address actions on one row on desktop and mobile, using the table's horizontal overflow on narrow screens; rebuild fullscreen mail as a fixed subject/sender/recipient header with an independently scrolling body, fixing the full-height dialog that pushed content into the lower half of the viewport
 - docs: |README| Rewrite the Chinese and English READMEs for the current React + Cloudflare Workers architecture, with executable D1/KV, Email Routing, same-origin Worker, separate Pages, Service Binding, local development, Secret, OAuth2, passkey, webhook, three-provider outbound mail, upgrade, and troubleshooting instructions
