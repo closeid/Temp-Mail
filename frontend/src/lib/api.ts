@@ -62,7 +62,7 @@ export async function apiFetch<T = any>(path: string, options: ApiOptions = {}):
 
 export async function fetchOpenSettings() {
   try {
-    const result = await apiFetch<Record<string, any>>('/open_api/settings')
+    const result = await apiFetch<Record<string, any>>('/api/open/settings')
     const domains = Array.isArray(result.domains) ? result.domains : []
     const labels = Array.isArray(result.domainLabels) ? result.domainLabels : []
     const current = appStore.getState().openSettings
@@ -103,7 +103,7 @@ export async function fetchAddressSettings() {
 
 export async function fetchUserOpenSettings() {
   try {
-    const result = await apiFetch<Record<string, any>>('/user_api/open_settings')
+    const result = await apiFetch<Record<string, any>>('/api/user/open_settings')
     const settings = { ...appStore.getState().userOpenSettings, ...result, fetched: true }
     appStore.setState({ userOpenSettings: settings })
     return settings
@@ -120,11 +120,11 @@ export async function fetchUserSettings() {
     return appStore.getState().userSettings
   }
   try {
-    const result = await apiFetch<Record<string, any>>('/user_api/settings')
+    const result = await apiFetch<Record<string, any>>('/api/user/settings')
     const settings = { ...appStore.getState().userSettings, ...result, fetched: true }
     appStore.setState({ userSettings: settings })
     if (settings.new_user_token) {
-      await apiFetch('/user_api/settings', { userJwt: settings.new_user_token })
+      await apiFetch('/api/user/settings', { userJwt: settings.new_user_token })
       appStore.setState({ userJwt: settings.new_user_token })
     }
     return settings
@@ -140,7 +140,7 @@ export const api = {
   getSettings: fetchAddressSettings,
   getUserOpenSettings: fetchUserOpenSettings,
   getUserSettings: fetchUserSettings,
-  bindUserAddress: () => apiFetch('/user_api/bind_address', { method: 'POST' }),
-  adminShowAddressCredential: async (id: number | string) => (await apiFetch<{ jwt: string }>(`/admin/show_password/${id}`)).jwt,
-  adminDeleteAddress: (id: number | string) => apiFetch(`/admin/delete_address/${id}`, { method: 'DELETE' }),
+  bindUserAddress: () => apiFetch('/api/user/bind_address', { method: 'POST' }),
+  adminShowAddressCredential: async (id: number | string) => (await apiFetch<{ jwt: string }>(`/api/admin/show_password/${id}`)).jwt,
+  adminDeleteAddress: (id: number | string) => apiFetch(`/api/admin/delete_address/${id}`, { method: 'DELETE' }),
 }

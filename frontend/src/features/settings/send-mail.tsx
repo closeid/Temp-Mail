@@ -39,7 +39,7 @@ export function SendMailPage({ admin = false }: { admin?: boolean }) {
     if (!hasContent(model.content, model.contentType)) return toast.error(t('contentEmpty'))
     setSending(true)
     try {
-      await api.fetch(admin ? '/admin/send_mail' : '/api/send_mail', { method: 'POST', body: { from_name: model.fromName, from_mail: admin ? (model.fromMail || '') : undefined, to_name: model.toName, to_mail: to, subject, is_html: model.contentType !== 'text', content: model.content } })
+      await api.fetch(admin ? '/api/admin/send_mail' : '/api/send_mail', { method: 'POST', body: { from_name: model.fromName, from_mail: admin ? (model.fromMail || '') : undefined, to_name: model.toName, to_mail: to, subject, is_html: model.contentType !== 'text', content: model.content } })
       setModel(emptyModel); setPreview(false); toast.success(t('successSend')); if (!admin) appStore.setState({ indexTab: 'sendbox' })
     } catch (error) { toast.error(stringifyError(error)) } finally { setSending(false) }
   }

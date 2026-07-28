@@ -46,7 +46,7 @@ export function AuthPage() {
   const login = async () => {
     if (!email || !password) return toast.error(t('pleaseInput'))
     try {
-      const result = await api.fetch<{ jwt: string }>('/user_api/login', { method: 'POST', body: { email, password: await hashPassword(password), cf_token: loginToken } })
+      const result = await api.fetch<{ jwt: string }>('/api/user/login', { method: 'POST', body: { email, password: await hashPassword(password), cf_token: loginToken } })
       appStore.setState({ userJwt: result.jwt, workspaceSection: 'user' })
       await api.getUserSettings()
       navigate(getPathWithLocale('/', locale))
@@ -58,7 +58,7 @@ export function AuthPage() {
     const token = reset ? resetToken : signupToken
     if (openSettings.cfTurnstileSiteKey && !token && userOpenSettings.enableMailVerify) return toast.error(t('pleaseCompleteTurnstile'))
     try {
-      const result = await api.fetch<{ expirationTtl?: number }>('/user_api/verify_code', { method: 'POST', body: { email, cf_token: token } })
+      const result = await api.fetch<{ expirationTtl?: number }>('/api/user/verify_code', { method: 'POST', body: { email, cf_token: token } })
       if (result.expirationTtl) { setVerifyUntil(Date.now() + result.expirationTtl * 1000); setNow(Date.now()); toast.success(t('verifyCodeSent', { timeout: result.expirationTtl })) }
     } catch (error) { toast.error(stringifyError(error)) }
   }
@@ -67,7 +67,7 @@ export function AuthPage() {
     if (!email || !password) return toast.error(t('pleaseInput'))
     if (!code && userOpenSettings.enableMailVerify) return toast.error(t('pleaseInputCode'))
     try {
-      await api.fetch('/user_api/register', { method: 'POST', body: { email, password: await hashPassword(password), code, cf_token: reset ? resetToken : signupToken } })
+      await api.fetch('/api/user/register', { method: 'POST', body: { email, password: await hashPassword(password), code, cf_token: reset ? resetToken : signupToken } })
       toast.success(t('pleaseLogin'))
       setForgotDialog(false)
       setTab('signin')
@@ -76,9 +76,9 @@ export function AuthPage() {
 
   const passkeyLogin = async () => {
     try {
-      const options = await api.fetch<any>('/user_api/passkey/authenticate_request', { method: 'POST', body: { domain: location.hostname } })
+      const options = await api.fetch<any>('/api/user/passkey/authenticate_request', { method: 'POST', body: { domain: location.hostname } })
       const credential = await startAuthentication({ optionsJSON: options })
-      const result = await api.fetch<{ jwt: string }>('/user_api/passkey/authenticate_response', { method: 'POST', body: { origin: location.origin, domain: location.hostname, credential } })
+      const result = await api.fetch<{ jwt: string }>('/api/user/passkey/authenticate_response', { method: 'POST', body: { origin: location.origin, domain: location.hostname, credential } })
       appStore.setState({ userJwt: result.jwt, workspaceSection: 'user' })
       await api.getUserSettings()
       navigate(getPathWithLocale('/', locale))
@@ -89,7 +89,7 @@ export function AuthPage() {
     try {
       const state = Math.random().toString(36).slice(2)
       appStore.setState({ userOauth2SessionClientID: clientID, userOauth2SessionState: state })
-      const result = await api.fetch<{ url: string }>(`/user_api/oauth2/login_url?clientID=${encodeURIComponent(clientID)}&state=${encodeURIComponent(state)}`)
+      const result = await api.fetch<{ url: string }>(`/api/user/oauth2/login_url?clientID=${encodeURIComponent(clientID)}&state=${encodeURIComponent(state)}`)
       location.href = result.url
     } catch (error) { toast.error(stringifyError(error)) }
   }

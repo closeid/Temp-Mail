@@ -60,7 +60,7 @@ function AdminAuthDialog() {
   const turnstile = useRef<TurnstileHandle>(null)
   const authenticate = async () => {
     try {
-      await api.fetch('/open_api/admin_login', { method: 'POST', body: { password: await hashPassword(password), cf_token: token } })
+      await api.fetch('/api/open/admin_login', { method: 'POST', body: { password: await hashPassword(password), cf_token: token } })
       appStore.setState({ adminAuth: password, showAdminAuth: false })
       toast.success('Signed in')
     } catch (error) { toast.error(stringifyError(error)); turnstile.current?.refresh() }
@@ -105,23 +105,23 @@ export function AdminWorkspace() {
   const groups: Record<string, Secondary[]> = {
     qucickSetup: [
       { key: 'database', label: t('database'), content: <DatabasePage /> },
-      { key: 'account_settings', label: t('account_settings'), content: <ObjectSettings endpoint="/admin/account_settings" title={t('account_settings')} transformLoad={loadAccountSettings} transformSave={saveAccountSettings} /> },
-      { key: 'user_settings', label: t('user_settings'), content: <ObjectSettings endpoint="/admin/user_settings" title={t('user_settings')} /> },
+      { key: 'account_settings', label: t('account_settings'), content: <ObjectSettings endpoint="/api/admin/account_settings" title={t('account_settings')} transformLoad={loadAccountSettings} transformSave={saveAccountSettings} /> },
+      { key: 'user_settings', label: t('user_settings'), content: <ObjectSettings endpoint="/api/admin/user_settings" title={t('user_settings')} /> },
       { key: 'workerconfig', label: t('workerconfig'), content: <WorkerConfigPage /> },
     ],
     account: [
       { key: 'account', label: t('account'), content: <AccountTable /> },
       { key: 'account_create', label: t('account_create'), content: <CreateAddressPage /> },
-      { key: 'account_settings', label: t('account_settings'), content: <ObjectSettings endpoint="/admin/account_settings" title={t('account_settings')} transformLoad={loadAccountSettings} transformSave={saveAccountSettings} /> },
+      { key: 'account_settings', label: t('account_settings'), content: <ObjectSettings endpoint="/api/admin/account_settings" title={t('account_settings')} transformLoad={loadAccountSettings} transformSave={saveAccountSettings} /> },
       { key: 'senderAccess', label: t('senderAccess'), content: <SenderAccessPage /> },
-      { key: 'ipBlacklistSettings', label: t('ipBlacklistSettings'), content: <ObjectSettings endpoint="/admin/ip_blacklist/settings" title={t('ipBlacklistSettings')} /> },
-      { key: 'aiExtractSettings', label: t('aiExtractSettings'), content: <ObjectSettings endpoint="/admin/ai_extract/settings" title={t('aiExtractSettings')} /> },
-      { key: 'webhook', label: t('webhookSettings'), content: <ObjectSettings endpoint="/admin/webhook/settings" title={t('webhookSettings')} /> },
+      { key: 'ipBlacklistSettings', label: t('ipBlacklistSettings'), content: <ObjectSettings endpoint="/api/admin/ip_blacklist/settings" title={t('ipBlacklistSettings')} /> },
+      { key: 'aiExtractSettings', label: t('aiExtractSettings'), content: <ObjectSettings endpoint="/api/admin/ai_extract/settings" title={t('aiExtractSettings')} /> },
+      { key: 'webhook', label: t('webhookSettings'), content: <ObjectSettings endpoint="/api/admin/webhook/settings" title={t('webhookSettings')} /> },
     ],
     user: [
       { key: 'user_management', label: t('user_management'), content: <UserTable /> },
-      { key: 'user_settings', label: t('user_settings'), content: <ObjectSettings endpoint="/admin/user_settings" title={t('user_settings')} /> },
-      { key: 'userOauth2Settings', label: t('userOauth2Settings'), content: <ObjectSettings endpoint="/admin/user_oauth2_settings" title={t('userOauth2Settings')} /> },
+      { key: 'user_settings', label: t('user_settings'), content: <ObjectSettings endpoint="/api/admin/user_settings" title={t('user_settings')} /> },
+      { key: 'userOauth2Settings', label: t('userOauth2Settings'), content: <ObjectSettings endpoint="/api/admin/user_oauth2_settings" title={t('userOauth2Settings')} /> },
       { key: 'roleAddressConfig', label: t('roleAddressConfig'), content: <RoleAddressConfigPage /> },
     ],
     mails: [

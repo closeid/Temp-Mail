@@ -24,7 +24,7 @@ const parseJwtAddress = (jwt: string) => {
 const readCache = () => { try { return JSON.parse(localStorage.getItem('LocalAddressCache') || '[]') as string[] } catch { return [] } }
 const writeCache = (items: string[]) => localStorage.setItem('LocalAddressCache', JSON.stringify(items))
 
-export function AddressBar({ manageContent }: { manageContent?: React.ReactNode }) {
+export function AddressBar({ manageContent, onManage }: { manageContent?: React.ReactNode; onManage?: () => void }) {
   const { t } = useScopedI18n('views.index.AddressBar')
   const addressT = useScopedI18n('components.AddressSelect').t
   const state = useAppStore((value) => value)
@@ -35,8 +35,8 @@ export function AddressBar({ manageContent }: { manageContent?: React.ReactNode 
     const cache = readCache()
     if (!cache.includes(state.jwt)) { cache.push(state.jwt); writeCache(cache); setCacheRevision((value) => value + 1) }
   }, [state.jwt])
-  const userAddresses = useQuery({ queryKey: ['bound-addresses', state.userJwt], enabled: Boolean(state.userJwt), queryFn: () => api.fetch<{ results: any[] }>('/user_api/bind_address') })
-  const telegramAddresses = useQuery({ queryKey: ['telegram-bound-addresses', state.telegramInitData], enabled: state.isTelegram, queryFn: () => api.fetch<any[]>('/telegram/get_bind_address', { method: 'POST', body: { initData: state.telegramInitData } }) })
+  const userAddresses = useQuery({ queryKey: ['bound-addresses', state.userJwt], enabled: Boolean(state.userJwt), queryFn: () => api.fetch<{ results: any[] }>('/api/user/bind_address') })
+  const telegramAddresses = useQuery({ queryKey: ['telegram-bound-addresses', state.telegramInitData], enabled: state.isTelegram, queryFn: () => api.fetch<any[]>('/api/telegram/get_bind_address', { method: 'POST', body: { initData: state.telegramInitData } }) })
   const localOptions = useMemo<AddressOption[]>(() => readCache().map((jwt): AddressOption => ({ key: `local:${jwt}`, scope: 'local', payload: jwt, address: parseJwtAddress(jwt), label: parseJwtAddress(jwt) })).filter((item) => item.address), [cacheRevision, state.jwt])
   const userOptions = useMemo<AddressOption[]>(() => (userAddresses.data?.results || []).map((item): AddressOption => ({ key: `user:${item.id}`, scope: 'user', payload: String(item.id), address: item.address || item.name, label: item.address || item.name })), [userAddresses.data?.results])
   const telegramOptions = useMemo<AddressOption[]>(() => (telegramAddresses.data || []).map((item): AddressOption => ({ key: `tg:${item.address}`, scope: 'tg', payload: item.jwt, address: item.address, label: item.address })), [telegramAddresses.data])
@@ -51,16 +51,16 @@ export function AddressBar({ manageContent }: { manageContent?: React.ReactNode 
     const item = options.find((option) => option.key === key)
     if (!item) return
     try {
-      if (item.scope === 'user') { const result = await api.fetch<{ jwt: string }>(`/user_api/bind_address_jwt/${item.payload}`); appStore.setState({ jwt: result.jwt }) }
+      if (item.scope === 'user') { const result = await api.fetch<{ jwt: string }>(`/api/user/bind_address_jwt/${item.payload}`); appStore.setState({ jwt: result.jwt }) }
       else appStore.setState({ jwt: item.payload })
       location.reload()
     } catch (error) { toast.error(stringifyError(error)) }
   }
   const removeLocal = (jwt: string) => { if (jwt === state.jwt) return; writeCache(readCache().filter((item) => item !== jwt)); setCacheRevision((value) => value + 1) }
   if (!state.settings.address) return null
-  return <div className="flex w-full min-w-0 flex-wrap items-center gap-2">
-    <Select value={current} onValueChange={change}><SelectTrigger className="h-9 min-w-[220px] flex-1 sm:max-w-[500px]"><SelectValue placeholder={addressT('address')} /></SelectTrigger><SelectContent>{userOptions.length > 0 && <SelectGroup><SelectLabel>{addressT('userAddresses')}</SelectLabel>{userOptions.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectGroup>}{telegramOptions.length > 0 && <SelectGroup><SelectLabel>Telegram</SelectLabel>{telegramOptions.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectGroup>}{localDisplayOptions.length > 0 && <SelectGroup><SelectLabel>{addressT('localAddresses')}</SelectLabel>{localDisplayOptions.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectGroup>}</SelectContent></Select>
-    <Button variant="secondary" onClick={() => setManage(true)}><Shuffle />{t('addressManage')}</Button><Button variant="secondary" onClick={async () => { await copyText(state.settings.address); toast.success(addressT('copied')) }}><Copy />{addressT('copy')}</Button>
+  return <div className="flex w-full min-w-0 flex-nowrap items-center gap-1.5 sm:gap-2">
+    <Select value={current} onValueChange={change}><SelectTrigger className="h-9 w-0 min-w-0 flex-1 px-2 sm:max-w-[500px] sm:px-3"><SelectValue placeholder={addressT('address')} /></SelectTrigger><SelectContent>{userOptions.length > 0 && <SelectGroup><SelectLabel>{addressT('userAddresses')}</SelectLabel>{userOptions.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectGroup>}{telegramOptions.length > 0 && <SelectGroup><SelectLabel>Telegram</SelectLabel>{telegramOptions.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectGroup>}{localDisplayOptions.length > 0 && <SelectGroup><SelectLabel>{addressT('localAddresses')}</SelectLabel>{localDisplayOptions.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectGroup>}</SelectContent></Select>
+    <Button className="shrink-0 px-2 text-xs sm:px-3 sm:text-sm" variant="secondary" onClick={() => onManage ? onManage() : setManage(true)}><Shuffle />{t('addressManage')}</Button><Button className="shrink-0 px-2 text-xs sm:px-3 sm:text-sm" variant="secondary" onClick={async () => { await copyText(state.settings.address); toast.success(addressT('copied')) }}><Copy />{addressT('copy')}</Button>
     <Dialog open={manage} onOpenChange={setManage}><DialogContent className="w-[min(760px,calc(100vw-32px))]"><DialogHeader><DialogTitle>{t('addressManage')}</DialogTitle></DialogHeader>{manageContent || <div className="grid gap-5"><Table><TableHeader><TableRow><TableHead>{addressT('address')}</TableHead><TableHead className="w-40">Actions</TableHead></TableRow></TableHeader><TableBody>{localOptions.map((item) => <TableRow key={item.key}><TableCell>{item.address}</TableCell><TableCell><div className="flex gap-1"><Button size="sm" variant="ghost" onClick={() => change(item.key)}><RefreshCw />Switch</Button><Button size="sm" variant="ghost" className="text-destructive" disabled={item.payload === state.jwt} onClick={() => removeLocal(item.payload)}>Remove</Button></div></TableCell></TableRow>)}</TableBody></Table><div className="border-t border-border pt-5"><AddressLogin bindUserAddress={async () => { setCacheRevision((value) => value + 1) }} /></div></div>}</DialogContent></Dialog>
   </div>
 }

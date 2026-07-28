@@ -26,9 +26,35 @@ const API_PATHS = [
 	"/external/",
 ];
 
+const API_NAMESPACE_ALIASES = [
+	["/api/open", "/open_api"],
+	["/api/user", "/user_api"],
+	["/api/admin", "/admin"],
+	["/api/telegram", "/telegram"],
+	["/api/external", "/external/api"],
+] as const;
+
+export const getLegacyApiPath = (path: string): string | null => {
+	if (path === "/api/health") return "/health_check";
+	for (const [canonicalPrefix, legacyPrefix] of API_NAMESPACE_ALIASES) {
+		if (path === canonicalPrefix || path.startsWith(`${canonicalPrefix}/`)) {
+			return `${legacyPrefix}${path.slice(canonicalPrefix.length)}`;
+		}
+	}
+	return null;
+};
+
 const app = new Hono<HonoCustomType>()
 //cors
 app.use('/*', cors());
+// Keep all new API entry points under /api while preserving legacy routes.
+app.use('/api/*', async (c, next) => {
+	const legacyPath = getLegacyApiPath(c.req.path);
+	if (!legacyPath) return next();
+	const url = new URL(c.req.url);
+	url.pathname = legacyPath;
+	return app.fetch(new Request(url, c.req.raw), c.env, c.executionCtx);
+});
 // error handler
 app.onError((err, c) => {
 	console.error(err)

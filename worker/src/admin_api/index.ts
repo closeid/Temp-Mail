@@ -91,9 +91,9 @@ api.post('/admin/send_mail', sendMailbyAdmin)
 api.post('/admin/send_mail_by_binding', sendMailByBindingAdmin)
 
 // db api
-api.get('admin/db_version', db_api.getVersion)
-api.post('admin/db_initialize', db_api.initialize)
-api.post('admin/db_migration', db_api.migrate)
+api.get('/admin/db_version', db_api.getVersion)
+api.post('/admin/db_initialize', db_api.initialize)
+api.post('/admin/db_migration', db_api.migrate)
 
 // IP blacklist settings
 api.get('/admin/ip_blacklist/settings', ip_blacklist_settings.getIpBlacklistSettings)

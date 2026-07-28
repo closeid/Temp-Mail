@@ -18,7 +18,7 @@ export function SiteAccessDialog() {
   const turnstile = useRef<TurnstileHandle>(null)
   const authenticate = async () => {
     try {
-      await api.fetch('/open_api/site_login', { method: 'POST', body: { password: await hashPassword(password), cf_token: token } })
+      await api.fetch('/api/open/site_login', { method: 'POST', body: { password: await hashPassword(password), cf_token: token } })
       appStore.setState({ auth: password, showSiteAuth: false })
       location.reload()
     } catch (error) { toast.error(stringifyError(error)); turnstile.current?.refresh() }

@@ -66,7 +66,7 @@ export function AddressLogin({ loginOnly = false, preferCredential = false, bind
         await finishLogin(result.jwt)
       } else {
         if (!credential) return toast.error(t('credentialInput'))
-        await api.fetch('/open_api/credential_login', { method: 'POST', body: { credential, cf_token: token } })
+        await api.fetch('/api/open/credential_login', { method: 'POST', body: { credential, cf_token: token } })
         await finishLogin(credential)
       }
     } catch (error) { toast.error(stringifyError(error)); turnstileRef.current?.refresh() }

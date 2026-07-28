@@ -18,7 +18,7 @@ export function UserWorkspace() {
   const [filter, setFilter] = useState('')
   const addressesQuery = useQuery({
     queryKey: ['user-bound-addresses'],
-    queryFn: () => api.fetch<{ results?: Array<{ name?: string; address?: string }> } | Array<{ name?: string; address?: string }>>('/user_api/bind_address'),
+    queryFn: () => api.fetch<{ results?: Array<{ name?: string; address?: string }> } | Array<{ name?: string; address?: string }>>('/api/user/bind_address'),
   })
   const addressRows = Array.isArray(addressesQuery.data) ? addressesQuery.data : addressesQuery.data?.results || []
   const addresses = addressRows.map((row) => row.address || row.name || '').filter(Boolean)
@@ -33,6 +33,6 @@ export function UserWorkspace() {
   if (tab === 'address_management') content = <UserAddressManagement />
   if (tab === 'user_settings') content = <UserSettingsPage />
   if (tab === 'bind_address') content = <div className="h-full overflow-auto"><div className="mx-auto max-w-xl p-5"><AddressLogin /></div></div>
-  if (tab === 'user_mail_box_tab') content = <div className="flex h-full min-h-0 flex-col"><div className="flex min-h-12 items-center border-b border-border px-3"><Select value={filter || '__all'} onValueChange={(value) => setFilter(value === '__all' ? '' : value)}><SelectTrigger className="w-full max-w-md"><SelectValue placeholder={userMailT('addressQueryTip')} /></SelectTrigger><SelectContent><SelectItem value="__all">All addresses</SelectItem>{addresses.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select></div><div className="min-h-0 flex-1"><Mailbox queryKey={['user-mails', filter]} fetchMailData={(limit, offset) => api.fetch(`/user_api/mails?limit=${limit}&offset=${offset}${filter ? `&address=${encodeURIComponent(filter)}` : ''}`)} deleteMail={(id) => api.fetch(`/user_api/mails/${id}`, { method: 'DELETE' })} canDelete={canDelete} showFilter /></div></div>
+  if (tab === 'user_mail_box_tab') content = <div className="flex h-full min-h-0 flex-col"><div className="flex min-h-12 items-center border-b border-border px-3"><Select value={filter || '__all'} onValueChange={(value) => setFilter(value === '__all' ? '' : value)}><SelectTrigger className="w-full max-w-md"><SelectValue placeholder={userMailT('addressQueryTip')} /></SelectTrigger><SelectContent><SelectItem value="__all">All addresses</SelectItem>{addresses.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select></div><div className="min-h-0 flex-1"><Mailbox queryKey={['user-mails', filter]} fetchMailData={(limit, offset) => api.fetch(`/api/user/mails?limit=${limit}&offset=${offset}${filter ? `&address=${encodeURIComponent(filter)}` : ''}`)} deleteMail={(id) => api.fetch(`/api/user/mails/${id}`, { method: 'DELETE' })} canDelete={canDelete} showFilter /></div></div>
   return <WorkspaceShell items={items} active={tab} onSelect={(value) => appStore.setState({ userTab: value })} topbar={topbar}>{content}</WorkspaceShell>
 }
