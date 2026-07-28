@@ -21,6 +21,8 @@ import {
 } from './admin-pages'
 import { ObjectSettings } from './object-settings'
 import { ApiDocsPage } from './api-docs'
+import { OAuthSettingsPage } from './oauth-settings'
+import { SendProviderSettingsPage } from './send-provider-settings'
 
 const loadAccountSettings = (value: any) => ({
   blockList: value.blockList || [],
@@ -103,18 +105,19 @@ export function AdminWorkspace() {
       { key: 'senderAccess', label: t('senderAccess'), content: <SenderAccessPage /> },
       { key: 'ipBlacklistSettings', label: t('ipBlacklistSettings'), content: <ObjectSettings endpoint="/api/admin/ip_blacklist/settings" title={t('ipBlacklistSettings')} /> },
       { key: 'aiExtractSettings', label: t('aiExtractSettings'), content: <ObjectSettings endpoint="/api/admin/ai_extract/settings" title={t('aiExtractSettings')} /> },
-      { key: 'webhook', label: t('webhookSettings'), content: <ObjectSettings endpoint="/api/admin/webhook/settings" title={t('webhookSettings')} /> },
+      { key: 'webhook', label: t('webhookSettings'), content: <ObjectSettings endpoint="/api/admin/webhook/settings" title={t('webhookSettings')} description={sessionT('webhookAccessDescription')} /> },
     ],
     user: [
       { key: 'user_management', label: t('user_management'), content: <UserTable /> },
       { key: 'user_settings', label: t('user_settings'), content: <ObjectSettings endpoint="/api/admin/user_settings" title={t('user_settings')} /> },
-      { key: 'userOauth2Settings', label: t('userOauth2Settings'), content: <ObjectSettings endpoint="/api/admin/user_oauth2_settings" title={t('userOauth2Settings')} /> },
+      { key: 'userOauth2Settings', label: t('userOauth2Settings'), content: <OAuthSettingsPage /> },
       { key: 'roleAddressConfig', label: t('roleAddressConfig'), content: <RoleAddressConfigPage /> },
     ],
     mails: [
       { key: 'mails', label: t('mails'), content: <AdminInbox /> },
       { key: 'unknow', label: t('unknow'), content: <AdminInbox unknown /> },
       { key: 'sendBox', label: t('sendBox'), content: <AdminSentBox /> },
+      { key: 'sendConfiguration', label: sessionT('sendConfiguration'), content: <SendProviderSettingsPage /> },
       { key: 'sendMail', label: t('sendMail'), content: <AdminSendMail /> },
       { key: 'mailWebhook', label: t('mailWebhook'), content: <AdminMailWebhook /> },
     ],

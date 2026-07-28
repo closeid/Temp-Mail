@@ -524,7 +524,6 @@ export const ptBRMessages = {
   "views.admin.SendMail.tooLarge": "Arquivo muito grande; envie um arquivo menor que 1 MB.",
   "views.user.AddressManagement.transferAddress": "Transferir endereço",
   "views.user.AddressManagement.transferAddressTip": "Transferir este endereço para outro usuário irá removê-lo da sua conta e movê-lo para a conta dele. Tem certeza de que deseja transferi-lo?",
-  "views.common.Appearance.useSideMargin": "Ativar margens laterais à esquerda e à direita da página",
   "views.admin.AiExtractSettings.manualInputPrompt": "Digite e pressione Enter para adicionar",
   "views.admin.UserOauth2Settings.manualInputPrompt": "Digite e pressione Enter para adicionar",
   "views.admin.Telegram.manualInputPrompt": "Digite e pressione Enter para adicionar",

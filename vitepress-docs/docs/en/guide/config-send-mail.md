@@ -1,6 +1,8 @@
 
 # Configure Email Sending
 
+After deployment, open **Administration → Emails → Sending configuration** to review the detected `SEND_MAIL`, Resend, and SMTP providers, domain-specific coverage, and matching order. API keys and SMTP credentials remain Worker secrets or bindings and must be configured through Cloudflare or Wrangler; the administration page never reads or stores their plaintext values.
+
 ::: tip Recommended
 Use Cloudflare `send_email` binding as the default send channel. Bind `SEND_MAIL` and finish Email Routing onboarding, then the Worker can send to any external address directly.
 

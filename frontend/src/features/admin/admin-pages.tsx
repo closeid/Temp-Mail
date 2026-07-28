@@ -15,6 +15,7 @@ import { Mailbox } from '@/features/mail/mailbox'
 import { SentBox } from '@/features/mail/sent-box'
 import { SendMailPage } from '@/features/settings/send-mail'
 import { WebhookSettings } from '@/features/settings/webhook-settings'
+import { SettingRow, SettingsLayout } from '@/components/layout/settings-layout'
 import { api } from '@/lib/api'
 import { appStore, useAppStore } from '@/lib/store'
 import { copyText, hashPassword, stringifyError } from '@/lib/utils'
@@ -122,14 +123,18 @@ export function MaintenancePage() {
 }
 
 export function RoleAddressConfigPage() {
-  const { t } = useScopedI18n('ui.common')
+  const { t } = useScopedI18n('views.admin.RoleAddressConfig')
+  const commonT = useScopedI18n('ui.common').t
+  const adminT = useScopedI18n('views.Admin').t
   const client = useQueryClient()
   const roles = useQuery({ queryKey: ['admin-user-roles'], queryFn: () => api.fetch<any[]>('/api/admin/user_roles') })
   const config = useQuery({ queryKey: ['admin-role-address'], queryFn: () => api.fetch<{ configs?: Record<string, { maxAddressCount?: number }> }>('/api/admin/role_address_config') })
   const [values, setValues] = useState<Record<string, string>>({})
   useEffect(() => { if (roles.data && config.data) setValues(Object.fromEntries(roles.data.map((item) => [item.role, String(config.data?.configs?.[item.role]?.maxAddressCount ?? '')]))) }, [config.data, roles.data])
   const save = async () => { const configs = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== '').map(([role, value]) => [role, { maxAddressCount: Number(value) }])); if (await run(() => api.fetch('/api/admin/role_address_config', { method: 'POST', body: { configs } }))) await client.invalidateQueries({ queryKey: ['admin-role-address'] }) }
-  return <div className="h-full overflow-auto"><header className="flex min-h-12 items-center justify-end border-b border-border px-4"><Button onClick={save}><Save />{t('save')}</Button></header><div className="mx-auto max-w-3xl px-4">{(roles.data || []).map((item) => <div key={item.role} className="grid grid-cols-[1fr_180px] items-center gap-4 border-b border-border py-3"><span className="font-medium">{item.role}</span><Input type="number" min={0} placeholder={t('notConfigured')} value={values[item.role] || ''} onChange={(event) => setValues((current) => ({ ...current, [item.role]: event.target.value }))} /></div>)}</div></div>
+  return <SettingsLayout title={adminT('roleAddressConfig')} description={t('roleConfigDesc')} action={<Button onClick={save}><Save />{commonT('save')}</Button>}>
+    {(roles.data || []).map((item) => <SettingRow key={item.role} label={item.role} description={t('maxAddressCount')} control={<Input className="sm:ml-auto sm:max-w-[180px]" type="number" min={0} placeholder={commonT('notConfigured')} value={values[item.role] || ''} onChange={(event) => setValues((current) => ({ ...current, [item.role]: event.target.value }))} />} />)}
+  </SettingsLayout>
 }
 
 export function TelegramAdminPage() {
@@ -150,5 +155,15 @@ export function AdminSentBox() {
   return <SentBox queryKey={['admin-sent', address]} fetchMailData={(limit, offset) => api.fetch(`/api/admin/sendbox?limit=${limit}&offset=${offset}${address ? `&address=${encodeURIComponent(address)}` : ''}`)} deleteMail={(id) => api.fetch(`/api/admin/sendbox/${id}`, { method: 'DELETE' })} canDelete showEmailFrom />
 }
 
-export function AdminMailWebhook() { return <WebhookSettings fetchData={() => api.fetch('/api/admin/mail_webhook/settings')} saveSettings={(model) => api.fetch('/api/admin/mail_webhook/settings', { method: 'POST', body: model })} testSettings={(model) => api.fetch('/api/admin/mail_webhook/test', { method: 'POST', body: model })} /> }
+export function AdminMailWebhook() {
+  const enabled = useAppStore((state) => state.openSettings.enableWebhook)
+  const { t } = useScopedI18n('ui.admin')
+  return <WebhookSettings
+    fetchData={() => api.fetch('/api/admin/mail_webhook/settings')}
+    saveSettings={(model) => api.fetch('/api/admin/mail_webhook/settings', { method: 'POST', body: model })}
+    testSettings={(model) => api.fetch('/api/admin/mail_webhook/test', { method: 'POST', body: model })}
+    notice={!enabled ? t('webhookDeliveryDisabled') : undefined}
+    unavailableTitle={t('webhookConfigurationUnavailable')}
+  />
+}
 export function AdminSendMail() { return <SendMailPage admin /> }

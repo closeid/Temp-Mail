@@ -27,6 +27,11 @@
 
 ### Improvements
 
+- feat: |Administration| Restore structured OAuth2 provider configuration and a sending-provider status page covering Cloudflare Email Routing, Resend, SMTP, domain coverage, and provider priority; administrators can prepare webhook settings while `ENABLE_WEBHOOK` is disabled, with delivery state shown separately
+- fix: |Frontend| Normalize the User Management search, query, create-user, and pagination control heights; move parenthetical setting help below titles as muted text, correct the administrator-password translation, and complete six-language copy for OAuth2 and sending configuration
+- refactor: |Frontend| Remove the side-margin appearance option together with its state, persistence, and workspace layout branches
+- docs: |Administration| Document role address limit inheritance, the OAuth2/password relationship, webhook enablement behavior, and the secure location for sending credentials
+
 - refactor: |Worker| Consolidate every HTTP API under `/api`: public, user, administration, Telegram, and external-send endpoints now use `/api/open/*`, `/api/user/*`, `/api/admin/*`, `/api/telegram/*`, and `/api/external/*`; remove Worker-side legacy path forwarding and update the Pages proxy plus both documentation languages
 - refactor: |Frontend| Consolidate the regular-user workspace into Inbox, Mail, Address Management, and Settings, removing the duplicate Bind Address menu; reduce administration primary navigation to four entries and add a complete API documentation page
 - fix: |Frontend| Complete six-language coverage for the React administration and shared UI, including tables, action menus, dialogs, database maintenance, cleanup, Telegram, dynamic setting labels, and pagination controls

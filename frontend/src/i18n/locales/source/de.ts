@@ -524,7 +524,6 @@ export const deMessages = {
   "views.admin.SendMail.tooLarge": "Datei zu groß; bitte eine Datei unter 1 MB hochladen.",
   "views.user.AddressManagement.transferAddress": "Adresse übertragen",
   "views.user.AddressManagement.transferAddressTip": "Wenn du diese Adresse an einen anderen Benutzer überträgst, wird sie aus deinem Konto entfernt und in dessen Konto verschoben. Möchtest du die Adresse wirklich übertragen?",
-  "views.common.Appearance.useSideMargin": "Seitliche Abstände links und rechts auf der Seite aktivieren",
   "views.admin.AiExtractSettings.manualInputPrompt": "Eingeben und mit Enter hinzufügen",
   "views.admin.UserOauth2Settings.manualInputPrompt": "Eingeben und mit Enter hinzufügen",
   "views.admin.Telegram.manualInputPrompt": "Eingeben und mit Enter hinzufügen",

@@ -1,6 +1,8 @@
 
 # 配置发送邮件
 
+部署后可在“后台管理 → 邮件 → 发信配置”查看 `SEND_MAIL`、Resend 和 SMTP 的启用状态、域名级配置及匹配顺序。API Key 和 SMTP 凭据属于 Worker Secret 或 Binding，仍需在 Cloudflare 控制台或 Wrangler 中配置；后台页面不会读取或保存密钥明文。
+
 ::: tip 推荐方案
 推荐使用 Cloudflare `send_email` binding 作为默认发信通道。绑定 `SEND_MAIL` 并完成 Email Routing onboarding 后，即可直接向任意外部地址发信。
 

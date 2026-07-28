@@ -14,6 +14,5 @@ export function AppearanceSettings({ showSimpleIndex = false }: { showSimpleInde
     <SettingRow label={t('preferShowTextMail')} control={<Switch checked={state.preferShowTextMail} onCheckedChange={(value) => appStore.setState({ preferShowTextMail: value })} />} />
     <SettingRow label={t('useIframeShowMail')} control={<Switch checked={state.useIframeShowMail} onCheckedChange={(value) => appStore.setState({ useIframeShowMail: value })} />} />
     <SettingRow label={t('useUTCDate')} control={<Switch checked={state.useUTCDate} onCheckedChange={(value) => appStore.setState({ useUTCDate: value })} />} />
-    <div className="hidden md:contents"><SettingRow label={t('useSideMargin')} control={<Switch checked={state.useSideMargin} onCheckedChange={(value) => appStore.setState({ useSideMargin: value })} />} /></div>
   </SettingsLayout>
 }

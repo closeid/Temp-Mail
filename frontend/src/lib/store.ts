@@ -80,7 +80,6 @@ export type AppState = {
   useIframeShowMail: boolean
   preferShowTextMail: boolean
   useSimpleIndex: boolean
-  useSideMargin: boolean
   useUTCDate: boolean
   autoRefresh: boolean
   configAutoRefreshInterval: number
@@ -143,7 +142,7 @@ const initialState: AppState = {
   mailListPreviewLineClamp: readNumber(local, 'mailListPreviewLineClamp', 1),
   useIframeShowMail: readBoolean(local, 'useIframeShowMail', false),
   preferShowTextMail: readBoolean(local, 'preferShowTextMail', false),
-  useSimpleIndex: readBoolean(local, 'useSimpleIndex', false), useSideMargin: readBoolean(local, 'useSideMargin', false),
+  useSimpleIndex: readBoolean(local, 'useSimpleIndex', false),
   useUTCDate: readBoolean(local, 'useUTCDate', false), autoRefresh: readBoolean(local, 'autoRefresh', false),
   configAutoRefreshInterval: readNumber(local, 'configAutoRefreshInterval', 60), announcement: readString(local, 'announcement'),
   showAddressCredential: false, showAdminAuth: false, showSiteAuth: false,
@@ -167,7 +166,7 @@ const persistence: Partial<Record<keyof AppState, [Storage | null, string, 'stri
   mailboxSplitSize: [local, 'mailboxSplitSize', 'string'], mailListView: [local, 'mailListView', 'string'],
   mailListPreviewLineClamp: [local, 'mailListPreviewLineClamp', 'string'], useIframeShowMail: [local, 'useIframeShowMail', 'string'],
   preferShowTextMail: [local, 'preferShowTextMail', 'string'], useSimpleIndex: [local, 'useSimpleIndex', 'string'],
-  useSideMargin: [local, 'useSideMargin', 'string'], useUTCDate: [local, 'useUTCDate', 'string'], autoRefresh: [local, 'autoRefresh', 'string'],
+  useUTCDate: [local, 'useUTCDate', 'string'], autoRefresh: [local, 'autoRefresh', 'string'],
   configAutoRefreshInterval: [local, 'configAutoRefreshInterval', 'string'], announcement: [local, 'announcement', 'string'],
   sendMailModel: [session, 'sendMailModel', 'json'], userOauth2SessionState: [session, 'userOauth2SessionState', 'string'],
   userOauth2SessionClientID: [session, 'userOauth2SessionClientID', 'string'],

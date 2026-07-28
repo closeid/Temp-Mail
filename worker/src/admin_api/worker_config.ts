@@ -6,6 +6,8 @@ import { isS3Enabled } from '../mails_api/s3_attachment';
 
 export default {
     getConfig: async (c: Context<HonoCustomType>) => {
+        const domains = utils.getDomains(c);
+        const smtpConfig = utils.getJsonObjectValue<Record<string, unknown>>(c.env.SMTP_CONFIG) || {};
         return c.json({
             "DEFAULT_LANG": c.env.DEFAULT_LANG,
             "TITLE": c.env.TITLE,
@@ -43,6 +45,15 @@ export default {
             "ENABLE_AUTO_REPLY": utils.getBooleanValue(c.env.ENABLE_AUTO_REPLY),
             "COPYRIGHT": c.env.COPYRIGHT,
             "ENABLE_WEBHOOK": utils.getBooleanValue(c.env.ENABLE_WEBHOOK),
+            "SEND_MAIL_CONFIG": {
+                cloudflareBinding: Boolean(c.env.SEND_MAIL),
+                resendGlobal: Boolean(c.env.RESEND_TOKEN),
+                resendDomains: domains.filter(domain => Boolean(c.env[
+                    `RESEND_TOKEN_${domain.replace(/\./g, "_").toUpperCase()}`
+                ])),
+                smtpDomains: Object.keys(smtpConfig),
+                defaultSendBalance: utils.getIntValue(c.env.DEFAULT_SEND_BALANCE, 0),
+            },
             "S3_ENABLED": isS3Enabled(c),
             "VERSION": CONSTANTS.VERSION,
             "DISABLE_SHOW_GITHUB": utils.getBooleanValue(c.env.DISABLE_SHOW_GITHUB),

@@ -5,6 +5,8 @@
 >
 > If you want webhook to have stronger email parsing capabilities, refer to [Configure worker to use wasm for email parsing](/en/guide/feature/mail_parser_wasm_worker)
 
+When `KV` is bound, an administrator can review and save the global webhook and mailbox-access settings before delivery is enabled. With `ENABLE_WEBHOOK = false`, the administration page displays a notice and no webhook is delivered. Mailbox-level configuration and every actual delivery still require `ENABLE_WEBHOOK = true`.
+
 ## Prerequisites
 
 You need to set up your own `webhook service` or use a `third-party platform`. This service needs to be able to receive `POST` requests and parse `json` data.

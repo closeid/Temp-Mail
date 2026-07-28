@@ -5,6 +5,8 @@
 >
 > This account is the same as a registered account and can also set a password through the forgot password feature
 
+OAuth2 is a federated sign-in option and can provide a common identity entry point, but it is not currently an OAuth-only account mode. The same email maps to the same local user. Existing passwords continue to work, and a user first created through OAuth2 can set a password through password recovery. The current release has no per-user or site-wide policy that disables password sign-in after OAuth2 is configured; clearing a password field is not a safe substitute for such a policy.
+
 ## Register OAuth2 on Third-Party Platforms
 
 ### GitHub

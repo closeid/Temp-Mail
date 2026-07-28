@@ -48,7 +48,7 @@ export function WorkspaceShell({ items, mobileItems, active, onSelect, topbar, s
           {state.openSettings.statusUrl && <><DropdownMenuSeparator /><DropdownMenuItem asChild><a href={state.openSettings.statusUrl} target="_blank" rel="noreferrer">{t('status')}</a></DropdownMenuItem></>}
         </DropdownMenuContent></DropdownMenu></div>
       </aside>
-      <main className={cn('min-w-0 flex-1 overflow-hidden pb-[calc(58px+env(safe-area-inset-bottom))] md:pb-0', state.useSideMargin && 'md:p-3')}>{children}</main>
+      <main className="min-w-0 flex-1 overflow-hidden pb-[calc(58px+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
     </div>
     <nav className="fixed inset-x-0 bottom-0 z-30 flex h-[calc(58px+env(safe-area-inset-bottom))] items-start border-t border-border bg-background px-1 pb-[env(safe-area-inset-bottom)] md:hidden" aria-label={t('menu')}>
       {mobileVisible.map((item) => <Tooltip key={item.key}><TooltipTrigger asChild><button type="button" aria-current={active === item.key ? 'page' : undefined} onClick={() => onSelect(item.key)} className="flex h-[57px] min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] font-medium text-muted-foreground"><item.icon className="size-[18px] shrink-0 stroke-[1.75]" /><span className="max-w-full truncate">{item.label}</span></button></TooltipTrigger><TooltipContent side="top">{item.label}</TooltipContent></Tooltip>)}

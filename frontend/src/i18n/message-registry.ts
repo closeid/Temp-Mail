@@ -564,11 +564,11 @@ export const MESSAGE_REGISTRY = {
   "views.Admin": {
     "accessHeader": {
       "en": "Admin Password",
-      "zh": "Admin 密码"
+      "zh": "管理员密码"
     },
     "accessTip": {
       "en": "Please enter the admin password",
-      "zh": "请输入 Admin 密码"
+      "zh": "请输入管理员密码"
     },
     "account": {
       "en": "Account",
@@ -616,7 +616,7 @@ export const MESSAGE_REGISTRY = {
     },
     "loginViaPassword": {
       "en": "Admin Password Login",
-      "zh": "Admin 密码登录"
+      "zh": "管理员密码登录"
     },
     "loginViaUserAdmin": {
       "en": "User Admin Permission",
@@ -2107,10 +2107,6 @@ export const MESSAGE_REGISTRY = {
     "useIframeShowMail": {
       "en": "Use iframe Show HTML Mail",
       "zh": "使用iframe显示HTML邮件"
-    },
-    "useSideMargin": {
-      "en": "Turn on the side margins on the left and right sides of the page",
-      "zh": "开启页面左右两侧侧边距"
     },
     "useSimpleIndex": {
       "en": "Use Simple Index",

@@ -524,7 +524,6 @@ export const esMessages = {
   "views.admin.SendMail.tooLarge": "Archivo demasiado grande; sube uno de menos de 1 MB.",
   "views.user.AddressManagement.transferAddress": "Transferir dirección",
   "views.user.AddressManagement.transferAddressTip": "Transferir esta dirección a otro usuario la quitará de tu cuenta y la moverá a la suya. ¿Seguro que quieres transferirla?",
-  "views.common.Appearance.useSideMargin": "Activar márgenes laterales a la izquierda y a la derecha de la página",
   "views.admin.AiExtractSettings.manualInputPrompt": "Escribe y pulsa Enter para añadir",
   "views.admin.UserOauth2Settings.manualInputPrompt": "Escribe y pulsa Enter para añadir",
   "views.admin.Telegram.manualInputPrompt": "Escribe y pulsa Enter para añadir",

@@ -92,7 +92,7 @@ app.use('/*', async (c, next) => {
 		if (!c.env.KV) {
 			return c.text(msgs.KVNotAvailableMsg, 400);
 		}
-		if (!getBooleanValue(c.env.ENABLE_WEBHOOK)) {
+		if (c.req.path.startsWith("/api/webhook") && !getBooleanValue(c.env.ENABLE_WEBHOOK)) {
 			return c.text(msgs.WebhookNotEnabledMsg, 403);
 		}
 	}

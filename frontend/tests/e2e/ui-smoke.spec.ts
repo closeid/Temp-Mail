@@ -99,3 +99,32 @@ test('dashboard uses two-level workspace navigation', async ({ page }, testInfo)
   await expect(page.getByRole('alertdialog')).toContainText('Delete Account')
   await page.getByRole('button', { name: 'Cancel' }).click()
 })
+
+test('dashboard administration settings stay available and aligned', async ({ page }, testInfo) => {
+  await mockCommon(page, { disableAdminPasswordCheck: true, enableWebhook: false })
+  await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
+  await page.route('**/api/admin/user_oauth2_settings', (route) => route.fulfill({ json: [] }))
+  await page.route('**/api/admin/worker/configs', (route) => route.fulfill({ json: { SEND_MAIL_CONFIG: { cloudflareBinding: true, resendGlobal: false, resendDomains: ['getanemail.net'], smtpDomains: [], defaultSendBalance: 5 } } }))
+  await page.route('**/api/admin/mail_webhook/settings', (route) => route.fulfill({ json: { enabled: false, url: '', method: 'POST', headers: '{}', body: '{}' } }))
+  await page.goto('/en/dashboard')
+
+  await page.getByRole('button', { name: 'User', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Create user' })).toBeVisible()
+  const controls = [page.getByPlaceholder('Query all addresses'), page.getByRole('button', { name: 'Query', exact: true }), page.getByRole('button', { name: 'Create user' })]
+  const heights = await Promise.all(controls.map(async (control) => (await control.boundingBox())?.height))
+  expect(heights).toEqual([40, 40, 40])
+
+  await page.getByRole('button', { name: 'Oauth2 Settings' }).click()
+  await expect(page.getByRole('heading', { name: 'OAuth2 sign-in configuration' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Emails', exact: true }).click()
+  await page.getByRole('button', { name: 'Sending configuration' }).click()
+  await expect(page.getByText('RESEND_TOKEN / RESEND_TOKEN_<DOMAIN>')).toBeVisible()
+  await expect(page.getByText('getanemail.net')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Mail Webhook' }).click()
+  await expect(page.getByText(/ENABLE_WEBHOOK is disabled/)).toBeVisible()
+  await expect(page.getByText(/contact.*administrator/i)).toHaveCount(0)
+  await expectNoHorizontalOverflow(page)
+  await page.screenshot({ path: `test-results/dashboard-settings-${testInfo.project.name}.png`, fullPage: true })
+})

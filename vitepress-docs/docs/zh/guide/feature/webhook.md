@@ -5,6 +5,8 @@
 >
 > 如果你想 webhook 的解析邮件能力更强，参考 [配置 worker 使用 wasm 解析邮件](/zh/guide/feature/mail_parser_wasm_worker)
 
+管理员在已绑定 `KV` 的情况下可以先查看和保存全局 Webhook 及地址授权配置；`ENABLE_WEBHOOK = false` 时后台会显示提示，但不会执行实际投递。普通邮箱的 Webhook 配置入口和所有实际投递仍要求启用 `ENABLE_WEBHOOK`。
+
 ## 前提条件
 
 你需要自建一个 `webhook 服务` 或者 使用 `第三方平台`，这个服务需要能够接收 `POST` 请求，并且能够解析 `json` 数据。

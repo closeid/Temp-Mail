@@ -524,7 +524,6 @@ export const jaMessages = {
   "views.admin.SendMail.tooLarge": "ファイルが大きすぎます。1MB 未満のファイルをアップロードしてください。",
   "views.user.AddressManagement.transferAddress": "アドレスを移行",
   "views.user.AddressManagement.transferAddressTip": "別のユーザーへアドレスを移行すると、そのアドレスはあなたのアカウントから削除され、相手のアカウントへ移されます。本当に移行しますか？",
-  "views.common.Appearance.useSideMargin": "ページ左右の余白を有効にする",
   "views.admin.AiExtractSettings.manualInputPrompt": "入力して Enter で追加",
   "views.admin.UserOauth2Settings.manualInputPrompt": "入力して Enter で追加",
   "views.admin.Telegram.manualInputPrompt": "入力して Enter で追加",
