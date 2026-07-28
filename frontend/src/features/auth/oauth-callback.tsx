@@ -22,7 +22,7 @@ export function OauthCallback() {
         const code = params.get('code')
         if (!code) throw new Error(t('codeNotFound'))
         const result = await api.fetch<{ jwt: string }>('/api/user/oauth2/callback', { method: 'POST', body: { code, clientID: appStore.getState().userOauth2SessionClientID } })
-        appStore.setState({ userJwt: result.jwt, workspaceSection: 'user' })
+        await api.activateUserSession(result.jwt)
         navigate(getPathWithLocale('/', locale), { replace: true })
       } catch (reason) { const message = stringifyError(reason); setError(message); toast.error(message) }
       finally { appStore.setState({ userOauth2SessionState: '', userOauth2SessionClientID: '' }) }

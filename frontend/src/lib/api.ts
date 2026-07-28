@@ -13,6 +13,7 @@ export type ApiOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
   userJwt?: string
+  addressJwt?: string
   signal?: AbortSignal
   headers?: Record<string, string>
 }
@@ -31,7 +32,7 @@ export async function apiFetch<T = any>(path: string, options: ApiOptions = {}):
     const userAccess = safeHeaderValue(state.userSettings.access_token)
     const customAuth = safeHeaderValue(state.auth)
     const adminAuth = safeHeaderValue(state.adminAuth)
-    const authorization = safeBearerHeader(state.jwt)
+    const authorization = safeBearerHeader(options.addressJwt ?? state.jwt)
     if (userToken) headers['x-user-token'] = userToken
     if (userAccess) headers['x-user-access-token'] = userAccess
     if (customAuth) headers['x-custom-auth'] = customAuth
@@ -101,6 +102,42 @@ export async function fetchAddressSettings() {
   }
 }
 
+export async function activateUserSession(userJwt: string) {
+  let effectiveUserJwt = userJwt
+  let userResult = await apiFetch<Record<string, any>>('/api/user/settings', { userJwt: effectiveUserJwt })
+  if (userResult.new_user_token) {
+    effectiveUserJwt = userResult.new_user_token
+    userResult = await apiFetch<Record<string, any>>('/api/user/settings', { userJwt: effectiveUserJwt })
+  }
+  const userSettings = { ...appStore.getState().userSettings, ...userResult, fetched: true }
+  const boundAddresses = await apiFetch<{ results?: Array<{ id: number | string }> }>('/api/user/bind_address', { userJwt: effectiveUserJwt })
+  const firstAddress = boundAddresses.results?.[0]
+  if (firstAddress?.id == null) {
+    appStore.setState({
+      userJwt: effectiveUserJwt,
+      userSettings,
+      jwt: '',
+      settings: { fetched: true, address: '', auto_reply: {}, send_balance: 0 },
+      workspaceSection: 'mail',
+      indexTab: 'addresses',
+    })
+    return false
+  }
+
+  const mailbox = await apiFetch<{ jwt: string }>(`/api/user/bind_address_jwt/${encodeURIComponent(firstAddress.id)}`, { userJwt: effectiveUserJwt })
+  if (!mailbox.jwt) throw new Error('Mailbox token not found')
+  const addressResult = await apiFetch<Record<string, any>>('/api/settings', { userJwt: effectiveUserJwt, addressJwt: mailbox.jwt })
+  appStore.setState({
+    userJwt: effectiveUserJwt,
+    userSettings,
+    jwt: mailbox.jwt,
+    settings: { fetched: true, address: addressResult.address || '', auto_reply: addressResult.auto_reply || {}, send_balance: addressResult.send_balance || 0 },
+    workspaceSection: 'mail',
+    indexTab: 'mailbox',
+  })
+  return true
+}
+
 export async function fetchUserOpenSettings() {
   try {
     const result = await apiFetch<Record<string, any>>('/api/user/open_settings')
@@ -140,6 +177,7 @@ export const api = {
   getSettings: fetchAddressSettings,
   getUserOpenSettings: fetchUserOpenSettings,
   getUserSettings: fetchUserSettings,
+  activateUserSession,
   bindUserAddress: () => apiFetch('/api/user/bind_address', { method: 'POST' }),
   adminShowAddressCredential: async (id: number | string) => (await apiFetch<{ jwt: string }>(`/api/admin/show_password/${id}`)).jwt,
   adminDeleteAddress: (id: number | string) => apiFetch(`/api/admin/delete_address/${id}`, { method: 'DELETE' }),

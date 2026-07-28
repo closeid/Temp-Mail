@@ -27,6 +27,7 @@
 
 ### Improvements
 
+- fix: |Frontend| After password, passkey, or OAuth2 user sign-in, automatically select the first bound address and open its inbox; users without a bound address still fall back to Address Management
 - fix: |Frontend| Keep Switch, Transfer, and Unbind address actions on one row on desktop and mobile, using the table's horizontal overflow on narrow screens; rebuild fullscreen mail as a fixed subject/sender/recipient header with an independently scrolling body, fixing the full-height dialog that pushed content into the lower half of the viewport
 - docs: |README| Rewrite the Chinese and English READMEs for the current React + Cloudflare Workers architecture, with executable D1/KV, Email Routing, same-origin Worker, separate Pages, Service Binding, local development, Secret, OAuth2, passkey, webhook, three-provider outbound mail, upgrade, and troubleshooting instructions
 - refactor: |Administration| Reorganize the four primary menus as Addresses, User, Emails, and Configuration, grouping address rules, registration/roles/OAuth2, sending/AI/webhooks/Telegram, and Worker/security/database/maintenance settings by ownership; clarify the User Settings switch as “Allow new user registration” and remove legacy-path wording from API documentation

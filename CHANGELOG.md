@@ -27,6 +27,7 @@
 
 ### Improvements
 
+- fix: |前端| 用户通过密码、Passkey 或 OAuth2 登录后，自动选择绑定地址列表中的第一个邮箱并直接进入收件箱；未绑定邮箱时仍回退到地址管理页面
 - fix: |前端| 地址管理的切换、转移和解绑操作在桌面与移动端保持同一行，窄屏通过表格横向滚动承载；重构邮件全屏视图为固定主题/收发件人信息头与独立滚动正文，修复全高弹窗把正文推至页面下半部的问题
 - docs: |README| 按当前 React + Cloudflare Workers 架构重写中英文 README，补充 D1/KV、Email Routing、同源 Worker、独立 Pages、Service Binding、本地开发、Secret、OAuth2、Passkey、Webhook、三种发信通道、升级和排错的可执行说明
 - refactor: |后台管理| 将四个主菜单重组为地址、用户、邮件和配置，并按资源归属重新编排地址规则、用户注册/角色/OAuth2、发信/AI/Webhook/Telegram、Worker/安全/数据库/维护等二级入口；将用户设置“启用”明确为“开启新用户注册”，并移除 API 文档中的旧路径说明

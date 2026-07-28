@@ -62,6 +62,33 @@ test('dark theme preserves form contrast', async ({ page }, testInfo) => {
   await page.screenshot({ path: `test-results/auth-dark-${testInfo.project.name}.png`, fullPage: true })
 })
 
+test('user login opens the first bound mailbox', async ({ page }) => {
+  await mockCommon(page)
+  let selectedAddressId = ''
+  await page.route('**/api/user/login', (route) => route.fulfill({ json: { jwt: 'user.session.jwt' } }))
+  await page.route('**/api/user/settings', (route) => route.fulfill({ json: { user_email: 'owner@example.com', user_id: 8, user_role: 'member', is_admin: false, new_user_token: null } }))
+  await page.route('**/api/user/bind_address', (route) => route.fulfill({ json: { results: [
+    { id: 11, name: 'first@getanemail.net' },
+    { id: 12, name: 'second@getanemail.net' },
+  ] } }))
+  await page.route('**/api/user/bind_address_jwt/*', (route) => {
+    selectedAddressId = route.request().url().split('/').pop() || ''
+    return route.fulfill({ json: { jwt: 'first.mailbox.jwt' } })
+  })
+  await page.route('**/api/settings', (route) => route.fulfill({ json: { address: 'first@getanemail.net', send_balance: 0, auto_reply: {} } }))
+  await page.route('**/api/mails?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
+
+  await page.goto('/en')
+  await page.locator('input').nth(0).fill('owner@example.com')
+  await page.locator('input').nth(1).fill('password')
+  await page.getByRole('button', { name: 'Login', exact: true }).click()
+
+  await expect(page.getByText('first@getanemail.net').first()).toBeVisible()
+  await expect(page.getByRole('button', { name: /Mail Box|Inbox/i })).toHaveAttribute('aria-current', 'page')
+  expect(selectedAddressId).toBe('11')
+  await expectNoHorizontalOverflow(page)
+})
+
 test('mail workspace remains dense and responsive', async ({ page }, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('jwt', 'test.jwt.credential'))
   await mockCommon(page)

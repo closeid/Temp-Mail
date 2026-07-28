@@ -47,8 +47,7 @@ export function AuthPage() {
     if (!email || !password) return toast.error(t('pleaseInput'))
     try {
       const result = await api.fetch<{ jwt: string }>('/api/user/login', { method: 'POST', body: { email, password: await hashPassword(password), cf_token: loginToken } })
-      appStore.setState({ userJwt: result.jwt, workspaceSection: 'user' })
-      await api.getUserSettings()
+      await api.activateUserSession(result.jwt)
       navigate(getPathWithLocale('/', locale))
     } catch (error) { toast.error(stringifyError(error)); loginTurnstile.current?.refresh() }
   }
@@ -79,8 +78,7 @@ export function AuthPage() {
       const options = await api.fetch<any>('/api/user/passkey/authenticate_request', { method: 'POST', body: { domain: location.hostname } })
       const credential = await startAuthentication({ optionsJSON: options })
       const result = await api.fetch<{ jwt: string }>('/api/user/passkey/authenticate_response', { method: 'POST', body: { origin: location.origin, domain: location.hostname, credential } })
-      appStore.setState({ userJwt: result.jwt, workspaceSection: 'user' })
-      await api.getUserSettings()
+      await api.activateUserSession(result.jwt)
       navigate(getPathWithLocale('/', locale))
     } catch (error) { toast.error(stringifyError(error)) }
   }
