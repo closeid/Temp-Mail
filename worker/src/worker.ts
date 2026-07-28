@@ -17,44 +17,18 @@ import { scheduled } from './scheduled';
 import { getPasswords, getBooleanValue, getDomains, checkIsAdmin } from './utils';
 import { checkAccessControl } from './ip_blacklist';
 
-const API_PATHS = [
-	"/api/",
-	"/open_api/",
-	"/user_api/",
-	"/admin/",
-	"/telegram/",
-	"/external/",
+const API_PATHS = ["/api/"];
+const SPECIALIZED_API_PATHS = [
+	"/api/open/",
+	"/api/user/",
+	"/api/admin/",
+	"/api/telegram/",
+	"/api/external/",
 ];
-
-const API_NAMESPACE_ALIASES = [
-	["/api/open", "/open_api"],
-	["/api/user", "/user_api"],
-	["/api/admin", "/admin"],
-	["/api/telegram", "/telegram"],
-	["/api/external", "/external/api"],
-] as const;
-
-export const getLegacyApiPath = (path: string): string | null => {
-	if (path === "/api/health") return "/health_check";
-	for (const [canonicalPrefix, legacyPrefix] of API_NAMESPACE_ALIASES) {
-		if (path === canonicalPrefix || path.startsWith(`${canonicalPrefix}/`)) {
-			return `${legacyPrefix}${path.slice(canonicalPrefix.length)}`;
-		}
-	}
-	return null;
-};
 
 const app = new Hono<HonoCustomType>()
 //cors
 app.use('/*', cors());
-// Keep all new API entry points under /api while preserving legacy routes.
-app.use('/api/*', async (c, next) => {
-	const legacyPath = getLegacyApiPath(c.req.path);
-	if (!legacyPath) return next();
-	const url = new URL(c.req.url);
-	url.pathname = legacyPath;
-	return app.fetch(new Request(url, c.req.raw), c.env, c.executionCtx);
-});
 // error handler
 app.onError((err, c) => {
 	console.error(err)
@@ -79,7 +53,7 @@ app.use('/*', async (c, next) => {
 
 	// check header x-custom-auth
 	const passwords = getPasswords(c);
-	if (!c.req.path.startsWith("/open_api") && !c.req.path.startsWith("/telegram/") && passwords && passwords.length > 0) {
+	if (!c.req.path.startsWith("/api/open/") && !c.req.path.startsWith("/api/telegram/") && passwords && passwords.length > 0) {
 		const auth = c.req.raw.headers.get("x-custom-auth");
 		if (!auth || !passwords.includes(auth)) {
 			return c.text(msgs.CustomAuthPasswordMsg, 401)
@@ -90,9 +64,9 @@ app.use('/*', async (c, next) => {
 	if (
 		c.req.path.startsWith("/api/new_address")
 		|| c.req.path.startsWith("/api/send_mail")
-		|| c.req.path.startsWith("/external/api/send_mail")
-		|| c.req.path.startsWith("/user_api/register")
-		|| c.req.path.startsWith("/user_api/verify_code")
+		|| c.req.path.startsWith("/api/external/send_mail")
+		|| c.req.path.startsWith("/api/user/register")
+		|| c.req.path.startsWith("/api/user/verify_code")
 	) {
 		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
 		if (reqIp && c.env.RATE_LIMITER) {
@@ -112,8 +86,8 @@ app.use('/*', async (c, next) => {
 	// webhook check
 	if (
 		c.req.path.startsWith("/api/webhook")
-		|| c.req.path.startsWith("/admin/webhook")
-		|| c.req.path.startsWith("/admin/mail_webhook")
+		|| c.req.path.startsWith("/api/admin/webhook")
+		|| c.req.path.startsWith("/api/admin/mail_webhook")
 	) {
 		if (!c.env.KV) {
 			return c.text(msgs.KVNotAvailableMsg, 400);
@@ -172,6 +146,10 @@ const checkoutUserRolePayload = async (
 
 // api auth
 app.use('/api/*', async (c, next) => {
+	if (c.req.path === "/api/health" || SPECIALIZED_API_PATHS.some((path) => c.req.path.startsWith(path))) {
+		await next();
+		return;
+	}
 	if (c.req.path.startsWith("/api/new_address")) {
 		await checkUserPayload(c);
 		await next();
@@ -196,15 +174,15 @@ app.use('/api/*', async (c, next) => {
 		return c.text(msgs.InvalidAddressCredentialMsg, 401)
 	}
 });
-// user_api auth
-app.use('/user_api/*', async (c, next) => {
+// user API auth
+app.use('/api/user/*', async (c, next) => {
 	if (
-		c.req.path.startsWith("/user_api/open_settings")
-		|| c.req.path.startsWith("/user_api/register")
-		|| c.req.path.startsWith("/user_api/login")
-		|| c.req.path.startsWith("/user_api/verify_code")
-		|| c.req.path.startsWith("/user_api/passkey/authenticate_")
-		|| c.req.path.startsWith("/user_api/oauth2")
+		c.req.path.startsWith("/api/user/open_settings")
+		|| c.req.path.startsWith("/api/user/register")
+		|| c.req.path.startsWith("/api/user/login")
+		|| c.req.path.startsWith("/api/user/verify_code")
+		|| c.req.path.startsWith("/api/user/passkey/authenticate_")
+		|| c.req.path.startsWith("/api/user/oauth2")
 	) {
 		await next();
 		return;
@@ -228,10 +206,10 @@ app.use('/user_api/*', async (c, next) => {
 		console.error(e);
 		return c.text(msgs.UserTokenExpiredMsg, 401)
 	}
-	if (c.req.path.startsWith("/user_api/bind_address")) {
+	if (c.req.path.startsWith("/api/user/bind_address")) {
 		await checkoutUserRolePayload(c);
 	}
-	if (c.req.path.startsWith('/user_api/bind_address')
+	if (c.req.path.startsWith('/api/user/bind_address')
 		&& c.req.method === 'POST'
 	) {
 		return jwt({ secret: c.env.JWT_SECRET, alg: "HS256" })(c, next);
@@ -239,7 +217,7 @@ app.use('/user_api/*', async (c, next) => {
 	await next();
 });
 // admin auth
-app.use('/admin/*', async (c, next) => {
+app.use('/api/admin/*', async (c, next) => {
 
 	// check header x-admin-auth
 	if (checkIsAdmin(c)) {
@@ -303,7 +281,7 @@ const health_check = async (c: Context<HonoCustomType>) => {
 }
 
 app.get('/', health_check)
-app.get('/health_check', health_check)
+app.get('/api/health', health_check)
 app.all('/*', async c => c.text("Not Found", 404))
 
 

@@ -147,4 +147,4 @@ After successful deployment, you can see the `worker` `url` in the routes, and t
 > [!NOTE]
 > Open the `worker` `url`, if it displays `OK`, the deployment is successful.
 >
-> Open `/health_check`, if it displays `OK`, the deployment is successful.
+> Open `/api/health`, if it displays `OK`, the deployment is successful.

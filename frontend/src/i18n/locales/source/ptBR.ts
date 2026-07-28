@@ -338,7 +338,7 @@ export const ptBRMessages = {
   "views.index.AddressBar.ok": "OK",
   "views.admin.SenderAccess.ok": "OK",
   "views.common.Login.ok": "OK",
-  "views.admin.AccountSettings.create_address_subdomain_match_tip": "Afeta apenas a validação de domínio em /api/new_address e /admin/new_address. Exemplo: com isso ativado, foo.example.com pode corresponder a example.com.",
+  "views.admin.AccountSettings.create_address_subdomain_match_tip": "Afeta apenas a validação de domínio em /api/new_address e /api/admin/new_address. Exemplo: com isso ativado, foo.example.com pode corresponder a example.com.",
   "components.AiExtractInfo.open": "Abrir",
   "views.index.AddressBar.linkWithAddressCredential": "Abrir link de login automático por e-mail",
   "views.admin.CreateAccount.linkWithAddressCredential": "Abrir link de login automático por e-mail",

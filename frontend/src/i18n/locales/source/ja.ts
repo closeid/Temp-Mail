@@ -338,7 +338,7 @@ export const jaMessages = {
   "views.index.AddressBar.ok": "OK",
   "views.admin.SenderAccess.ok": "OK",
   "views.common.Login.ok": "OK",
-  "views.admin.AccountSettings.create_address_subdomain_match_tip": "/api/new_address と /admin/new_address のドメイン検証にのみ影響します。例: 有効時は foo.example.com が example.com に一致できます。",
+  "views.admin.AccountSettings.create_address_subdomain_match_tip": "/api/new_address と /api/admin/new_address のドメイン検証にのみ影響します。例: 有効時は foo.example.com が example.com に一致できます。",
   "components.AiExtractInfo.open": "開く",
   "views.index.AddressBar.linkWithAddressCredential": "メールの自動ログインリンクを開く",
   "views.admin.CreateAccount.linkWithAddressCredential": "メールの自動ログインリンクを開く",

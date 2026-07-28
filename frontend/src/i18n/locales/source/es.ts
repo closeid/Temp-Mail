@@ -338,7 +338,7 @@ export const esMessages = {
   "views.index.AddressBar.ok": "Aceptar",
   "views.admin.SenderAccess.ok": "Aceptar",
   "views.common.Login.ok": "Aceptar",
-  "views.admin.AccountSettings.create_address_subdomain_match_tip": "Solo afecta la validación de dominio en /api/new_address y /admin/new_address. Ejemplo: activado, foo.example.com puede coincidir con example.com.",
+  "views.admin.AccountSettings.create_address_subdomain_match_tip": "Solo afecta la validación de dominio en /api/new_address y /api/admin/new_address. Ejemplo: activado, foo.example.com puede coincidir con example.com.",
   "components.AiExtractInfo.open": "Abrir",
   "views.index.AddressBar.linkWithAddressCredential": "Abrir enlace de inicio de sesión automático por correo",
   "views.admin.CreateAccount.linkWithAddressCredential": "Abrir enlace de inicio de sesión automático por correo",

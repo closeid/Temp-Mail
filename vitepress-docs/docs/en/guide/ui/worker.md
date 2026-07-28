@@ -59,7 +59,7 @@
 7. Click `Settings` -> `Bindings`, click `Add Binding`, enter the name as shown, select the D1 database you just created, and click `Add Binding`
 
     > [!NOTE] Important
-    > Note that the binding name for `D1 Database` here must be `DB` in uppercase. If the binding is named `db`, `DATABASE`, or anything else, `/open_api/settings` and `/admin/*` will fail; common frontend symptoms are the `map` initialization error or `Network Error`.
+    > Note that the binding name for `D1 Database` here must be `DB` in uppercase. If the binding is named `db`, `DATABASE`, or anything else, `/api/open/settings` and `/api/admin/*` will fail; common frontend symptoms are the `map` initialization error or `Network Error`.
 
     ![worker-bindings](/ui_install/worker-bindings.png)
 
@@ -72,9 +72,9 @@
     > [!NOTE]
     > Open the `worker` `url`, if it displays `OK`, the deployment is successful
     >
-    > Open `/health_check`, if it displays `OK`, the deployment is successful
+    > Open `/api/health`, if it displays `OK`, the deployment is successful
     >
-    > Open `/open_api/settings`; if it returns JSON, the public settings endpoint required by the frontend is working. Check this before deploying Pages.
+    > Open `/api/open/settings`; if it returns JSON, the public settings endpoint required by the frontend is working. Check this before deploying Pages.
 
     ![worker3](/ui_install/worker-3.png)
 

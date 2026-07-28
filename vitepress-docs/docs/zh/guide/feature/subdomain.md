@@ -29,7 +29,7 @@ RANDOM_SUBDOMAIN_LENGTH = 8
 - `RANDOM_SUBDOMAIN_DOMAINS`：允许启用随机二级域名的基础域名列表
 - `RANDOM_SUBDOMAIN_LENGTH`：随机串长度，范围 `1-63`，默认 `8`
 
-创建地址 API 需要显式传入 `enableRandomSubdomain: true` 才会生成随机二级域名。前端勾选“启用随机二级域名”时会自动传这个字段；如果你自己调用 `/api/new_address` 或 `/admin/new_address`，也需要在请求体中传入：
+创建地址 API 需要显式传入 `enableRandomSubdomain: true` 才会生成随机二级域名。前端勾选“启用随机二级域名”时会自动传这个字段；如果你自己调用 `/api/new_address` 或 `/api/admin/new_address`，也需要在请求体中传入：
 
 ```json
 {
@@ -72,7 +72,7 @@ ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
 - `name@team.abc.com`
 - `name@dev.team.abc.com`
 
-都可以通过 `/api/new_address` 或 `/admin/new_address` 创建。
+都可以通过 `/api/new_address` 或 `/api/admin/new_address` 创建。
 
 > [!NOTE]
 > 这个能力只放宽“创建地址 API 的域名校验”，不会改动默认域名下拉，也不会自动创建 Cloudflare 侧的

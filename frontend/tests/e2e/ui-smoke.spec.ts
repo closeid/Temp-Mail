@@ -28,8 +28,8 @@ const openSettings = {
 }
 
 async function mockCommon(page: Page, overrides: Record<string, unknown> = {}) {
-  await page.route('**/open_api/settings', (route) => route.fulfill({ json: { ...openSettings, ...overrides } }))
-  await page.route('**/user_api/open_settings', (route) => route.fulfill({ json: { enable: true, enableMailVerify: true, oauth2ClientIDs: [] } }))
+  await page.route('**/api/open/settings', (route) => route.fulfill({ json: { ...openSettings, ...overrides } }))
+  await page.route('**/api/user/open_settings', (route) => route.fulfill({ json: { enable: true, enableMailVerify: true, oauth2ClientIDs: [] } }))
 }
 
 async function expectNoHorizontalOverflow(page: Page) {
@@ -70,8 +70,9 @@ test('mail workspace remains dense and responsive', async ({ page }, testInfo) =
   await expect(page.getByText('Layout verification').filter({ visible: true })).toBeVisible()
   await expectNoHorizontalOverflow(page)
   if (testInfo.project.name === 'mobile') {
-    const bottomNav = page.locator('nav[aria-label="Workspace"]').last()
+    const bottomNav = page.locator('nav.fixed.inset-x-0.bottom-0')
     await expect(bottomNav).toBeVisible()
+    await expect(bottomNav.locator('button')).toHaveCount(4)
     const box = await bottomNav.boundingBox()
     expect(box?.y).toBeGreaterThan(700)
   }
@@ -80,15 +81,21 @@ test('mail workspace remains dense and responsive', async ({ page }, testInfo) =
 
 test('dashboard uses two-level workspace navigation', async ({ page }, testInfo) => {
   await mockCommon(page, { disableAdminPasswordCheck: true })
-  await page.route('**/admin/address?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 1, name: 'admin@getanemail.net', created_at: '2026-07-27', updated_at: '2026-07-27', source_meta: '127.0.0.1', mail_count: 2, send_count: 1 }] } }))
-  await page.goto('/dashboard')
+  await page.route('**/api/admin/address?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 1, name: 'admin@getanemail.net', created_at: '2026-07-27', updated_at: '2026-07-27', source_meta: '127.0.0.1', mail_count: 2, send_count: 1 }] } }))
+  await page.goto('/en/dashboard')
   await expect(page.getByText('admin@getanemail.net')).toBeVisible()
-  await expect(page.locator('nav[aria-label="Workspace"]:visible')).toBeVisible()
-  await expect(page.locator('nav[aria-label="Section navigation"]')).toBeVisible()
+  if (testInfo.project.name === 'mobile') {
+    const bottomNav = page.locator('nav.fixed.inset-x-0.bottom-0')
+    await expect(bottomNav).toBeVisible()
+    await expect(bottomNav.locator('button')).toHaveCount(4)
+  } else {
+    await expect(page.locator('aside nav')).toBeVisible()
+  }
+  await expect(page.locator('main nav')).toBeVisible()
   await expectNoHorizontalOverflow(page)
   await page.screenshot({ path: `test-results/dashboard-${testInfo.project.name}.png`, fullPage: true })
   await page.getByTitle('Actions').click()
   await page.getByRole('menuitem', { name: 'Delete' }).click()
-  await expect(page.getByRole('alertdialog')).toContainText('Delete address')
+  await expect(page.getByRole('alertdialog')).toContainText('Delete Account')
   await page.getByRole('button', { name: 'Cancel' }).click()
 })

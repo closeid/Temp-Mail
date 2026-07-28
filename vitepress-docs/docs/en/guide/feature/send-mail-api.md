@@ -7,10 +7,10 @@ There are two HTTP API endpoints for sending emails:
 | Endpoint | Authentication | Use Case |
 |----------|---------------|----------|
 | `/api/send_mail` | `Authorization: Bearer <address_JWT>` header | Internal calls, requires cookie / header auth |
-| `/external/api/send_mail` | `token` field in request body | External system integration, no header auth needed |
+| `/api/external/send_mail` | `token` field in request body | External system integration, no header auth needed |
 
 ::: tip What is "Address JWT"?
-The Address JWT is the `jwt` field returned when creating an email address via `/api/new_address` or `/admin/new_address`.
+The Address JWT is the `jwt` field returned when creating an email address via `/api/new_address` or `/api/admin/new_address`.
 You can view it in the "Password" menu in the frontend UI. It is **NOT** the `JWT_SECRET` environment variable, nor the admin password.
 :::
 
@@ -36,7 +36,7 @@ res = requests.post(
 )
 ```
 
-### Method 2: Body Token Authentication (`/external/api/send_mail`)
+### Method 2: Body Token Authentication (`/api/external/send_mail`)
 
 Suitable for external system calls, place the Address JWT in the `token` field of the request body:
 
@@ -51,7 +51,7 @@ send_body = {
     "content": "<Email content: html or text>",
 }
 res = requests.post(
-    "https://your_worker_domain/external/api/send_mail",
+    "https://your_worker_domain/api/external/send_mail",
     json=send_body, headers={
         # "x-custom-auth": "<your_website_password>", # If private site password is enabled
         "Content-Type": "application/json"

@@ -7,10 +7,10 @@
 | 端点 | 认证方式 | 适用场景 |
 |------|---------|---------|
 | `/api/send_mail` | `Authorization: Bearer <地址JWT>` header | 内部调用，需要先通过 cookie / header 鉴权 |
-| `/external/api/send_mail` | 请求体中的 `token` 字段 | 外部系统集成，无需 header 鉴权 |
+| `/api/external/send_mail` | 请求体中的 `token` 字段 | 外部系统集成，无需 header 鉴权 |
 
 ::: tip 什么是"地址 JWT"？
-地址 JWT 是通过 `/api/new_address` 或 `/admin/new_address` 创建邮箱地址时返回的 `jwt` 字段。
+地址 JWT 是通过 `/api/new_address` 或 `/api/admin/new_address` 创建邮箱地址时返回的 `jwt` 字段。
 你可以在前端 UI 的「密码」菜单中查看它。它**不是** `JWT_SECRET` 环境变量，也**不是** admin 密码。
 :::
 
@@ -36,7 +36,7 @@ res = requests.post(
 )
 ```
 
-### 方式二：通过 Body Token 认证（`/external/api/send_mail`）
+### 方式二：通过 Body Token 认证（`/api/external/send_mail`）
 
 适合外部系统调用，将地址 JWT 放在请求体的 `token` 字段中：
 
@@ -51,7 +51,7 @@ send_body = {
     "content": "<邮件内容：html 或者 文本>",
 }
 res = requests.post(
-    "https://你的worker域名/external/api/send_mail",
+    "https://你的worker域名/api/external/send_mail",
     json=send_body, headers={
         # "x-custom-auth": "<你的网站密码>", # 如果启用了私有站点密码
         "Content-Type": "application/json"

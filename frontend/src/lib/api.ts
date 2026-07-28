@@ -45,7 +45,7 @@ export async function apiFetch<T = any>(path: string, options: ApiOptions = {}):
       headers,
       signal: options.signal,
     })
-    if (response.status === 401 && path.startsWith('/admin')) appStore.setState({ showAdminAuth: true })
+    if (response.status === 401 && path.startsWith('/api/admin/')) appStore.setState({ showAdminAuth: true })
     if (response.status === 401 && state.openSettings.needAuth) appStore.setState({ showSiteAuth: true })
     if (response.status >= 300) {
       const detail = typeof response.data === 'string' ? response.data : JSON.stringify(response.data)

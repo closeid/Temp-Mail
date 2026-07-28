@@ -1,11 +1,5 @@
 const API_PATHS = [
     "/api/",
-    // Legacy API paths remain proxied during the compatibility period.
-    "/open_api/",
-    "/user_api/",
-    "/admin/",
-    "/telegram/",
-    "/external/",
 ];
 
 export async function onRequest(context) {

@@ -8,6 +8,7 @@ import { jaMessages } from './locales/source/ja'
 import { ptBRMessages } from './locales/source/ptBR'
 
 import type { SupportedLocale } from './locale-registry'
+import { UI_MESSAGES } from './ui-messages'
 
 type LocaleTree = Record<string, unknown>
 type SourceLocale = Extract<SupportedLocale, 'en' | 'zh'>
@@ -64,12 +65,12 @@ const buildAdditionalLocaleMessages = (locale: AdditionalLocale) => {
 }
 
 export const I18N_MESSAGES: Record<SupportedLocale, LocaleTree> = {
-  zh: buildSourceLocaleMessages('zh'),
-  en: buildSourceLocaleMessages('en'),
-  es: buildAdditionalLocaleMessages('es'),
-  'pt-BR': buildAdditionalLocaleMessages('pt-BR'),
-  ja: buildAdditionalLocaleMessages('ja'),
-  de: buildAdditionalLocaleMessages('de'),
+  zh: { ...buildSourceLocaleMessages('zh'), ...UI_MESSAGES.zh },
+  en: { ...buildSourceLocaleMessages('en'), ...UI_MESSAGES.en },
+  es: { ...buildAdditionalLocaleMessages('es'), ...UI_MESSAGES.es },
+  'pt-BR': { ...buildAdditionalLocaleMessages('pt-BR'), ...UI_MESSAGES['pt-BR'] },
+  ja: { ...buildAdditionalLocaleMessages('ja'), ...UI_MESSAGES.ja },
+  de: { ...buildAdditionalLocaleMessages('de'), ...UI_MESSAGES.de },
 }
 
 export const getLocalizedMessage = (

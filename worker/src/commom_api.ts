@@ -7,7 +7,7 @@ import { isAnySendMailEnabled } from './common';
 
 const api = new Hono<HonoCustomType>
 
-api.get('/open_api/settings', async (c) => {
+api.get('/api/open/settings', async (c) => {
     // check header x-custom-auth
     let needAuth = false;
     const passwords = utils.getPasswords(c);

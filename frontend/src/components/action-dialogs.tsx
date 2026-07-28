@@ -6,6 +6,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { useScopedI18n } from '@/i18n/react'
 
 type ConfirmRequest = {
   kind: 'confirm'
@@ -47,6 +48,7 @@ export function promptAction(options: Omit<PromptRequest, 'kind' | 'resolve'> | 
 }
 
 export function ActionDialogs({ children }: { children: ReactNode }) {
+  const { t } = useScopedI18n('ui.common')
   const [request, setRequest] = useState<ActionRequest | null>(null)
   const [value, setValue] = useState('')
 
@@ -80,7 +82,7 @@ export function ActionDialogs({ children }: { children: ReactNode }) {
     <AlertDialog open={request?.kind === 'confirm'} onOpenChange={(open) => !open && finishConfirm(false)}>
       {request?.kind === 'confirm' && <AlertDialogContent>
         <AlertDialogHeader><AlertDialogTitle>{request.title}</AlertDialogTitle>{request.description && <AlertDialogDescription>{request.description}</AlertDialogDescription>}</AlertDialogHeader>
-        <AlertDialogFooter><AlertDialogCancel asChild><Button variant="outline" onClick={() => finishConfirm(false)}>Cancel</Button></AlertDialogCancel><AlertDialogAction asChild><Button variant={request.destructive ? 'destructive' : 'default'} onClick={() => finishConfirm(true)}>{request.confirmLabel || 'Confirm'}</Button></AlertDialogAction></AlertDialogFooter>
+        <AlertDialogFooter><AlertDialogCancel asChild><Button variant="outline" onClick={() => finishConfirm(false)}>{t('cancel')}</Button></AlertDialogCancel><AlertDialogAction asChild><Button variant={request.destructive ? 'destructive' : 'default'} onClick={() => finishConfirm(true)}>{request.confirmLabel || t('confirm')}</Button></AlertDialogAction></AlertDialogFooter>
       </AlertDialogContent>}
     </AlertDialog>
     <Dialog open={request?.kind === 'prompt'} onOpenChange={(open) => !open && finishPrompt(null)}>
@@ -88,7 +90,7 @@ export function ActionDialogs({ children }: { children: ReactNode }) {
         <form className="grid gap-4" onSubmit={submitPrompt}>
           <DialogHeader><DialogTitle>{request.title}</DialogTitle>{request.description && <DialogDescription>{request.description}</DialogDescription>}</DialogHeader>
           <Input autoFocus type={request.inputType || 'text'} placeholder={request.placeholder} value={value} onChange={(event) => setValue(event.target.value)} />
-          <DialogFooter><Button type="button" variant="outline" onClick={() => finishPrompt(null)}>Cancel</Button><Button type="submit">{request.confirmLabel || 'Confirm'}</Button></DialogFooter>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => finishPrompt(null)}>{t('cancel')}</Button><Button type="submit">{request.confirmLabel || t('confirm')}</Button></DialogFooter>
         </form>
       </DialogContent>}
     </Dialog>

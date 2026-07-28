@@ -5,7 +5,7 @@
 Delete an address by address ID. This endpoint requires admin auth and deletes related data (mails, sender settings, bindings, etc.).
 
 ```bash
-DELETE /admin/delete_address/:id
+DELETE /api/admin/delete_address/:id
 ```
 
 Header:
@@ -33,7 +33,7 @@ Headers:
 Notes:
 
 - `ENABLE_USER_DELETE_EMAIL` must be enabled.
-- Address credential can be obtained from `/api/new_address` or `/admin/new_address`.
+- Address credential can be obtained from `/api/new_address` or `/api/admin/new_address`.
 
 Example response:
 

@@ -32,7 +32,7 @@ RANDOM_SUBDOMAIN_LENGTH = 8
 
 The create-address APIs only generate a random subdomain when the request explicitly passes
 `enableRandomSubdomain: true`. The frontend sends this field when the "enable random subdomain"
-option is checked. If you call `/api/new_address` or `/admin/new_address` yourself, include it in
+option is checked. If you call `/api/new_address` or `/api/admin/new_address` yourself, include it in
 the request body:
 
 ```json
@@ -87,7 +87,7 @@ ENABLE_CREATE_ADDRESS_SUBDOMAIN_MATCH = true
 ```
 
 When this is enabled, as long as `abc.com` is in the allowed base-domain list, the following
-addresses can be created through `/api/new_address` or `/admin/new_address`:
+addresses can be created through `/api/new_address` or `/api/admin/new_address`:
 
 - `name@team.abc.com`
 - `name@dev.team.abc.com`

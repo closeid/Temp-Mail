@@ -2179,8 +2179,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "这与 RANDOM_SUBDOMAIN_DOMAINS 不同：这里允许 API 调用方直接指定自定义子域名；随机子域名功能只是在创建时自动补一个随机子域名。"
     },
     "create_address_subdomain_match_tip": {
-      "en": "Only affects /api/new_address and /admin/new_address domain validation. Example: when enabled, foo.example.com can match configured base domain example.com.",
-      "zh": "仅影响 /api/new_address 和 /admin/new_address 的域名校验。例如开启后，foo.example.com 可以匹配已配置的基础域名 example.com。"
+      "en": "Only affects /api/new_address and /api/admin/new_address domain validation. Example: when enabled, foo.example.com can match configured base domain example.com.",
+      "zh": "仅影响 /api/new_address 和 /api/admin/new_address 的域名校验。例如开启后，foo.example.com 可以匹配已配置的基础域名 example.com。"
     },
     "delete_rule": {
       "en": "Delete",

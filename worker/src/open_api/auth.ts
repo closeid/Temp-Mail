@@ -6,7 +6,7 @@ import i18n from '../i18n';
 
 const api = new Hono<HonoCustomType>()
 
-api.post('/open_api/site_login', async (c) => {
+api.post('/api/open/site_login', async (c) => {
     const { password, cf_token } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     if (utils.isGlobalTurnstileEnabled(c)) {
@@ -24,7 +24,7 @@ api.post('/open_api/site_login', async (c) => {
     return c.json({ success: true })
 })
 
-api.post('/open_api/admin_login', async (c) => {
+api.post('/api/open/admin_login', async (c) => {
     const { password, cf_token } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     if (utils.isGlobalTurnstileEnabled(c)) {
@@ -42,7 +42,7 @@ api.post('/open_api/admin_login', async (c) => {
     return c.json({ success: true })
 })
 
-api.post('/open_api/credential_login', async (c) => {
+api.post('/api/open/credential_login', async (c) => {
     const { credential, cf_token } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     if (utils.isGlobalTurnstileEnabled(c)) {

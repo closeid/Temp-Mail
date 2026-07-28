@@ -115,7 +115,7 @@ const generate = async () => {
     - The worker domain here is the backend API domain. For example, if I deployed at `https://temp-email-api.awsl.uk`, then fill in `https://temp-email-api.awsl.uk`
     - If your domain is `https://temp-email-api.xxx.workers.dev`, then fill in `https://temp-email-api.xxx.workers.dev`
     - Do not enter your frontend `Pages` domain, and do not include paths like `/admin` or `/api`. Otherwise frontend requests will hit the wrong address and you may see `Cannot read properties of undefined (reading 'map')` or `405 Method Not Allowed`
-    - Before filling it in, open `https://your-worker-domain/open_api/settings` in the browser and confirm it returns JSON. If it returns HTML, 404, 405, or a Cloudflare challenge page, fix the Worker binding, variables, or security policy first
+    - Before filling it in, open `https://your-worker-domain/api/open/settings` in the browser and confirm it returns JSON. If it returns HTML, 404, 405, or a Cloudflare challenge page, fix the Worker binding, variables, or security policy first
 
     > [!warning] Note
     > The `worker.dev` domain is not accessible in China, please use a custom domain.

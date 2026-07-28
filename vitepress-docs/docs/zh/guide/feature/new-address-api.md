@@ -3,13 +3,13 @@
 ::: warning 注意：地址 JWT vs 用户 JWT
 本页面介绍的是**地址 JWT**，与**用户 JWT** 是两种不同的认证方式：
 
-- **地址 JWT**：通过 `/api/new_address` 或 `/admin/new_address` 创建邮箱时返回
+- **地址 JWT**：通过 `/api/new_address` 或 `/api/admin/new_address` 创建邮箱时返回
   - 使用 `Authorization: Bearer <jwt>` header
   - 用于访问 `/api/*` 接口（查看邮件、删除邮件等）
 
-- **用户 JWT**：通过 `/user_api/login` 或 `/user_api/register` 获得
+- **用户 JWT**：通过 `/api/user/login` 或 `/api/user/register` 获得
   - 使用 `x-user-token: <jwt>` header
-  - 用于访问 `/user_api/*` 接口（用户账户管理）
+  - 用于访问 `/api/user/*` 接口（用户账户管理）
 
 **请勿混淆两种 JWT 的使用方式！**
 :::
@@ -21,7 +21,7 @@
 ```python
 res = requests.post(
     # 替换 xxxx.xxxx 为你的 worker 域名
-    "https://xxxx.xxxx/admin/new_address",
+    "https://xxxx.xxxx/api/admin/new_address",
     json={
         # 是否启用前缀 (True/False)
         "enablePrefix": True,
@@ -46,7 +46,7 @@ print(res.json())
 
 ```python
 res = requests.post(
-    "https://xxxx.xxxx/admin/new_address",
+    "https://xxxx.xxxx/api/admin/new_address",
     json={
         "enablePrefix": True,
         "name": "project001",
@@ -91,7 +91,7 @@ def generate_random_name():
 def fetch_email_data(name):
     try:
         res = requests.post(
-            "https://<worker 域名>/admin/new_address",
+            "https://<worker 域名>/api/admin/new_address",
             json={
                 "enablePrefix": True,
                 "name": name,

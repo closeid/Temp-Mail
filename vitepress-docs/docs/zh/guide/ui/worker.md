@@ -59,7 +59,7 @@
 7. 点击 `Settings` -> `Bindings`, 点击 `Add Binding`, 名称如图，选择刚刚创建的 D1 数据库，点击 `Add Binding`
 
     > [!NOTE] 重要
-    > 注意此处 `D1 Database` 的绑定名称必须为 `DB`，必须是大写。绑定名写成 `db`、`DATABASE` 或其他值时，`/open_api/settings`、`/admin/*` 等接口会异常，前端常见表现是页面初始化报 `map` 错误或 `Network Error`。
+    > 注意此处 `D1 Database` 的绑定名称必须为 `DB`，必须是大写。绑定名写成 `db`、`DATABASE` 或其他值时，`/api/open/settings`、`/api/admin/*` 等接口会异常，前端常见表现是页面初始化报 `map` 错误或 `Network Error`。
 
     ![worker-bindings](/ui_install/worker-bindings.png)
 
@@ -72,9 +72,9 @@
     > [!NOTE]
     > 打开 `worker` 的 `url`，如果显示 `OK` 说明部署成功
     >
-    > 打开 `/health_check`，如果显示 `OK` 说明部署成功
+    > 打开 `/api/health`，如果显示 `OK` 说明部署成功
     >
-    > 打开 `/open_api/settings`，如果返回 JSON，说明前端初始化依赖的公开配置接口可用。部署 Pages 前建议先确认这个地址正常。
+    > 打开 `/api/open/settings`，如果返回 JSON，说明前端初始化依赖的公开配置接口可用。部署 Pages 前建议先确认这个地址正常。
 
     ![worker3](/ui_install/worker-3.png)
 

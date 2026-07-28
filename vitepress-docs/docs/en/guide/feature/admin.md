@@ -4,7 +4,10 @@
 > You need to configure `ADMIN_PASSWORDS` or `ADMIN_USER_ROLE` to access the admin console
 > Admin role configuration: if the user role equals ADMIN_USER_ROLE, they can access the admin console
 
-After deploying the frontend application, click the upper-left logo 5 times or visit `/dashboard` to enter the management console. Worker admin APIs continue to use the `/admin/*` path.
+After deploying the frontend application, click the upper-left logo 5 times or visit `/dashboard` to enter the management console. Worker admin APIs continue to use the `/api/admin/*` path.
+
+> [!IMPORTANT]
+> Worker APIs now use the `/api` namespace exclusively. Legacy `/admin/*`, `/open_api/*`, `/user_api/*`, `/telegram/*`, `/external/api/*`, and `/health_check` URLs are no longer forwarded; update clients before deploying this version.
 
 You need to configure `ADMIN_PASSWORDS` in the backend or ensure the current user role is `ADMIN_USER_ROLE`, otherwise access to the console will be denied.
 

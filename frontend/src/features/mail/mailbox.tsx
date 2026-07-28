@@ -33,6 +33,7 @@ type Props = {
 
 export function Mailbox({ queryKey, fetchMailData, deleteMail, canDelete, showEmailTo = true, showReply, showSaveS3, saveToS3, showFilter }: Props) {
   const { t } = useScopedI18n('components.MailBox')
+  const commonT = useScopedI18n('ui.common').t
   const state = useAppStore((value) => ({ autoRefresh: value.autoRefresh, interval: value.configAutoRefreshInterval, useUTC: value.useUTCDate, split: value.mailboxSplitSize, wideList: value.mailListView, preview: value.mailListPreviewLineClamp }))
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
@@ -64,8 +65,8 @@ export function Mailbox({ queryKey, fetchMailData, deleteMail, canDelete, showEm
   const toolbar = <div className="flex min-h-12 flex-wrap items-center gap-2 border-b border-border px-3 py-1.5">
     {multi ? <><Button variant="ghost" onClick={() => { setMulti(false); setChecked(new Set()) }}>{t('cancelMultiAction')}</Button><Button variant="ghost" onClick={() => setChecked(new Set(data.map((item) => String(item.id))))}>{t('selectAll')}</Button><Button variant="ghost" onClick={() => setChecked(new Set())}>{t('unselectAll')}</Button>{canDelete && <Button variant="ghost" className="text-destructive" onClick={removeSelected}><Trash2 />{t('delete')}</Button>}<Button variant="ghost" onClick={downloadSelected}><Download />{t('downloadMail')}</Button></> : <>
       <Button variant="ghost" onClick={() => setMulti(true)}><SquareCheckBig />{t('multiAction')}</Button>
-      <Button variant="outline" size="icon" title="Previous page" disabled={page <= 1} onClick={() => setPage((value) => value - 1)}><ChevronLeft /></Button><span className="numeric grid h-9 min-w-9 place-items-center rounded-md border border-border px-2">{page}</span><Button variant="outline" size="icon" title="Next page" disabled={page >= maxPage} onClick={() => setPage((value) => value + 1)}><ChevronRight /></Button>
-      <Select value={String(pageSize)} onValueChange={(value) => { setPageSize(Number(value)); setPage(1) }}><SelectTrigger className="w-[88px]"><SelectValue /></SelectTrigger><SelectContent>{[20, 50, 100].map((value) => <SelectItem key={value} value={String(value)}>{value} / {t('page') || 'page'}</SelectItem>)}</SelectContent></Select>
+      <Button variant="outline" size="icon" title={commonT('previousPage')} disabled={page <= 1} onClick={() => setPage((value) => value - 1)}><ChevronLeft /></Button><span className="numeric grid h-9 min-w-9 place-items-center rounded-md border border-border px-2">{page}</span><Button variant="outline" size="icon" title={commonT('nextPage')} disabled={page >= maxPage} onClick={() => setPage((value) => value + 1)}><ChevronRight /></Button>
+      <Select value={String(pageSize)} onValueChange={(value) => { setPageSize(Number(value)); setPage(1) }}><SelectTrigger className="w-[128px]"><SelectValue /></SelectTrigger><SelectContent>{[20, 50, 100].map((value) => <SelectItem key={value} value={String(value)}>{commonT('perPage', { count: value })}</SelectItem>)}</SelectContent></Select>
       <label className="flex h-9 items-center gap-2 rounded-md px-2 text-xs text-muted-foreground"><Switch checked={state.autoRefresh} onCheckedChange={(value) => appStore.setState({ autoRefresh: value })} />{t('autoRefresh')}</label>
       <Button variant="secondary" onClick={() => { setPage(1); query.refetch() }}><RefreshCw className={query.isFetching ? 'animate-spin' : ''} />{t('refresh')}</Button>
       {showFilter && <div className="relative min-w-48 flex-1 sm:max-w-72"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="h-9 min-h-9 pl-9" value={filter} onChange={(event) => setFilter(event.target.value)} placeholder={t('keywordQueryTip')} /></div>}

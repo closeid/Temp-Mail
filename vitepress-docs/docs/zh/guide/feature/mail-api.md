@@ -26,7 +26,7 @@ res = requests.get(
 ```python
 import requests
 
-url = "https://<你的worker地址>/admin/mails"
+url = "https://<你的worker地址>/api/admin/mails"
 
 querystring = {
     "limit":"20",
@@ -45,7 +45,7 @@ response = requests.get(url, headers=headers, params=querystring)
 print(response.json())
 ```
 
-**注意**：`/admin/mails` 与 `/api/mails` 一致，返回的是邮件数据库中的 raw MIME 内容；如需正文/主题等可读字段，请在客户端自行解析 `raw`。
+**注意**：`/api/admin/mails` 与 `/api/mails` 一致，返回的是邮件数据库中的 raw MIME 内容；如需正文/主题等可读字段，请在客户端自行解析 `raw`。
 
 **注意**：后端 API 已移除关键词过滤功能。如需按内容过滤邮件，请使用前端界面的过滤输入框，该功能可过滤当前显示的页面。
 
@@ -57,7 +57,7 @@ print(response.json())
 import requests
 
 mail_id = 1
-url = f"https://<你的worker地址>/admin/mails/{mail_id}"
+url = f"https://<你的worker地址>/api/admin/mails/{mail_id}"
 
 headers = {
         "x-admin-auth": "<你的Admin密码>",
@@ -77,7 +77,7 @@ print(response.json())
 import requests
 
 address_id = 1
-url = f"https://<你的worker地址>/admin/delete_address/{address_id}"
+url = f"https://<你的worker地址>/api/admin/delete_address/{address_id}"
 
 headers = {
         "x-admin-auth": "<你的Admin密码>",
@@ -97,7 +97,7 @@ print(response.json())
 import requests
 
 address_id = 1
-url = f"https://<你的worker地址>/admin/clear_inbox/{address_id}"
+url = f"https://<你的worker地址>/api/admin/clear_inbox/{address_id}"
 
 headers = {
         "x-admin-auth": "<你的Admin密码>",
@@ -117,7 +117,7 @@ print(response.json())
 import requests
 
 address_id = 1
-url = f"https://<你的worker地址>/admin/clear_sent_items/{address_id}"
+url = f"https://<你的worker地址>/api/admin/clear_sent_items/{address_id}"
 
 headers = {
         "x-admin-auth": "<你的Admin密码>",
@@ -132,11 +132,11 @@ print(response.json())
 ## user 邮件 API
 
 ::: warning 注意：用户 JWT vs 地址 JWT
-此接口使用**用户 JWT**（通过 `/user_api/login` 或 `/user_api/register` 获得），使用 `x-user-token` header。
+此接口使用**用户 JWT**（通过 `/api/user/login` 或 `/api/user/register` 获得），使用 `x-user-token` header。
 
 **请勿与地址 JWT 混淆**：
 - 地址 JWT 使用 `Authorization: Bearer <jwt>` 访问 `/api/*` 接口
-- 用户 JWT 使用 `x-user-token: <jwt>` 访问 `/user_api/*` 接口
+- 用户 JWT 使用 `x-user-token: <jwt>` 访问 `/api/user/*` 接口
 :::
 
 支持 `address` 过滤
@@ -144,7 +144,7 @@ print(response.json())
 ```python
 import requests
 
-url = "https://<你的worker地址>/user_api/mails"
+url = "https://<你的worker地址>/api/user/mails"
 
 querystring = {
     "limit":"20",
@@ -163,6 +163,6 @@ response = requests.get(url, headers=headers, params=querystring)
 print(response.json())
 ```
 
-**注意**：`/user_api/mails` 同样返回原始 RFC822 内容；请在客户端解析后提取 `subject`、`text`、`html`。
+**注意**：`/api/user/mails` 同样返回原始 RFC822 内容；请在客户端解析后提取 `subject`、`text`、`html`。
 
 **注意**：后端 API 已移除关键词过滤功能。如需按内容过滤邮件，请使用前端界面的过滤输入框，该功能可过滤当前显示的页面。

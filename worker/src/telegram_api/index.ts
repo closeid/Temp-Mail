@@ -10,7 +10,7 @@ import i18n from '../i18n'
 export const api = new Hono<HonoCustomType>();
 export { sendMailToTelegram }
 
-api.use("/telegram/*", async (c, next) => {
+api.use("/api/telegram/*", async (c, next) => {
     const msgs = i18n.getMessagesbyContext(c);
     if (!c.env.TELEGRAM_BOT_TOKEN) {
         return c.text(msgs.TgBotTokenRequiredMsg, 400);
@@ -21,7 +21,7 @@ api.use("/telegram/*", async (c, next) => {
     return await next();
 });
 
-api.use("/admin/telegram/*", async (c, next) => {
+api.use("/api/admin/telegram/*", async (c, next) => {
     const msgs = i18n.getMessagesbyContext(c);
     if (!c.env.TELEGRAM_BOT_TOKEN) {
         return c.text(msgs.TgBotTokenRequiredMsg, 400);
@@ -32,7 +32,7 @@ api.use("/admin/telegram/*", async (c, next) => {
     return await next();
 });
 
-api.post("/telegram/webhook", async (c) => {
+api.post("/api/telegram/webhook", async (c) => {
     const token = c.env.TELEGRAM_BOT_TOKEN;
     const bot = newTelegramBot(c, token);
     let body = null;
@@ -47,7 +47,7 @@ api.post("/telegram/webhook", async (c) => {
     return c.body(body);
 });
 
-api.post("/admin/telegram/init", async (c) => {
+api.post("/api/admin/telegram/init", async (c) => {
     const domain = new URL(c.req.url).host;
     const token = c.env.TELEGRAM_BOT_TOKEN;
     const webhookUrl = `https://${domain}/api/telegram/webhook`;
@@ -60,7 +60,7 @@ api.post("/admin/telegram/init", async (c) => {
     });
 });
 
-api.get("/admin/telegram/status", async (c) => {
+api.get("/api/admin/telegram/status", async (c) => {
     const token = c.env.TELEGRAM_BOT_TOKEN;
     const bot = newTelegramBot(c, token);
     const info = await bot.telegram.getWebhookInfo()
@@ -68,10 +68,10 @@ api.get("/admin/telegram/status", async (c) => {
     return c.json({ info, commands });
 });
 
-api.get("/admin/telegram/settings", settings.getTelegramSettings);
-api.post("/admin/telegram/settings", settings.saveTelegramSettings);
-api.post("/telegram/get_bind_address", miniapp.getTelegramBindAddress);
-api.post("/telegram/new_address", miniapp.newTelegramAddress);
-api.post("/telegram/bind_address", miniapp.bindAddress);
-api.post("/telegram/unbind_address", miniapp.unbindAddress);
-api.post("/telegram/get_mail", miniapp.getMail);
+api.get("/api/admin/telegram/settings", settings.getTelegramSettings);
+api.post("/api/admin/telegram/settings", settings.saveTelegramSettings);
+api.post("/api/telegram/get_bind_address", miniapp.getTelegramBindAddress);
+api.post("/api/telegram/new_address", miniapp.newTelegramAddress);
+api.post("/api/telegram/bind_address", miniapp.bindAddress);
+api.post("/api/telegram/unbind_address", miniapp.unbindAddress);
+api.post("/api/telegram/get_mail", miniapp.getMail);

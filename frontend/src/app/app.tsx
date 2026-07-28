@@ -8,7 +8,6 @@ import { appStore, useAppStore } from '@/lib/store'
 import { DEFAULT_LOCALE, getPathWithLocale, resolveSupportedLocale } from '@/i18n/utils'
 
 const MailWorkspace = lazy(() => import('@/features/mail/mail-workspace').then((module) => ({ default: module.MailWorkspace })))
-const UserWorkspace = lazy(() => import('@/features/user/user-workspace').then((module) => ({ default: module.UserWorkspace })))
 const AdminWorkspace = lazy(() => import('@/features/admin/admin-workspace').then((module) => ({ default: module.AdminWorkspace })))
 const OauthCallback = lazy(() => import('@/features/auth/oauth-callback').then((module) => ({ default: module.OauthCallback })))
 const TelegramMailPage = lazy(() => import('@/features/telegram/telegram-mail').then((module) => ({ default: module.TelegramMailPage })))
@@ -31,9 +30,7 @@ function HomePage() {
   if (!state.openSettings.fetched || !state.userOpenSettings.fetched || !state.settings.fetched || !state.userSettings.fetched) {
     return <div className="min-h-[100dvh] bg-background" />
   }
-  if (state.workspaceSection === 'user' && state.userSettings.user_email) return <UserWorkspace />
-  if (state.settings.address) return <MailWorkspace />
-  if (state.userSettings.user_email) return <UserWorkspace />
+  if (state.settings.address || state.userSettings.user_email) return <MailWorkspace />
   if (state.isTelegram) return <TelegramAddressPage />
   return <AuthPage />
 }
@@ -47,7 +44,7 @@ function LocalizedRoute({ children }: { children: ReactNode }) {
 function LegacyUserRedirect() {
   const { locale } = useParams()
   const routeLocale = resolveSupportedLocale(locale) || DEFAULT_LOCALE
-  appStore.setState({ workspaceSection: 'user' })
+  appStore.setState({ workspaceSection: 'mail', indexTab: 'addresses' })
   return <Navigate to={getPathWithLocale('/', routeLocale)} replace />
 }
 

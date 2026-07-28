@@ -260,7 +260,7 @@ api.post('/api/send_mail', async (c) => {
     return c.json({ status: "ok" })
 })
 
-api.post('/external/api/send_mail', async (c) => {
+api.post('/api/external/send_mail', async (c) => {
     const msgs = i18n.getMessagesbyContext(c);
     const { token } = await c.req.json();
     try {

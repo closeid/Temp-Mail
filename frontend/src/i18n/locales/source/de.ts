@@ -338,7 +338,7 @@ export const deMessages = {
   "views.index.AddressBar.ok": "OK",
   "views.admin.SenderAccess.ok": "OK",
   "views.common.Login.ok": "OK",
-  "views.admin.AccountSettings.create_address_subdomain_match_tip": "Wirkt sich nur auf die Domainvalidierung von /api/new_address und /admin/new_address aus. Beispiel: Wenn aktiviert, kann foo.example.com der Basisdomain example.com entsprechen.",
+  "views.admin.AccountSettings.create_address_subdomain_match_tip": "Wirkt sich nur auf die Domainvalidierung von /api/new_address und /api/admin/new_address aus. Beispiel: Wenn aktiviert, kann foo.example.com der Basisdomain example.com entsprechen.",
   "components.AiExtractInfo.open": "Öffnen",
   "views.index.AddressBar.linkWithAddressCredential": "Automatischen E-Mail-Anmeldelink öffnen",
   "views.admin.CreateAccount.linkWithAddressCredential": "Automatischen E-Mail-Anmeldelink öffnen",

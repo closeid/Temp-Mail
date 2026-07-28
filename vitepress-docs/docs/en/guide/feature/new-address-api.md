@@ -3,13 +3,13 @@
 ::: warning Note: Address JWT vs User JWT
 This page describes **Address JWT**, which is different from **User JWT**:
 
-- **Address JWT**: Returned when creating a mailbox via `/api/new_address` or `/admin/new_address`
+- **Address JWT**: Returned when creating a mailbox via `/api/new_address` or `/api/admin/new_address`
   - Use `Authorization: Bearer <jwt>` header
   - Access `/api/*` endpoints (view mails, delete mails, etc.)
 
-- **User JWT**: Obtained via `/user_api/login` or `/user_api/register`
+- **User JWT**: Obtained via `/api/user/login` or `/api/user/register`
   - Use `x-user-token: <jwt>` header
-  - Access `/user_api/*` endpoints (user account management)
+  - Access `/api/user/*` endpoints (user account management)
 
 **Do not confuse these two JWT types!**
 :::
@@ -21,7 +21,7 @@ This is a `python` example using the `requests` library to send emails.
 ```python
 res = requests.post(
     # Replace xxxx.xxxx with your worker domain
-    "https://xxxx.xxxx/admin/new_address",
+    "https://xxxx.xxxx/api/admin/new_address",
     json={
         # Enable prefix (True/False)
         "enablePrefix": True,
@@ -47,7 +47,7 @@ the create-address APIs can accept subdomains directly:
 
 ```python
 res = requests.post(
-    "https://xxxx.xxxx/admin/new_address",
+    "https://xxxx.xxxx/api/admin/new_address",
     json={
         "enablePrefix": True,
         "name": "project001",
@@ -92,7 +92,7 @@ def generate_random_name():
 def fetch_email_data(name):
     try:
         res = requests.post(
-            "https://<worker_domain>/admin/new_address",
+            "https://<worker_domain>/api/admin/new_address",
             json={
                 "enablePrefix": True,
                 "name": name,

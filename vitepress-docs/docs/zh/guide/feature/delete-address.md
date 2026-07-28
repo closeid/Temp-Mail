@@ -5,7 +5,7 @@
 使用地址 ID 删除邮箱地址。该接口需要管理员鉴权，并会同时清理关联数据（收件、发件来源授权、用户绑定等）。
 
 ```bash
-DELETE /admin/delete_address/:id
+DELETE /api/admin/delete_address/:id
 ```
 
 请求头：
@@ -33,7 +33,7 @@ DELETE /api/delete_address
 说明：
 
 - 需开启 `ENABLE_USER_DELETE_EMAIL = true`
-- 地址凭证来自 `/api/new_address` 或 `/admin/new_address`
+- 地址凭证来自 `/api/new_address` 或 `/api/admin/new_address`
 
 返回示例：
 

@@ -12,7 +12,7 @@ declare global {
 export type TurnstileHandle = { refresh: () => void }
 
 export const Turnstile = forwardRef<TurnstileHandle, { value: string; onChange: (value: string) => void }>(({ onChange }, ref) => {
-  const { locale } = useI18n()
+  const { locale, t } = useI18n()
   const { openSettings, isDark } = useAppStore((state) => ({ openSettings: state.openSettings, isDark: state.isDark }))
   const reactId = useId().replaceAll(':', '')
   const containerId = `cf-turnstile-${reactId}`
@@ -40,6 +40,6 @@ export const Turnstile = forwardRef<TurnstileHandle, { value: string; onChange: 
   }, [containerId, isDark, locale, onChange, openSettings.cfTurnstileSiteKey, revision])
 
   if (!openSettings.cfTurnstileSiteKey) return null
-  return <div className="grid justify-items-center gap-1 py-1"><div id={containerId} /><Button type="button" variant="ghost" size="sm" onClick={() => setRevision((value) => value + 1)}><RefreshCw />Refresh</Button></div>
+  return <div className="grid justify-items-center gap-1 py-1"><div id={containerId} /><Button type="button" variant="ghost" size="sm" onClick={() => setRevision((value) => value + 1)}><RefreshCw />{t('ui.common.refresh')}</Button></div>
 })
 Turnstile.displayName = 'Turnstile'

@@ -8,8 +8,9 @@ import { copyText } from '@/lib/utils'
 import { useScopedI18n } from '@/i18n/react'
 
 function CredentialField({ label, value }: { label: string; value: string }) {
-  const copy = async () => { await copyText(value); toast.success('Copied') }
-  return <div className="grid gap-1.5"><span className="text-xs font-medium text-muted-foreground">{label}</span><div className="flex min-w-0 items-start gap-2"><code className="numeric min-w-0 flex-1 break-words rounded-md bg-muted px-2.5 py-2 text-xs leading-5">{value || '-'}</code><Button size="icon" variant="ghost" title="Copy" onClick={copy}><Copy /></Button></div></div>
+  const { t } = useScopedI18n('ui.common')
+  const copy = async () => { await copyText(value); toast.success(t('copied')) }
+  return <div className="grid gap-1.5"><span className="text-xs font-medium text-muted-foreground">{label}</span><div className="flex min-w-0 items-start gap-2"><code className="numeric min-w-0 flex-1 break-words rounded-md bg-muted px-2.5 py-2 text-xs leading-5">{value || '-'}</code><Button size="icon" variant="ghost" title={t('copy')} onClick={copy}><Copy /></Button></div></div>
 }
 
 export function CredentialDialog() {
