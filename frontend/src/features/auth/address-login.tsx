@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { Turnstile, type TurnstileHandle } from '@/components/turnstile'
 import { boundAddressesQueryKey } from '@/features/address/use-bound-addresses'
+import { MAIL_ROUTES } from '@/app/routes'
 
 type Props = {
   loginOnly?: boolean
@@ -62,7 +63,7 @@ export function AddressLogin({ loginOnly = false, preferCredential = false, bind
       try { await bindCurrentAddress() } catch (error) { toast.error(`${t('bindUserAddressError')}: ${stringifyError(error)}`) }
     }
     onAuthenticated?.()
-    navigate(getPathWithLocale('/', locale))
+    navigate(getPathWithLocale(MAIL_ROUTES.mailbox, locale))
   }
 
   const login = async () => {
@@ -88,7 +89,7 @@ export function AddressLogin({ loginOnly = false, preferCredential = false, bind
       appStore.setState({ jwt: result.jwt, addressPassword: result.password || '', showAddressCredential: true })
       await api.getSettings()
       if (bindUserAddress || appStore.getState().userSettings.user_email) { try { await bindCurrentAddress() } catch (error) { toast.error(`${t('bindUserAddressError')}: ${stringifyError(error)}`) } }
-      navigate(getPathWithLocale('/', locale))
+      navigate(getPathWithLocale(MAIL_ROUTES.mailbox, locale))
     } catch (error) { toast.error(stringifyError(error)) }
   }
 

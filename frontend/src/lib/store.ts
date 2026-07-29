@@ -70,10 +70,6 @@ export type AppState = {
   userJwt: string
   addressPassword: string
   preferredLocale: string
-  indexTab: string
-  userTab: string
-  adminTab: string
-  workspaceSection: 'mail' | 'user'
   mailboxSplitSize: number
   mailListView: boolean
   mailListPreviewLineClamp: number
@@ -92,8 +88,6 @@ export type AppState = {
   userOpenSettings: UserOpenSettings
   userSettings: UserSettings
   sendMailModel: Record<string, any>
-  adminMailTabAddress: string
-  adminSendBoxTabAddress: string
   userOauth2SessionState: string
   userOauth2SessionClientID: string
   isTelegram: boolean
@@ -105,6 +99,7 @@ const session = typeof window === 'undefined' ? null : window.sessionStorage
 
 // Admin credentials are intentionally memory-only to limit exposure after a browser restart.
 local?.removeItem('adminAuth')
+for (const key of ['indexTab', 'userTab', 'adminTab', 'workspaceSection']) session?.removeItem(key)
 
 const readString = (storage: Storage | null, key: string, fallback = '') => storage?.getItem(key) ?? fallback
 const readBoolean = (storage: Storage | null, key: string, fallback: boolean) => {
@@ -138,9 +133,7 @@ const initialState: AppState = {
   isDark: readString(local, 'vueuse-color-scheme', '') === 'dark' || (!local?.getItem('vueuse-color-scheme') && typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches)),
   auth: readString(local, 'auth'), adminAuth: '', jwt: readString(local, 'jwt'),
   userJwt: readString(local, 'userJwt'), addressPassword: readString(session, 'addressPassword'),
-  preferredLocale: readString(local, 'preferredLocale'), indexTab: readString(session, 'indexTab', 'mailbox'),
-  userTab: readString(session, 'userTab', 'address_management'), adminTab: readString(session, 'adminTab', 'account'),
-  workspaceSection: readString(session, 'workspaceSection', 'mail') === 'user' ? 'user' : 'mail',
+  preferredLocale: readString(local, 'preferredLocale'),
   mailboxSplitSize: readNumber(local, 'mailboxSplitSize', 0.32), mailListView: readBoolean(local, 'mailListView', false),
   mailListPreviewLineClamp: readNumber(local, 'mailListPreviewLineClamp', 1),
   useIframeShowMail: readBoolean(local, 'useIframeShowMail', false),
@@ -154,7 +147,6 @@ const initialState: AppState = {
   userOpenSettings: { fetched: false, enable: false, enableMailVerify: false, oauth2ClientIDs: [] },
   userSettings: { fetched: false, user_email: '', user_id: 0, is_admin: false, access_token: null, new_user_token: null, user_role: null },
   sendMailModel: readObject(session, 'sendMailModel', { fromName: '', toName: '', toMail: '', subject: '', contentType: 'text', content: '' }),
-  adminMailTabAddress: '', adminSendBoxTabAddress: '',
   userOauth2SessionState: readString(session, 'userOauth2SessionState') || readString(local, 'userOauth2SessionState_fb'),
   userOauth2SessionClientID: readString(session, 'userOauth2SessionClientID') || readString(local, 'userOauth2SessionClientID_fb'),
   isTelegram: typeof window !== 'undefined' && Boolean((window as any).Telegram?.WebApp?.initData),
@@ -164,8 +156,7 @@ const initialState: AppState = {
 const persistence: Partial<Record<keyof AppState, [Storage | null, string, 'string' | 'json']>> = {
   isDark: [local, 'vueuse-color-scheme', 'string'], auth: [local, 'auth', 'string'],
   jwt: [local, 'jwt', 'string'], userJwt: [local, 'userJwt', 'string'], addressPassword: [session, 'addressPassword', 'string'],
-  preferredLocale: [local, 'preferredLocale', 'string'], indexTab: [session, 'indexTab', 'string'], userTab: [session, 'userTab', 'string'],
-  adminTab: [session, 'adminTab', 'string'], workspaceSection: [session, 'workspaceSection', 'string'],
+  preferredLocale: [local, 'preferredLocale', 'string'],
   mailboxSplitSize: [local, 'mailboxSplitSize', 'string'], mailListView: [local, 'mailListView', 'string'],
   mailListPreviewLineClamp: [local, 'mailListPreviewLineClamp', 'string'], useIframeShowMail: [local, 'useIframeShowMail', 'string'],
   preferShowTextMail: [local, 'preferShowTextMail', 'string'], useSimpleIndex: [local, 'useSimpleIndex', 'string'],
@@ -195,8 +186,8 @@ export const appStore = {
     }
     listeners.forEach((listener) => listener())
   },
-  resetAddress: () => appStore.setState({ jwt: '', addressPassword: '', settings: { ...initialState.settings, fetched: true }, indexTab: 'mailbox' }),
-  resetUser: () => appStore.setState({ userJwt: '', userSettings: { ...initialState.userSettings, fetched: true }, workspaceSection: 'mail' }),
+  resetAddress: () => appStore.setState({ jwt: '', addressPassword: '', settings: { ...initialState.settings, fetched: true } }),
+  resetUser: () => appStore.setState({ userJwt: '', userSettings: { ...initialState.userSettings, fetched: true } }),
 }
 
 export const useAppStore = <T,>(selector: (value: AppState) => T = ((value) => value as T)) => {

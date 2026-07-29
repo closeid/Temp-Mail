@@ -55,7 +55,7 @@ export function AddressBar({ manageContent, onManage }: { manageContent?: React.
     try {
       if (item.scope === 'user') { const result = await api.fetch<{ jwt: string }>(`/api/user/bind_address_jwt/${item.payload}`); appStore.setState({ jwt: result.jwt }) }
       else appStore.setState({ jwt: item.payload })
-      location.reload()
+      await api.getSettings()
     } catch (error) { toast.error(stringifyError(error)) }
   }
   const removeLocal = (jwt: string) => { if (jwt === state.jwt) return; writeCache(readCache().filter((item) => item !== jwt)); setCacheRevision((value) => value + 1) }

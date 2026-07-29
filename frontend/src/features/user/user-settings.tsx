@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { startRegistration } from '@simplewebauthn/browser'
 import { KeyRound, LogOut, Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 import { confirmAction } from '@/components/action-dialogs'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -12,17 +13,21 @@ import { SettingsLayout } from '@/components/layout/settings-layout'
 import { api } from '@/lib/api'
 import { appStore } from '@/lib/store'
 import { formatDate, stringifyError } from '@/lib/utils'
-import { useScopedI18n } from '@/i18n/react'
+import { useI18n, useScopedI18n } from '@/i18n/react'
+import { getPathWithLocale } from '@/i18n/utils'
+import { MAIL_ROUTES } from '@/app/routes'
 
 export function UserSettingsPage() {
   const { t } = useScopedI18n('views.user.UserSettings')
+  const { locale } = useI18n()
+  const navigate = useNavigate()
   const [createOpen, setCreateOpen] = useState(false), [renameOpen, setRenameOpen] = useState(false), [listOpen, setListOpen] = useState(false), [logoutOpen, setLogoutOpen] = useState(false)
   const [name, setName] = useState(''), [current, setCurrent] = useState<any>(null)
   const passkeys = useQuery({ queryKey: ['passkeys'], queryFn: () => api.fetch<any[]>('/api/user/passkey'), enabled: listOpen })
   const create = async () => { try { const options = await api.fetch<any>('/api/user/passkey/register_request', { method: 'POST', body: { domain: location.hostname } }); const credential = await startRegistration({ optionsJSON: options }); await api.fetch('/api/user/passkey/register_response', { method: 'POST', body: { origin: location.origin, passkey_name: name || `${navigator.platform || 'Unknown'}: ${Math.random().toString(36).slice(7)}`, credential } }); toast.success(t('passkeyCreated')); setName(''); setCreateOpen(false); if (listOpen) await passkeys.refetch() } catch (error) { toast.error(stringifyError(error)) } }
   const rename = async () => { try { await api.fetch('/api/user/passkey/rename', { method: 'POST', body: { passkey_name: name, passkey_id: current.passkey_id } }); await passkeys.refetch(); setRenameOpen(false); setName('') } catch (error) { toast.error(stringifyError(error)) } }
   const remove = async (id: string) => { if (!(await confirmAction({ title: t('deletePasskey'), destructive: true }))) return; try { await api.fetch(`/api/user/passkey/${id}`, { method: 'DELETE' }); await passkeys.refetch() } catch (error) { toast.error(stringifyError(error)) } }
-  const logout = () => { appStore.resetUser(); location.reload() }
+  const logout = () => { appStore.resetUser(); navigate(getPathWithLocale(MAIL_ROUTES.mailbox, locale)) }
   return <SettingsLayout><div className="grid gap-2"><Button className="justify-start" variant="secondary" onClick={() => { setListOpen(true); passkeys.refetch() }}><KeyRound />{t('showPasskeyList')}</Button><Button className="justify-start" variant="secondary" onClick={() => setCreateOpen(true)}><Plus />{t('createPasskey')}</Button><p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">{t('passordTip')}</p><Button className="justify-start" variant="secondary" onClick={() => setLogoutOpen(true)}><LogOut />{t('logout')}</Button></div>
     <Dialog open={createOpen} onOpenChange={setCreateOpen}><DialogContent><DialogHeader><DialogTitle>{t('createPasskey')}</DialogTitle></DialogHeader><Input value={name} placeholder={t('passkeyNamePlaceholder')} onChange={(event) => setName(event.target.value)} /><DialogFooter><Button onClick={create}><Plus />{t('createPasskey')}</Button></DialogFooter></DialogContent></Dialog>
     <Dialog open={renameOpen} onOpenChange={setRenameOpen}><DialogContent><DialogHeader><DialogTitle>{t('renamePasskey')}</DialogTitle></DialogHeader><Input value={name} placeholder={t('renamePasskeyNamePlaceholder')} onChange={(event) => setName(event.target.value)} /><DialogFooter><Button onClick={rename}><Pencil />{t('renamePasskey')}</Button></DialogFooter></DialogContent></Dialog>

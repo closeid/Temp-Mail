@@ -17,6 +17,7 @@ A temporary email service built on Cloudflare Workers, Email Routing, and D1. It
 - Optional Workers AI extraction, S3/R2 attachment storage, Telegram, and SMTP/IMAP proxy integration
 - Chinese, English, Japanese, German, Spanish, and Portuguese interfaces
 - Administration at `/dashboard`; all backend endpoints are under `/api/`
+- Explicit routes for authentication, mailbox, settings, and administration subpages, allowing direct bookmarks and refresh-safe deep links
 
 ## Architecture
 

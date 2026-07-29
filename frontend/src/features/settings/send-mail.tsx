@@ -22,7 +22,7 @@ const hasContent = (value: string, type: string) => {
   return Boolean(element.textContent?.trim() || element.querySelector('img,audio,video,iframe,svg,canvas,table'))
 }
 
-export function SendMailPage({ admin = false }: { admin?: boolean }) {
+export function SendMailPage({ admin = false, onSent }: { admin?: boolean; onSent?: () => void }) {
   const { t } = useScopedI18n(admin ? 'views.admin.SendMail' : 'views.index.SendMail')
   const { settings, model: storedModel, adminContact } = useAppStore((state) => ({ settings: state.settings, model: state.sendMailModel, adminContact: state.openSettings.adminContact }))
   const [model, setModel] = useState({ ...emptyModel, ...storedModel })
@@ -40,7 +40,7 @@ export function SendMailPage({ admin = false }: { admin?: boolean }) {
     setSending(true)
     try {
       await api.fetch(admin ? '/api/admin/send_mail' : '/api/send_mail', { method: 'POST', body: { from_name: model.fromName, from_mail: admin ? (model.fromMail || '') : undefined, to_name: model.toName, to_mail: to, subject, is_html: model.contentType !== 'text', content: model.content } })
-      setModel(emptyModel); setPreview(false); toast.success(t('successSend')); if (!admin) appStore.setState({ indexTab: 'sendbox' })
+      setModel(emptyModel); setPreview(false); toast.success(t('successSend')); if (!admin) onSent?.()
     } catch (error) { toast.error(stringifyError(error)) } finally { setSending(false) }
   }
   const requestAccess = async () => { try { await api.fetch('/api/request_send_mail_access', { method: 'POST', body: {} }); await api.getSettings(); toast.success(t('success')) } catch (error) { toast.error(stringifyError(error)) } }

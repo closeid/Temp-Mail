@@ -14,6 +14,7 @@ import { appStore, canShowAdmin, useAppStore } from '@/lib/store'
 import { hashPassword, stringifyError } from '@/lib/utils'
 import { useI18n, useScopedI18n } from '@/i18n/react'
 import { getPathWithLocale } from '@/i18n/utils'
+import { ADMIN_PAGE_ROUTES, ADMIN_SECTION_DEFAULTS, getAdminSection, type AdminPageKey, type AdminSectionKey } from '@/app/routes'
 import {
   AccountTable, AdminInbox, AdminMailWebhook, AdminSendMail, AdminSentBox, CreateAddressPage,
   DatabasePage, MaintenancePage, RoleAddressConfigPage, SenderAccessPage, StatisticsPage,
@@ -81,17 +82,18 @@ function AdminAccountPage() {
   const sessionT = useScopedI18n('ui.admin').t
   const state = useAppStore((value) => value)
   const method = state.adminAuth ? t('loginViaPassword') : state.userSettings.is_admin ? t('loginViaUserAdmin') : t('loginViaDisabledCheck')
-  const logout = () => { appStore.setState({ adminAuth: '', showAdminAuth: false, adminTab: 'account' }); navigate(getPathWithLocale('/', locale)) }
+  const logout = () => { appStore.setState({ adminAuth: '', showAdminAuth: false }); navigate(getPathWithLocale('/', locale)) }
   return <div className="h-full overflow-auto"><div className="mx-auto max-w-2xl p-5"><div className="flex items-center justify-between border-b border-border py-4"><div><p className="font-medium">{t('loginMethod')}</p><p className="mt-1 text-sm text-muted-foreground">{method}</p></div><ShieldCheck className="size-5 text-primary" /></div>{state.adminAuth && <div className="flex items-center justify-between py-4"><div><p className="font-medium">{sessionT('administratorSession')}</p><p className="mt-1 text-sm text-muted-foreground">{sessionT('administratorSessionDescription')}</p></div><Button variant="secondary" onClick={logout}><LogOut />{sessionT('signOut')}</Button></div>}</div></div>
 }
 
-export function AdminWorkspace() {
+export function AdminWorkspace({ page }: { page: AdminPageKey }) {
   const { t } = useScopedI18n('views.Admin')
+  const { locale } = useI18n()
   const sessionT = useScopedI18n('ui.admin').t
   const state = useAppStore((value) => value)
-  const primary = ['account', 'user', 'mails'].includes(state.adminTab) ? state.adminTab : 'maintenance'
-  const initialMaintenance = ['workerconfig', 'ipBlacklistSettings', 'database', 'maintenance', 'statistics', 'appearance', 'apiDocs'].includes(state.adminTab) ? state.adminTab : 'workerconfig'
-  const [secondary, setSecondary] = useState<Record<string, string>>({ account: 'account', user: 'user_management', mails: 'mails', maintenance: initialMaintenance })
+  const navigate = useNavigate()
+  const primary = getAdminSection(page)
+  const go = (target: AdminPageKey) => navigate(getPathWithLocale(ADMIN_PAGE_ROUTES[target], locale))
   const nav: WorkspaceNavItem[] = [
     { key: 'account', label: t('account'), icon: AtSign },
     { key: 'user', label: t('user'), icon: Users },
@@ -134,8 +136,8 @@ export function AdminWorkspace() {
     ],
   }
   const group = groups[primary]
-  const content = <SecondaryWorkspace items={group} value={secondary[primary] || group[0].key} onChange={(value) => setSecondary((current) => ({ ...current, [primary]: value }))} ariaLabel={primary === 'maintenance' ? t('configuration') : t(primary)} />
+  const content = <SecondaryWorkspace items={group} value={page} onChange={(value) => go(value as AdminPageKey)} ariaLabel={primary === 'maintenance' ? t('configuration') : t(primary)} />
   const method = state.adminAuth ? sessionT('administratorPassword') : state.userSettings.is_admin ? state.userSettings.user_email : sessionT('passwordCheckDisabled')
   if (!canShowAdmin(state) || state.showAdminAuth) return <AdminAuthDialog />
-  return <WorkspaceShell scope="admin" items={nav} active={primary} onSelect={(value) => appStore.setState({ adminTab: value })} topbar={<div className="flex h-full min-w-0 items-center gap-2 text-sm"><ShieldCheck className="size-4 shrink-0 text-primary" /><strong className="shrink-0">{t('loginMethod')}</strong><span className="truncate text-muted-foreground">{method}</span></div>}>{content}</WorkspaceShell>
+  return <WorkspaceShell scope="admin" items={nav} active={primary} onSelect={(value) => go(ADMIN_SECTION_DEFAULTS[value as AdminSectionKey])} topbar={<div className="flex h-full min-w-0 items-center gap-2 text-sm"><ShieldCheck className="size-4 shrink-0 text-primary" /><strong className="shrink-0">{t('loginMethod')}</strong><span className="truncate text-muted-foreground">{method}</span></div>}>{content}</WorkspaceShell>
 }

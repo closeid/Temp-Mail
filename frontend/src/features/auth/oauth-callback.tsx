@@ -8,6 +8,7 @@ import { appStore } from '@/lib/store'
 import { stringifyError } from '@/lib/utils'
 import { getPathWithLocale } from '@/i18n/utils'
 import { useScopedI18n } from '@/i18n/react'
+import { MAIL_ROUTES } from '@/app/routes'
 
 export function OauthCallback() {
   const { t, locale } = useScopedI18n('views.user.UserOauth2Callback')
@@ -22,8 +23,8 @@ export function OauthCallback() {
         const code = params.get('code')
         if (!code) throw new Error(t('codeNotFound'))
         const result = await api.fetch<{ jwt: string }>('/api/user/oauth2/callback', { method: 'POST', body: { code, clientID: appStore.getState().userOauth2SessionClientID } })
-        await api.activateUserSession(result.jwt)
-        navigate(getPathWithLocale('/', locale), { replace: true })
+        const hasMailbox = await api.activateUserSession(result.jwt)
+        navigate(getPathWithLocale(hasMailbox ? MAIL_ROUTES.mailbox : MAIL_ROUTES.addresses, locale), { replace: true })
       } catch (reason) { const message = stringifyError(reason); setError(message); toast.error(message) }
       finally { appStore.setState({ userOauth2SessionState: '', userOauth2SessionClientID: '' }) }
     }

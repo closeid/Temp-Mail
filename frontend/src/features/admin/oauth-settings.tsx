@@ -79,8 +79,8 @@ export function OAuthSettingsPage() {
   return <>
     <SettingsLayout title={adminT('oauthConfiguration')} description={t('tip')} action={<div className="flex gap-2"><Button variant="secondary" onClick={() => setAddOpen(true)}><Plus />{t('addOauth2')}</Button><Button disabled={save.isPending || query.isLoading} onClick={() => save.mutate()}><Save />{commonT('save')}</Button></div>} className="max-w-4xl">
       {query.isError && <p className="text-sm text-destructive">{stringifyError(query.error)}</p>}
-      {!query.isLoading && providers.length === 0 && <p className="border-y border-border py-8 text-center text-sm text-muted-foreground">{commonT('noData')}</p>}
-      <div className="divide-y divide-border border-y border-border">
+      {!query.isLoading && providers.length === 0 && <p className="rounded-md bg-muted/35 py-8 text-center text-sm text-muted-foreground">{commonT('noData')}</p>}
+      {providers.length > 0 && <div className="divide-y divide-border">
         {providers.map((provider, index) => {
           const iconLabel = splitSettingLabel(t('icon'))
           return <section key={`${provider.clientID}-${index}`}>
@@ -104,7 +104,7 @@ export function OAuthSettingsPage() {
             </div>}
           </section>
         })}
-      </div>
+      </div>}
     </SettingsLayout>
     <Dialog open={addOpen} onOpenChange={setAddOpen}><DialogContent><DialogHeader><DialogTitle>{t('addOauth2')}</DialogTitle></DialogHeader><Field label={t('name')}><Input autoFocus value={name} onChange={(event) => setName(event.target.value)} /></Field><Field label={t('oauth2Type')}><Select value={type} onValueChange={(value) => setType(value as ProviderType)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="github">GitHub</SelectItem><SelectItem value="linuxdo">Linux Do</SelectItem><SelectItem value="authentik">Authentik</SelectItem><SelectItem value="custom">{adminT('customProvider')}</SelectItem></SelectContent></Select></Field><DialogFooter><Button onClick={add}><Plus />{t('addOauth2')}</Button></DialogFooter></DialogContent></Dialog>
   </>

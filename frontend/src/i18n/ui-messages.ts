@@ -51,6 +51,8 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       clientId: 'Client ID', clientSecret: 'Client secret', authorizationUrl: 'Authorization URL', accessTokenUrl: 'Access token URL', userInfoUrl: 'User information URL', redirectUrl: 'Redirect URL', scope: 'Authorization scope', jsonRequest: 'JSON request body', formEncodedRequest: 'Form encoded',
       webhookDeliveryDisabled: 'ENABLE_WEBHOOK is disabled for this Worker. You can prepare and save the configuration, but webhooks will not be delivered until the variable is enabled.',
       webhookConfigurationUnavailable: 'Unable to load webhook configuration', webhookAccessDescription: 'Control which mailbox addresses may configure their own webhook. Configure the global mail webhook in the Emails section.',
+      addRoleLimit: 'Add role limit', roleNamePlaceholder: 'Role name', configuredWorkerRole: 'Defined by USER_ROLES', duplicateRole: 'Role names must be unique.', invalidRoleLimit: 'The address limit must be a non-negative integer.',
+      roleLimitHelp: 'Leave the limit empty to use the global user setting. Roles defined by USER_ROLES are kept in the list; additional entries take effect when a matching user role exists.',
     },
   } },
   zh: { ui: {
@@ -98,6 +100,8 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       clientId: '客户端 ID', clientSecret: '客户端密钥', authorizationUrl: '授权地址', accessTokenUrl: '访问令牌地址', userInfoUrl: '用户信息地址', redirectUrl: '回调地址', scope: '授权范围', jsonRequest: 'JSON 请求体', formEncodedRequest: '表单编码',
       webhookDeliveryDisabled: '当前 Worker 的 ENABLE_WEBHOOK 未开启。你可以先保存配置，但启用该变量前不会投递 Webhook。',
       webhookConfigurationUnavailable: '无法加载 Webhook 配置', webhookAccessDescription: '控制哪些邮箱地址可以配置自己的 Webhook；全局邮件 Webhook 在“邮件”分组中配置。',
+      addRoleLimit: '添加角色限额', roleNamePlaceholder: '角色名称', configuredWorkerRole: '由 USER_ROLES 定义', duplicateRole: '角色名称不能重复。', invalidRoleLimit: '地址限额必须是非负整数。',
+      roleLimitHelp: '限额留空时使用全局用户设置。USER_ROLES 中定义的角色会固定显示；额外条目会在存在同名用户角色时生效。',
     },
   } },
   es: { ui: {
@@ -145,6 +149,8 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       clientId: 'ID de cliente', clientSecret: 'Secreto del cliente', authorizationUrl: 'URL de autorización', accessTokenUrl: 'URL del token de acceso', userInfoUrl: 'URL de información del usuario', redirectUrl: 'URL de retorno', scope: 'Ámbito de autorización', jsonRequest: 'Cuerpo JSON', formEncodedRequest: 'Formulario codificado',
       webhookDeliveryDisabled: 'ENABLE_WEBHOOK está desactivado. Puedes guardar la configuración, pero no se entregarán webhooks hasta activarlo.',
       webhookConfigurationUnavailable: 'No se puede cargar la configuración de webhook', webhookAccessDescription: 'Controla qué buzones pueden configurar su webhook. Configura el webhook global en la sección Correos.',
+      addRoleLimit: 'Añadir límite de rol', roleNamePlaceholder: 'Nombre del rol', configuredWorkerRole: 'Definido por USER_ROLES', duplicateRole: 'Los nombres de rol deben ser únicos.', invalidRoleLimit: 'El límite debe ser un entero no negativo.',
+      roleLimitHelp: 'Deja el límite vacío para usar la configuración global. Los roles de USER_ROLES permanecen en la lista; las entradas adicionales se aplican cuando existe un rol con el mismo nombre.',
     },
   } },
   'pt-BR': { ui: {
@@ -192,6 +198,8 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       clientId: 'ID do cliente', clientSecret: 'Segredo do cliente', authorizationUrl: 'URL de autorização', accessTokenUrl: 'URL do token de acesso', userInfoUrl: 'URL de informações do usuário', redirectUrl: 'URL de retorno', scope: 'Escopo de autorização', jsonRequest: 'Corpo JSON', formEncodedRequest: 'Formulário codificado',
       webhookDeliveryDisabled: 'ENABLE_WEBHOOK está desativado. Você pode salvar a configuração, mas os webhooks não serão enviados até ativá-lo.',
       webhookConfigurationUnavailable: 'Não foi possível carregar a configuração do webhook', webhookAccessDescription: 'Controle quais caixas podem configurar seu webhook. Configure o webhook global na seção E-mails.',
+      addRoleLimit: 'Adicionar limite de função', roleNamePlaceholder: 'Nome da função', configuredWorkerRole: 'Definido por USER_ROLES', duplicateRole: 'Os nomes das funções devem ser exclusivos.', invalidRoleLimit: 'O limite deve ser um inteiro não negativo.',
+      roleLimitHelp: 'Deixe o limite vazio para usar a configuração global. As funções de USER_ROLES permanecem na lista; entradas adicionais valem quando existe uma função com o mesmo nome.',
     },
   } },
   ja: { ui: {
@@ -239,6 +247,8 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       clientId: 'クライアント ID', clientSecret: 'クライアントシークレット', authorizationUrl: '認可 URL', accessTokenUrl: 'アクセストークン URL', userInfoUrl: 'ユーザー情報 URL', redirectUrl: 'リダイレクト URL', scope: '認可スコープ', jsonRequest: 'JSON リクエスト', formEncodedRequest: 'フォームエンコード',
       webhookDeliveryDisabled: 'ENABLE_WEBHOOK は無効です。設定は保存できますが、有効にするまで Webhook は配信されません。',
       webhookConfigurationUnavailable: 'Webhook 設定を読み込めません', webhookAccessDescription: '独自 Webhook を設定できるメールボックスを制御します。全体 Webhook はメールセクションで設定します。',
+      addRoleLimit: 'ロール制限を追加', roleNamePlaceholder: 'ロール名', configuredWorkerRole: 'USER_ROLES で定義', duplicateRole: 'ロール名は重複できません。', invalidRoleLimit: 'アドレス上限は 0 以上の整数にしてください。',
+      roleLimitHelp: '上限を空欄にすると全体設定を使用します。USER_ROLES のロールは一覧に固定され、追加項目は同名のユーザーロールが存在するときに有効になります。',
     },
   } },
   de: { ui: {
@@ -286,6 +296,8 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       clientId: 'Client-ID', clientSecret: 'Client-Secret', authorizationUrl: 'Autorisierungs-URL', accessTokenUrl: 'Zugriffstoken-URL', userInfoUrl: 'Benutzerinfo-URL', redirectUrl: 'Weiterleitungs-URL', scope: 'Berechtigungsumfang', jsonRequest: 'JSON-Anfrage', formEncodedRequest: 'Formularkodiert',
       webhookDeliveryDisabled: 'ENABLE_WEBHOOK ist deaktiviert. Die Konfiguration kann gespeichert werden, Webhooks werden aber erst nach der Aktivierung zugestellt.',
       webhookConfigurationUnavailable: 'Webhook-Konfiguration kann nicht geladen werden', webhookAccessDescription: 'Steuert, welche Postfächer eigene Webhooks konfigurieren dürfen. Der globale Webhook wird im Bereich E-Mails konfiguriert.',
+      addRoleLimit: 'Rollenlimit hinzufügen', roleNamePlaceholder: 'Rollenname', configuredWorkerRole: 'Durch USER_ROLES definiert', duplicateRole: 'Rollennamen müssen eindeutig sein.', invalidRoleLimit: 'Das Adresslimit muss eine nicht negative Ganzzahl sein.',
+      roleLimitHelp: 'Bleibt das Limit leer, gilt die globale Einstellung. Rollen aus USER_ROLES bleiben in der Liste; zusätzliche Einträge gelten, sobald eine gleichnamige Benutzerrolle existiert.',
     },
   } },
 }

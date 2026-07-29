@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Copy, Database, MoreHorizontal, Plus, Save, Trash2, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { confirmAction, promptAction } from '@/components/action-dialogs'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -17,11 +18,13 @@ import { SendMailPage } from '@/features/settings/send-mail'
 import { WebhookSettings } from '@/features/settings/webhook-settings'
 import { SettingRow, SettingsLayout } from '@/components/layout/settings-layout'
 import { api } from '@/lib/api'
-import { appStore, useAppStore } from '@/lib/store'
+import { useAppStore } from '@/lib/store'
 import { copyText, hashPassword, stringifyError } from '@/lib/utils'
 import { DataTablePage } from './data-table-page'
 import { ObjectSettings } from './object-settings'
-import { useScopedI18n } from '@/i18n/react'
+import { useI18n, useScopedI18n } from '@/i18n/react'
+import { getPathWithLocale } from '@/i18n/utils'
+import { ADMIN_PAGE_ROUTES } from '@/app/routes'
 
 const run = async (action: () => Promise<any>, success?: string) => { try { await action(); if (success) toast.success(success); return true } catch (error) { toast.error(stringifyError(error)); return false } }
 
@@ -32,6 +35,8 @@ function Actions({ children }: { children: React.ReactNode }) {
 
 export function AccountTable() {
   const { t } = useScopedI18n('views.admin.Account')
+  const { locale } = useI18n()
+  const navigate = useNavigate()
   const commonT = useScopedI18n('ui.common').t
   const open = useAppStore((state) => state.openSettings)
   const [credential, setCredential] = useState<{ address: string; jwt: string } | null>(null)
@@ -46,8 +51,8 @@ export function AccountTable() {
   ]
   return <><DataTablePage endpoint="/api/admin/address" columns={columns} actions={(row, refetch) => <Actions>
     <DropdownMenuItem onSelect={async () => { const jwt = await api.adminShowAddressCredential(row.id); setCredential({ address: row.name, jwt }) }}>{t('showCredential')}</DropdownMenuItem>
-    <DropdownMenuItem onSelect={() => appStore.setState({ adminTab: 'mails', adminMailTabAddress: row.name })}>{t('viewMails')}</DropdownMenuItem>
-    <DropdownMenuItem onSelect={() => appStore.setState({ adminTab: 'mails', adminSendBoxTabAddress: row.name })}>{t('viewSendBox')}</DropdownMenuItem>
+    <DropdownMenuItem onSelect={() => navigate(`${getPathWithLocale(ADMIN_PAGE_ROUTES.mails, locale)}?address=${encodeURIComponent(row.name)}`)}>{t('viewMails')}</DropdownMenuItem>
+    <DropdownMenuItem onSelect={() => navigate(`${getPathWithLocale(ADMIN_PAGE_ROUTES.sendBox, locale)}?address=${encodeURIComponent(row.name)}`)}>{t('viewSendBox')}</DropdownMenuItem>
     <DropdownMenuSeparator />
     <DropdownMenuItem disabled={!row.mail_count} onSelect={async () => { if (await confirmAction({ title: t('clearInbox'), description: row.name, destructive: true }) && await run(() => api.fetch(`/api/admin/clear_inbox/${row.id}`, { method: 'DELETE' }))) await refetch() }}>{t('clearInbox')}</DropdownMenuItem>
     <DropdownMenuItem disabled={!row.send_count} onSelect={async () => { if (await confirmAction({ title: t('clearSentItems'), description: row.name, destructive: true }) && await run(() => api.fetch(`/api/admin/clear_sent_items/${row.id}`, { method: 'DELETE' }))) await refetch() }}>{t('clearSentItems')}</DropdownMenuItem>
@@ -126,14 +131,44 @@ export function RoleAddressConfigPage() {
   const { t } = useScopedI18n('views.admin.RoleAddressConfig')
   const commonT = useScopedI18n('ui.common').t
   const adminT = useScopedI18n('views.Admin').t
+  const sessionT = useScopedI18n('ui.admin').t
   const client = useQueryClient()
   const roles = useQuery({ queryKey: ['admin-user-roles'], queryFn: () => api.fetch<any[]>('/api/admin/user_roles') })
   const config = useQuery({ queryKey: ['admin-role-address'], queryFn: () => api.fetch<{ configs?: Record<string, { maxAddressCount?: number }> }>('/api/admin/role_address_config') })
-  const [values, setValues] = useState<Record<string, string>>({})
-  useEffect(() => { if (roles.data && config.data) setValues(Object.fromEntries(roles.data.map((item) => [item.role, String(config.data?.configs?.[item.role]?.maxAddressCount ?? '')]))) }, [config.data, roles.data])
-  const save = async () => { const configs = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== '').map(([role, value]) => [role, { maxAddressCount: Number(value) }])); if (await run(() => api.fetch('/api/admin/role_address_config', { method: 'POST', body: { configs } }))) await client.invalidateQueries({ queryKey: ['admin-role-address'] }) }
-  return <SettingsLayout title={adminT('roleAddressConfig')} description={t('roleConfigDesc')} action={<Button onClick={save}><Save />{commonT('save')}</Button>}>
-    {(roles.data || []).map((item) => <SettingRow key={item.role} label={item.role} description={t('maxAddressCount')} control={<Input className="sm:ml-auto sm:max-w-[180px]" type="number" min={0} placeholder={commonT('notConfigured')} value={values[item.role] || ''} onChange={(event) => setValues((current) => ({ ...current, [item.role]: event.target.value }))} />} />)}
+  const [rows, setRows] = useState<Array<{ id: string; role: string; maxAddressCount: string; fixed: boolean }>>([{ id: 'empty:0', role: '', maxAddressCount: '', fixed: false }])
+  useEffect(() => {
+    if (!roles.data || !config.data) return
+    const configs = config.data.configs || {}
+    const fixedRoles = (roles.data || []).map((item) => String(item.role || '').trim()).filter(Boolean)
+    const names = [...new Set([...fixedRoles, ...Object.keys(configs)])]
+    setRows((names.length ? names : ['']).map((role, index) => ({
+      id: role ? `role:${role}` : `empty:${index}`,
+      role,
+      maxAddressCount: role && configs[role]?.maxAddressCount != null ? String(configs[role].maxAddressCount) : '',
+      fixed: fixedRoles.includes(role),
+    })))
+  }, [config.data, roles.data])
+  const update = (id: string, patch: Partial<{ role: string; maxAddressCount: string }>) => setRows((current) => current.map((row) => row.id === id ? { ...row, ...patch } : row))
+  const add = () => setRows((current) => [...current, { id: `new:${Date.now()}:${current.length}`, role: '', maxAddressCount: '', fixed: false }])
+  const remove = (id: string) => setRows((current) => current.filter((row) => row.id !== id))
+  const save = async () => {
+    const configured = rows.map((row) => ({ role: row.role.trim(), value: row.maxAddressCount.trim() })).filter((row) => row.role || row.value)
+    if (configured.some((row) => !row.role)) return toast.error(sessionT('completeAllFields'))
+    if (new Set(configured.map((row) => row.role)).size !== configured.length) return toast.error(sessionT('duplicateRole'))
+    if (configured.some((row) => row.value && (!Number.isInteger(Number(row.value)) || Number(row.value) < 0))) return toast.error(sessionT('invalidRoleLimit'))
+    const configs = Object.fromEntries(configured.filter((row) => row.value !== '').map((row) => [row.role, { maxAddressCount: Number(row.value) }]))
+    if (await run(() => api.fetch('/api/admin/role_address_config', { method: 'POST', body: { configs } }), commonT('saved'))) await client.invalidateQueries({ queryKey: ['admin-role-address'] })
+  }
+  return <SettingsLayout title={adminT('roleAddressConfig')} description={t('roleConfigDesc')} action={<div className="flex shrink-0 gap-2"><Button variant="secondary" onClick={add}><Plus />{sessionT('addRoleLimit')}</Button><Button onClick={save}><Save />{commonT('save')}</Button></div>}>
+    {(roles.isLoading || config.isLoading) && <p className="py-8 text-center text-sm text-muted-foreground">{commonT('loading')}</p>}
+    {!roles.isLoading && !config.isLoading && <div className="grid gap-5">
+      {rows.map((row) => <div key={row.id} className="grid gap-3 border-b border-border pb-5 last:border-0 sm:grid-cols-[minmax(180px,1fr)_minmax(180px,1fr)_36px] sm:items-end">
+        <Field label={t('role')} description={row.fixed ? sessionT('configuredWorkerRole') : undefined}><Input disabled={row.fixed} placeholder={sessionT('roleNamePlaceholder')} value={row.role} onChange={(event) => update(row.id, { role: event.target.value })} /></Field>
+        <Field label={t('maxAddressCount')}><Input type="number" min={0} step={1} placeholder={commonT('notConfigured')} value={row.maxAddressCount} onChange={(event) => update(row.id, { maxAddressCount: event.target.value })} /></Field>
+        <Button className="mb-0.5" size="icon" variant="ghost" title={commonT('delete')} disabled={row.fixed} onClick={() => remove(row.id)}><Trash2 /></Button>
+      </div>)}
+      <p className="text-xs leading-5 text-muted-foreground">{sessionT('roleLimitHelp')}</p>
+    </div>}
   </SettingsLayout>
 }
 
@@ -146,12 +181,14 @@ export function TelegramAdminPage() {
 }
 
 export function AdminInbox({ unknown = false }: { unknown?: boolean }) {
-  const address = useAppStore((state) => state.adminMailTabAddress)
+  const [searchParams] = useSearchParams()
+  const address = searchParams.get('address') || ''
   return <Mailbox queryKey={['admin-inbox', unknown, address]} fetchMailData={(limit, offset) => api.fetch(`${unknown ? '/api/admin/mails_unknow' : '/api/admin/mails'}?limit=${limit}&offset=${offset}${!unknown && address ? `&address=${encodeURIComponent(address)}` : ''}`)} deleteMail={(id) => api.fetch(`/api/admin/mails/${id}`, { method: 'DELETE' })} canDelete showEmailTo showFilter />
 }
 
 export function AdminSentBox() {
-  const address = useAppStore((state) => state.adminSendBoxTabAddress)
+  const [searchParams] = useSearchParams()
+  const address = searchParams.get('address') || ''
   return <SentBox queryKey={['admin-sent', address]} fetchMailData={(limit, offset) => api.fetch(`/api/admin/sendbox?limit=${limit}&offset=${offset}${address ? `&address=${encodeURIComponent(address)}` : ''}`)} deleteMail={(id) => api.fetch(`/api/admin/sendbox/${id}`, { method: 'DELETE' })} canDelete showEmailFrom />
 }
 

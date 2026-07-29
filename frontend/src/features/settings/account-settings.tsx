@@ -13,6 +13,7 @@ import { appStore, useAppStore } from '@/lib/store'
 import { hashPassword, stringifyError } from '@/lib/utils'
 import { useScopedI18n } from '@/i18n/react'
 import { getPathWithLocale } from '@/i18n/utils'
+import { AUTH_ROUTES, MAIL_ROUTES } from '@/app/routes'
 
 export function AddressAccountSettings() {
   const { t, locale } = useScopedI18n('views.index.AccountSettings')
@@ -29,7 +30,7 @@ export function AddressAccountSettings() {
       if (confirmAction === 'inbox') await api.fetch('/api/clear_inbox', { method: 'DELETE' })
       if (confirmAction === 'sent') await api.fetch('/api/clear_sent_items', { method: 'DELETE' })
       toast.success(t('success')); setConfirmAction(null)
-      if (confirmAction === 'logout' || confirmAction === 'delete') navigate(getPathWithLocale('/', locale))
+      if (confirmAction === 'logout' || confirmAction === 'delete') navigate(getPathWithLocale(appStore.getState().userSettings.user_email ? MAIL_ROUTES.addresses : AUTH_ROUTES.login, locale))
     } catch (error) { toast.error(stringifyError(error)) }
   }
   const changePassword = async () => {

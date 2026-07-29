@@ -29,9 +29,10 @@ type Props = {
   showSaveS3?: boolean
   saveToS3?: (id: number | string, filename: string, blob: Blob) => Promise<any>
   showFilter?: boolean
+  onCompose?: () => void
 }
 
-export function Mailbox({ queryKey, fetchMailData, deleteMail, canDelete, showEmailTo = true, showReply, showSaveS3, saveToS3, showFilter }: Props) {
+export function Mailbox({ queryKey, fetchMailData, deleteMail, canDelete, showEmailTo = true, showReply, showSaveS3, saveToS3, showFilter, onCompose }: Props) {
   const { t } = useScopedI18n('components.MailBox')
   const commonT = useScopedI18n('ui.common').t
   const state = useAppStore((value) => ({ autoRefresh: value.autoRefresh, interval: value.configAutoRefreshInterval, useUTC: value.useUTCDate, split: value.mailboxSplitSize, wideList: value.mailListView, preview: value.mailListPreviewLineClamp }))
@@ -59,8 +60,8 @@ export function Mailbox({ queryKey, fetchMailData, deleteMail, canDelete, showEm
   const removeOne = async () => { if (!selectedMail || !deleteMail) return; try { await deleteMail(selectedMail.id); setSelectedMail(null); await query.refetch(); toast.success(t('success')) } catch (error) { toast.error(stringifyError(error)) } }
   const removeSelected = async () => { if (!deleteMail || !checked.size) return toast.error(t('pleaseSelectMail')); if (!(await confirmAction({ title: t('delete'), description: t('deleteMailTip'), destructive: true }))) return; try { for (const item of data.filter((mail) => checked.has(String(mail.id)))) await deleteMail(item.id); setChecked(new Set()); await query.refetch(); toast.success(t('success')) } catch (error) { toast.error(stringifyError(error)) } }
   const downloadSelected = async () => { if (!checked.size) return toast.error(t('pleaseSelectMail')); const zip = new JSZip(); data.filter((mail) => checked.has(String(mail.id))).forEach((mail) => zip.file(`${mail.id}.eml`, mail.raw || '')); downloadBlob(await zip.generateAsync({ type: 'blob' }), `mails-${new Date().toISOString().replaceAll(':', '-')}.zip`) }
-  const reply = () => { if (!selectedMail) return; appStore.setState((current) => ({ sendMailModel: { ...current.sendMailModel, ...buildReplyModel(selectedMail, t('reply')) }, indexTab: 'sendmail' })) }
-  const forward = () => { if (!selectedMail) return; appStore.setState((current) => ({ sendMailModel: { ...current.sendMailModel, ...buildForwardModel(selectedMail, t('forwardMail')) }, indexTab: 'sendmail' })) }
+  const reply = () => { if (!selectedMail) return; appStore.setState((current) => ({ sendMailModel: { ...current.sendMailModel, ...buildReplyModel(selectedMail, t('reply')) } })); onCompose?.() }
+  const forward = () => { if (!selectedMail) return; appStore.setState((current) => ({ sendMailModel: { ...current.sendMailModel, ...buildForwardModel(selectedMail, t('forwardMail')) } })); onCompose?.() }
 
   const toolbar = <div className="flex min-h-12 flex-wrap items-center gap-2 border-b border-border px-3 py-1.5">
     {multi ? <><Button variant="ghost" onClick={() => { setMulti(false); setChecked(new Set()) }}>{t('cancelMultiAction')}</Button><Button variant="ghost" onClick={() => setChecked(new Set(data.map((item) => String(item.id))))}>{t('selectAll')}</Button><Button variant="ghost" onClick={() => setChecked(new Set())}>{t('unselectAll')}</Button>{canDelete && <Button variant="ghost" className="text-destructive" onClick={removeSelected}><Trash2 />{t('delete')}</Button>}<Button variant="ghost" onClick={downloadSelected}><Download />{t('downloadMail')}</Button></> : <>
