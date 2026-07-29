@@ -103,6 +103,9 @@ export type AppState = {
 const local = typeof window === 'undefined' ? null : window.localStorage
 const session = typeof window === 'undefined' ? null : window.sessionStorage
 
+// Admin credentials are intentionally memory-only to limit exposure after a browser restart.
+local?.removeItem('adminAuth')
+
 const readString = (storage: Storage | null, key: string, fallback = '') => storage?.getItem(key) ?? fallback
 const readBoolean = (storage: Storage | null, key: string, fallback: boolean) => {
   const value = storage?.getItem(key)
@@ -133,7 +136,7 @@ const openSettingsDefaults: OpenSettings = {
 const initialState: AppState = {
   loading: 0,
   isDark: readString(local, 'vueuse-color-scheme', '') === 'dark' || (!local?.getItem('vueuse-color-scheme') && typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches)),
-  auth: readString(local, 'auth'), adminAuth: readString(local, 'adminAuth'), jwt: readString(local, 'jwt'),
+  auth: readString(local, 'auth'), adminAuth: '', jwt: readString(local, 'jwt'),
   userJwt: readString(local, 'userJwt'), addressPassword: readString(session, 'addressPassword'),
   preferredLocale: readString(local, 'preferredLocale'), indexTab: readString(session, 'indexTab', 'mailbox'),
   userTab: readString(session, 'userTab', 'address_management'), adminTab: readString(session, 'adminTab', 'account'),
@@ -159,7 +162,7 @@ const initialState: AppState = {
 }
 
 const persistence: Partial<Record<keyof AppState, [Storage | null, string, 'string' | 'json']>> = {
-  isDark: [local, 'vueuse-color-scheme', 'string'], auth: [local, 'auth', 'string'], adminAuth: [local, 'adminAuth', 'string'],
+  isDark: [local, 'vueuse-color-scheme', 'string'], auth: [local, 'auth', 'string'],
   jwt: [local, 'jwt', 'string'], userJwt: [local, 'userJwt', 'string'], addressPassword: [session, 'addressPassword', 'string'],
   preferredLocale: [local, 'preferredLocale', 'string'], indexTab: [session, 'indexTab', 'string'], userTab: [session, 'userTab', 'string'],
   adminTab: [session, 'adminTab', 'string'], workspaceSection: [session, 'workspaceSection', 'string'],

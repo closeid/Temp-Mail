@@ -11,6 +11,7 @@ import { appStore, useAppStore } from '@/lib/store'
 import { copyText, stringifyError } from '@/lib/utils'
 import { useScopedI18n } from '@/i18n/react'
 import { AddressLogin } from '@/features/auth/address-login'
+import { useBoundAddresses } from '@/features/address/use-bound-addresses'
 
 type AddressOption = { key: string; scope: 'local' | 'user' | 'tg'; payload: string; address: string; label: string }
 
@@ -36,14 +37,14 @@ export function AddressBar({ manageContent, onManage }: { manageContent?: React.
     const cache = readCache()
     if (!cache.includes(state.jwt)) { cache.push(state.jwt); writeCache(cache); setCacheRevision((value) => value + 1) }
   }, [state.jwt])
-  const userAddresses = useQuery({ queryKey: ['bound-addresses', state.userJwt], enabled: Boolean(state.userJwt), queryFn: () => api.fetch<{ results: any[] }>('/api/user/bind_address') })
+  const userAddresses = useBoundAddresses()
   const telegramAddresses = useQuery({ queryKey: ['telegram-bound-addresses', state.telegramInitData], enabled: state.isTelegram, queryFn: () => api.fetch<any[]>('/api/telegram/get_bind_address', { method: 'POST', body: { initData: state.telegramInitData } }) })
   const localOptions = useMemo<AddressOption[]>(() => readCache().map((jwt): AddressOption => ({ key: `local:${jwt}`, scope: 'local', payload: jwt, address: parseJwtAddress(jwt), label: parseJwtAddress(jwt) })).filter((item) => item.address), [cacheRevision, state.jwt])
   const userOptions = useMemo<AddressOption[]>(() => (userAddresses.data?.results || []).map((item): AddressOption => ({ key: `user:${item.id}`, scope: 'user', payload: String(item.id), address: item.address || item.name, label: item.address || item.name })), [userAddresses.data?.results])
   const telegramOptions = useMemo<AddressOption[]>(() => (telegramAddresses.data || []).map((item): AddressOption => ({ key: `tg:${item.address}`, scope: 'tg', payload: item.jwt, address: item.address, label: item.address })), [telegramAddresses.data])
   const remoteOptions = [...userOptions, ...telegramOptions.filter((item) => !userOptions.some((userItem) => userItem.address === item.address))]
-  const options = [...remoteOptions, ...localOptions.filter((localItem) => !remoteOptions.some((item) => item.address === localItem.address))]
-  if (state.settings.address && !options.some((item) => item.address === state.settings.address)) {
+  const options = state.userJwt ? remoteOptions : [...remoteOptions, ...localOptions.filter((localItem) => !remoteOptions.some((item) => item.address === localItem.address))]
+  if (!state.userJwt && state.settings.address && !options.some((item) => item.address === state.settings.address)) {
     options.unshift({ key: `local:current:${state.settings.address}`, scope: 'local', payload: state.jwt, address: state.settings.address, label: state.settings.address })
   }
   const current = options.find((item) => item.address === state.settings.address)?.key

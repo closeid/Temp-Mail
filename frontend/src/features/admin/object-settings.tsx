@@ -55,26 +55,59 @@ const SETTING_KEYS: Record<string, string> = {
   customSqlCleanupList: 'views.admin.Maintenance.customSqlCleanup',
 }
 
+const IP_BLACKLIST_SETTING_KEYS: Record<string, string> = {
+  enabled: 'enable_ip_blacklist', blacklist: 'ip_blacklist', asnBlacklist: 'asn_blacklist',
+  fingerprintBlacklist: 'fingerprint_blacklist', enableWhitelist: 'enable_ip_whitelist',
+  whitelist: 'ip_whitelist', enableDailyLimit: 'enable_daily_limit', dailyRequestLimit: 'daily_request_limit',
+}
+
+const IP_BLACKLIST_DESCRIPTION_KEYS: Record<string, string> = {
+  enabled: 'enable_tip', blacklist: 'tip_ip', asnBlacklist: 'tip_asn',
+  fingerprintBlacklist: 'tip_fingerprint', enableWhitelist: 'enable_whitelist_tip',
+  whitelist: 'tip_whitelist', enableDailyLimit: 'enable_daily_limit_tip', dailyRequestLimit: 'tip_daily_limit',
+}
+
+const TELEGRAM_SETTING_KEYS: Record<string, string> = {
+  enableAllowList: 'enableTelegramAllowList', allowList: 'telegramAllowList', miniAppUrl: 'miniAppUrl',
+  enableGlobalMailPush: 'enableGlobalMailPush', globalMailPushList: 'globalMailPushList',
+}
+
+const namespacedKey = (namespace: string, keys: Record<string, string>, name: string) => keys[name] ? `${namespace}.${keys[name]}` : undefined
+
 const endpointSettingKey = (endpoint: string, name: string) => {
-  if (endpoint.includes('ip_blacklist')) return ({
-    enabled: 'enable_ip_blacklist', blacklist: 'ip_blacklist', asnBlacklist: 'asn_blacklist',
-    fingerprintBlacklist: 'fingerprint_blacklist', enableWhitelist: 'enable_ip_whitelist',
-    whitelist: 'ip_whitelist', enableDailyLimit: 'enable_daily_limit', dailyRequestLimit: 'daily_request_limit',
-  } as Record<string, string>)[name] ? `views.admin.IpBlacklistSettings.${({ enabled: 'enable_ip_blacklist', blacklist: 'ip_blacklist', asnBlacklist: 'asn_blacklist', fingerprintBlacklist: 'fingerprint_blacklist', enableWhitelist: 'enable_ip_whitelist', whitelist: 'ip_whitelist', enableDailyLimit: 'enable_daily_limit', dailyRequestLimit: 'daily_request_limit' } as Record<string, string>)[name]}` : undefined
+  if (endpoint.includes('ip_blacklist')) return namespacedKey('views.admin.IpBlacklistSettings', IP_BLACKLIST_SETTING_KEYS, name)
   if (endpoint.includes('ai_extract')) return name === 'enableAllowList' ? 'views.admin.AiExtractSettings.enableAllowList' : name === 'allowList' ? 'views.admin.AiExtractSettings.allowList' : undefined
   if (endpoint.includes('/webhook/')) return name === 'enableAllowList' ? 'views.admin.Webhook.enableAllowList' : name === 'allowList' ? 'views.admin.Webhook.webhookAllowList' : undefined
-  if (endpoint.includes('/telegram/')) return ({ enableAllowList: 'enableTelegramAllowList', allowList: 'telegramAllowList', miniAppUrl: 'miniAppUrl', enableGlobalMailPush: 'enableGlobalMailPush', globalMailPushList: 'globalMailPushList' } as Record<string, string>)[name] ? `views.admin.Telegram.${({ enableAllowList: 'enableTelegramAllowList', allowList: 'telegramAllowList', miniAppUrl: 'miniAppUrl', enableGlobalMailPush: 'enableGlobalMailPush', globalMailPushList: 'globalMailPushList' } as Record<string, string>)[name]}` : undefined
+  if (endpoint.includes('/telegram/')) return namespacedKey('views.admin.Telegram', TELEGRAM_SETTING_KEYS, name)
   return SETTING_KEYS[name]
 }
 
 const endpointDescriptionKey = (endpoint: string, name: string) => {
-  if (endpoint.includes('ip_blacklist')) return ({
-    enabled: 'enable_tip', blacklist: 'tip_ip', asnBlacklist: 'tip_asn',
-    fingerprintBlacklist: 'tip_fingerprint', enableWhitelist: 'enable_whitelist_tip',
-    whitelist: 'tip_whitelist', enableDailyLimit: 'enable_daily_limit_tip', dailyRequestLimit: 'tip_daily_limit',
-  } as Record<string, string>)[name] ? `views.admin.IpBlacklistSettings.${({ enabled: 'enable_tip', blacklist: 'tip_ip', asnBlacklist: 'tip_asn', fingerprintBlacklist: 'tip_fingerprint', enableWhitelist: 'enable_whitelist_tip', whitelist: 'tip_whitelist', enableDailyLimit: 'enable_daily_limit_tip', dailyRequestLimit: 'tip_daily_limit' } as Record<string, string>)[name]}` : undefined
+  if (endpoint.includes('ip_blacklist')) return namespacedKey('views.admin.IpBlacklistSettings', IP_BLACKLIST_DESCRIPTION_KEYS, name)
+  if (/^clean.*Days$/.test(name)) return 'views.admin.Maintenance.tip'
   if (name === 'subdomainMatchMode') return 'views.admin.AccountSettings.create_address_subdomain_match_tip'
   if (name === 'sendMailLimitConfig') return 'views.admin.AccountSettings.send_mail_limit_tip'
+  return undefined
+}
+
+const placeholderFor = (endpoint: string, name: string, t: Translate) => {
+  if (endpoint.includes('ip_blacklist')) {
+    const key = ({
+      blacklist: 'ip_blacklist_placeholder',
+      asnBlacklist: 'asn_blacklist_placeholder',
+      fingerprintBlacklist: 'fingerprint_blacklist_placeholder',
+      whitelist: 'ip_whitelist_placeholder',
+      dailyRequestLimit: 'daily_request_limit_placeholder',
+    } as Record<string, string>)[name]
+    return key ? t(`views.admin.IpBlacklistSettings.${key}`) : undefined
+  }
+  if (endpoint.includes('account_settings')) return ({
+    blockList: 'admin\nsupport',
+    sendBlockList: 'blocked@example.com\nexample.org',
+    verifiedAddressList: 'notify@example.com',
+    fromBlockList: 'spam@example.com\nmarketing',
+    noLimitSendAddressList: 'service@example.com',
+  } as Record<string, string>)[name]
   return undefined
 }
 
@@ -90,28 +123,28 @@ function JsonEditor({ value, onChange, t }: { value: unknown; onChange: (value: 
   }} />{!valid && <span className="text-xs text-destructive">{t('ui.common.invalidJson')}</span>}</div>
 }
 
-function SettingControl({ name, value, onChange, labelFor, descriptionFor, t }: { name: string; value: any; onChange: (value: any) => void; labelFor: (name: string) => string; descriptionFor: (name: string) => string | undefined; t: Translate }) {
+function SettingControl({ name, value, onChange, labelFor, descriptionFor, placeholderFor: getPlaceholder, t }: { name: string; value: any; onChange: (value: any) => void; labelFor: (name: string) => string; descriptionFor: (name: string) => string | undefined; placeholderFor: (name: string) => string | undefined; t: Translate }) {
   if (typeof value === 'boolean') return <Switch checked={value} onCheckedChange={onChange} />
   if (typeof value === 'number') return <Input className="max-w-56" type="number" value={value} onChange={(event) => onChange(Number(event.target.value))} />
   if (name === 'subdomainMatchMode') return <Select value={String(value || 'inherit')} onValueChange={onChange}><SelectTrigger className="max-w-56"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="inherit">{t('ui.common.inherit')}</SelectItem><SelectItem value="enabled">{t('ui.common.enabled')}</SelectItem><SelectItem value="disabled">{t('ui.common.disabled')}</SelectItem></SelectContent></Select>
   if (Array.isArray(value)) {
     const complex = value.some((item) => typeof item === 'object' && item !== null) || /forwarding|customSql|oauth/i.test(name)
     if (complex) return <JsonEditor value={value} onChange={onChange} t={t} />
-    return <Textarea className="min-h-28 font-mono text-xs" value={value.join('\n')} onChange={(event) => onChange(event.target.value.split('\n').map((item) => item.trim()).filter(Boolean))} />
+    return <Textarea className="min-h-28 font-mono text-xs" placeholder={getPlaceholder(name)} value={value.join('\n')} onChange={(event) => onChange(event.target.value.split('\n').map((item) => item.trim()).filter(Boolean))} />
   }
-  if (value && typeof value === 'object') return <div className="grid gap-0 border-l border-border pl-4">{Object.entries(value).map(([child, childValue]) => <SettingRow key={child} name={child} value={childValue} onChange={(next) => onChange({ ...value, [child]: next })} labelFor={labelFor} descriptionFor={descriptionFor} t={t} />)}</div>
+  if (value && typeof value === 'object') return <div className="grid gap-0 border-l border-border pl-4">{Object.entries(value).map(([child, childValue]) => <SettingRow key={child} name={child} value={childValue} onChange={(next) => onChange({ ...value, [child]: next })} labelFor={labelFor} descriptionFor={descriptionFor} placeholderFor={getPlaceholder} t={t} />)}</div>
   const text = value == null ? '' : String(value)
   if (/sql|template|content|description|announcement|html|json/i.test(name) || text.length > 100) return <Textarea className="min-h-24 font-mono text-xs" value={text} onChange={(event) => onChange(event.target.value)} />
   return <Input value={text} onChange={(event) => onChange(event.target.value)} />
 }
 
-function SettingRow({ name, value, onChange, labelFor, descriptionFor, t }: { name: string; value: any; onChange: (value: any) => void; labelFor: (name: string) => string; descriptionFor: (name: string) => string | undefined; t: Translate }) {
+function SettingRow({ name, value, onChange, labelFor, descriptionFor, placeholderFor: getPlaceholder, t }: { name: string; value: any; onChange: (value: any) => void; labelFor: (name: string) => string; descriptionFor: (name: string) => string | undefined; placeholderFor: (name: string) => string | undefined; t: Translate }) {
   const nested = value && typeof value === 'object' && !Array.isArray(value)
   const content = splitSettingLabel(labelFor(name))
   const description = descriptionFor(name) || content.description
   return <div className={nested ? 'py-3' : 'grid gap-3 border-b border-border py-3 sm:grid-cols-[minmax(180px,0.42fr)_minmax(0,1fr)] sm:items-center'}>
     <div><label className="text-sm font-medium text-foreground">{content.label}</label>{description && <p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p>}</div>
-    <SettingControl name={name} value={value} onChange={onChange} labelFor={labelFor} descriptionFor={descriptionFor} t={t} />
+    <SettingControl name={name} value={value} onChange={onChange} labelFor={labelFor} descriptionFor={descriptionFor} placeholderFor={getPlaceholder} t={t} />
   </div>
 }
 
@@ -142,11 +175,12 @@ export function ObjectSettings({ endpoint, title, description, transformLoad, tr
     const key = endpointDescriptionKey(endpoint, name)
     return key ? t(key) : undefined
   }
+  const fieldPlaceholder = (name: string) => placeholderFor(endpoint, name, t)
   return <section className="h-full overflow-auto">
     <header className="sticky top-0 z-10 flex min-h-12 items-center justify-between gap-3 border-b border-border bg-background px-4 py-2">
       <div className="min-w-0">{title && <h1 className="truncate text-sm font-semibold">{title}</h1>}{description && <p className="truncate text-xs text-muted-foreground">{description}</p>}</div>
       <div className="flex shrink-0 gap-2">{extraActions}<Button variant="secondary" size="icon" title={commonT('refresh')} onClick={() => query.refetch()}><RefreshCw className={query.isFetching ? 'animate-spin' : ''} /></Button><Button onClick={() => save.mutate()} disabled={save.isPending || query.isLoading}><Save />{commonT('save')}</Button></div>
     </header>
-    <div className="mx-auto w-full max-w-4xl px-4 pb-10">{query.isLoading ? <div className="py-8 text-sm text-muted-foreground">{commonT('loading')}</div> : query.isError ? <div className="py-8 text-sm text-destructive">{stringifyError(query.error)}</div> : Array.isArray(model) ? <div className="py-4"><JsonEditor value={model} onChange={setModel} t={t} /></div> : Object.entries(model).map(([name, value]) => <SettingRow key={name} name={name} value={value} onChange={(next) => setModel((current: Record<string, any>) => ({ ...current, [name]: next }))} labelFor={labelFor} descriptionFor={descriptionFor} t={t} />)}</div>
+    <div className="mx-auto w-full max-w-4xl px-4 pb-10">{query.isLoading ? <div className="py-8 text-sm text-muted-foreground">{commonT('loading')}</div> : query.isError ? <div className="py-8 text-sm text-destructive">{stringifyError(query.error)}</div> : Array.isArray(model) ? <div className="py-4"><JsonEditor value={model} onChange={setModel} t={t} /></div> : Object.entries(model).map(([name, value]) => <SettingRow key={name} name={name} value={value} onChange={(next) => setModel((current: Record<string, any>) => ({ ...current, [name]: next }))} labelFor={labelFor} descriptionFor={descriptionFor} placeholderFor={fieldPlaceholder} t={t} />)}</div>
   </section>
 }

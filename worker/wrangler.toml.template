@@ -43,6 +43,8 @@ PREFIX = "tmp"
 # PASSWORDS = ["123", "456"]
 # For admin panel
 # ADMIN_PASSWORDS = ["123", "456"]
+# Optional admin username for password login. Defaults to "admin".
+# ADMIN_USERNAME = "admin"
 # warning: no password or user check for admin portal
 # DISABLE_ADMIN_PASSWORD_CHECK = false
 # ADMIN CONTACT, CAN BE ANY STRING

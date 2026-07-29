@@ -27,6 +27,10 @@
 
 ### Improvements
 
+- fix: |Administration| Remove the redundant icon from the address-credential action; align the address name, `@` separator, and domain select at 40px; reuse one bound-address query for the address bar and Address Management and invalidate it after binding so signed-in users do not see unbound local-cache addresses
+- fix: |Administration| Change password login to username plus password (the username defaults to `admin` and can be overridden with `ADMIN_USERNAME`), do not render administration content before authentication, provide complete safe defaults for first-use automatic cleanup, and add example placeholders for IP blacklist and address-rule text fields
+- security: |Frontend/Worker| Stop persisting the administrator password in browser local storage, scope authentication headers by API type, hide internal Worker error text, validate IP/ASN/browser-fingerprint rules, construct OAuth2 authorization URLs structurally, validate webhook protocol/target/method/headers/payload while blocking private-network targets, and apply the existing rate limiter to password login endpoints
+- docs: |Configuration| Document `ADMIN_USERNAME` in the Worker template, READMEs, and Chinese/English variable references
 - fix: |Frontend| Complete six-language translation for the Create Email “Email address” field so it no longer falls back to `address`; align the mailbox-name input, `@` separator, and domain select at 40px
 - fix: |Frontend| After password, passkey, or OAuth2 user sign-in, automatically select the first bound address and open its inbox; users without a bound address still fall back to Address Management
 - fix: |Frontend| Keep Switch, Transfer, and Unbind address actions on one row on desktop and mobile, using the table's horizontal overflow on narrow screens; rebuild fullscreen mail as a fixed subject/sender/recipient header with an independently scrolling body, fixing the full-height dialog that pushed content into the lower half of the viewport

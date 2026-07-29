@@ -28,16 +28,24 @@ export async function apiFetch<T = any>(path: string, options: ApiOptions = {}):
       'Content-Type': 'application/json',
       ...options.headers,
     }
+    const isOpenEndpoint = path.startsWith('/api/open/')
+    const isTelegramEndpoint = path.startsWith('/api/telegram/')
+    const isUserEndpoint = path.startsWith('/api/user/')
+    const isAdminEndpoint = path.startsWith('/api/admin/')
+    const isExternalEndpoint = path.startsWith('/api/external/')
+    const isPublicUserEndpoint = ['/api/user/open_settings', '/api/user/register', '/api/user/login', '/api/user/verify_code'].some((endpoint) => path.startsWith(endpoint)) || path.startsWith('/api/user/passkey/authenticate_') || path.startsWith('/api/user/oauth2')
+    const isPublicMailboxEndpoint = path === '/api/address_login' || path === '/api/new_address'
+    const needsAddressCredential = !isOpenEndpoint && !isTelegramEndpoint && !isAdminEndpoint && !isExternalEndpoint && !isPublicMailboxEndpoint && (!isUserEndpoint || path === '/api/user/bind_address')
     const userToken = safeHeaderValue(options.userJwt || state.userJwt)
     const userAccess = safeHeaderValue(state.userSettings.access_token)
     const customAuth = safeHeaderValue(state.auth)
     const adminAuth = safeHeaderValue(state.adminAuth)
     const authorization = safeBearerHeader(options.addressJwt ?? state.jwt)
-    if (userToken) headers['x-user-token'] = userToken
-    if (userAccess) headers['x-user-access-token'] = userAccess
-    if (customAuth) headers['x-custom-auth'] = customAuth
-    if (adminAuth) headers['x-admin-auth'] = adminAuth
-    if (authorization) headers.Authorization = authorization
+    if (isUserEndpoint && !isPublicUserEndpoint && userToken) headers['x-user-token'] = userToken
+    if (isAdminEndpoint && userAccess) headers['x-user-access-token'] = userAccess
+    if (!isOpenEndpoint && !isTelegramEndpoint && customAuth) headers['x-custom-auth'] = customAuth
+    if (isAdminEndpoint && adminAuth) headers['x-admin-auth'] = adminAuth
+    if (needsAddressCredential && authorization) headers.Authorization = authorization
 
     const response = await instance.request<T>({
       url: path,

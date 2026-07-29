@@ -4,6 +4,25 @@ import { getJsonSetting, saveSetting } from "../utils";
 import { IpBlacklistSettings } from "../ip_blacklist";
 import i18n from "../i18n";
 
+const MAX_BLACKLIST_SIZE = 1000;
+const MAX_PATTERN_LENGTH = 200;
+
+const sanitizePatternList = (patterns: unknown[], field: string): { values?: string[]; error?: string } => {
+    const values: string[] = [];
+    for (const pattern of patterns) {
+        if (typeof pattern !== 'string') return { error: `${field} element must be a string` };
+        const value = pattern.trim();
+        if (!value) continue;
+        if (value.length > MAX_PATTERN_LENGTH) return { error: `${field} pattern exceeds ${MAX_PATTERN_LENGTH} characters` };
+        // eslint-disable-next-line no-useless-escape
+        if (/[\^$.*+?\[\]{}()|\\]/.test(value)) {
+            try { new RegExp(value); } catch { return { error: `${field} invalid regex: ${value}` } }
+        }
+        values.push(value);
+    }
+    return { values };
+};
+
 /**
  * Get IP blacklist settings from database
  */
@@ -71,7 +90,6 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
     }
 
     // Add size limit
-    const MAX_BLACKLIST_SIZE = 1000;
     if (settings.blacklist.length > MAX_BLACKLIST_SIZE) {
         return c.text(`${msgs.BlacklistExceedsMaxSizeMsg}: blacklist (${MAX_BLACKLIST_SIZE})`, 400);
     }
@@ -88,44 +106,20 @@ async function saveIpBlacklistSettings(c: Context<HonoCustomType>): Promise<Resp
         return c.text(`${msgs.BlacklistExceedsMaxSizeMsg}: whitelist (${settings.whitelist.length}/${MAX_BLACKLIST_SIZE})`, 400);
     }
 
-    // Sanitize patterns (trim and remove empty strings)
-    // Both regex and plain strings are allowed
-    const sanitizedBlacklist = settings.blacklist
-        .map(pattern => pattern.trim())
-        .filter(pattern => pattern.length > 0);
-
-    const sanitizedAsnBlacklist = settings.asnBlacklist
-        .map(pattern => pattern.trim())
-        .filter(pattern => pattern.length > 0);
-
-    const sanitizedFingerprintBlacklist = settings.fingerprintBlacklist
-        .map(pattern => pattern.trim())
-        .filter(pattern => pattern.length > 0);
-
-    const sanitizedWhitelist: string[] = [];
-    for (const pattern of settings.whitelist) {
-        if (typeof pattern !== 'string') {
-            return c.text(`${msgs.InvalidIpBlacklistSettingMsg}: whitelist element must be a string`, 400);
-        }
-        const p = pattern.trim();
-        if (!p) continue;
-        // Validate regex patterns before saving to prevent runtime lockout
-        // eslint-disable-next-line no-useless-escape
-        if (/[\^$.*+?\[\]{}()|\\]/.test(p)) {
-            try { new RegExp(p); } catch {
-                return c.text(`${msgs.InvalidIpBlacklistSettingMsg}: whitelist invalid regex: ${p}`, 400);
-            }
-        }
-        sanitizedWhitelist.push(p);
-    }
+    const sanitizedBlacklist = sanitizePatternList(settings.blacklist, 'blacklist');
+    const sanitizedAsnBlacklist = sanitizePatternList(settings.asnBlacklist, 'asnBlacklist');
+    const sanitizedFingerprintBlacklist = sanitizePatternList(settings.fingerprintBlacklist, 'fingerprintBlacklist');
+    const sanitizedWhitelist = sanitizePatternList(settings.whitelist, 'whitelist');
+    const invalid = [sanitizedBlacklist, sanitizedAsnBlacklist, sanitizedFingerprintBlacklist, sanitizedWhitelist].find((result) => result.error);
+    if (invalid?.error) return c.text(`${msgs.InvalidIpBlacklistSettingMsg}: ${invalid.error}`, 400);
 
     const sanitizedSettings: IpBlacklistSettings = {
         enabled: settings.enabled,
-        blacklist: sanitizedBlacklist,
-        asnBlacklist: sanitizedAsnBlacklist,
-        fingerprintBlacklist: sanitizedFingerprintBlacklist,
+        blacklist: sanitizedBlacklist.values || [],
+        asnBlacklist: sanitizedAsnBlacklist.values || [],
+        fingerprintBlacklist: sanitizedFingerprintBlacklist.values || [],
         enableWhitelist: settings.enableWhitelist,
-        whitelist: sanitizedWhitelist,
+        whitelist: sanitizedWhitelist.values || [],
         enableDailyLimit: settings.enableDailyLimit,
         dailyRequestLimit: settings.dailyRequestLimit
     };

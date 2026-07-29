@@ -10,6 +10,24 @@ import { LocaleMessages } from '../i18n/type';
 // SQL validation error types
 type SqlValidationError = 'empty' | 'too_long' | 'not_delete' | 'multiple_statements' | 'has_comments';
 
+const DEFAULT_CLEANUP_SETTINGS: CleanupSettings = {
+    enableMailsAutoCleanup: false,
+    cleanMailsDays: 30,
+    enableUnknowMailsAutoCleanup: false,
+    cleanUnknowMailsDays: 30,
+    enableSendBoxAutoCleanup: false,
+    cleanSendBoxDays: 30,
+    enableAddressAutoCleanup: false,
+    cleanAddressDays: 30,
+    enableInactiveAddressAutoCleanup: false,
+    cleanInactiveAddressDays: 30,
+    enableUnboundAddressAutoCleanup: false,
+    cleanUnboundAddressDays: 30,
+    enableEmptyAddressAutoCleanup: false,
+    cleanEmptyAddressDays: 30,
+    customSqlCleanupList: [],
+};
+
 // Normalize SQL: trim and remove trailing semicolon
 const normalizeSql = (sql: string): string => {
     let normalized = sql.trim();
@@ -107,7 +125,7 @@ export default {
     },
     getCleanup: async (c: Context<HonoCustomType>) => {
         const cleanupSetting = await getJsonSetting<CleanupSettings>(c, CONSTANTS.AUTO_CLEANUP_KEY);
-        return c.json(cleanupSetting)
+        return c.json({ ...DEFAULT_CLEANUP_SETTINGS, ...(cleanupSetting || {}) })
     },
     saveCleanup: async (c: Context<HonoCustomType>) => {
         const msgs = i18n.getMessagesbyContext(c);

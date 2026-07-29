@@ -25,7 +25,7 @@ api.post('/api/open/site_login', async (c) => {
 })
 
 api.post('/api/open/admin_login', async (c) => {
-    const { password, cf_token } = await c.req.json();
+    const { username, password, cf_token } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     if (utils.isGlobalTurnstileEnabled(c)) {
         try {
@@ -34,9 +34,10 @@ api.post('/api/open/admin_login', async (c) => {
             return c.text(msgs.TurnstileCheckFailedMsg, 400)
         }
     }
+    const adminUsername = c.env.ADMIN_USERNAME || 'admin';
     const adminPasswords = getAdminPasswords(c);
     const hashedPasswords = await Promise.all(adminPasswords.map(p => hashPassword(p)));
-    if (!hashedPasswords.length || !password || !hashedPasswords.includes(password)) {
+    if (!hashedPasswords.length || !username || username !== adminUsername || !password || !hashedPasswords.includes(password)) {
         return c.text(msgs.NeedAdminPasswordMsg, 401)
     }
     return c.json({ success: true })

@@ -32,7 +32,7 @@ app.use('/*', cors());
 // error handler
 app.onError((err, c) => {
 	console.error(err)
-	return c.text(`${err.name} ${err.message}`, 500)
+	return c.text('Internal Server Error', 500)
 })
 // global middlewares
 app.use('/*', async (c, next) => {
@@ -66,7 +66,11 @@ app.use('/*', async (c, next) => {
 		|| c.req.path.startsWith("/api/send_mail")
 		|| c.req.path.startsWith("/api/external/send_mail")
 		|| c.req.path.startsWith("/api/user/register")
+		|| c.req.path.startsWith("/api/user/login")
 		|| c.req.path.startsWith("/api/user/verify_code")
+		|| c.req.path.startsWith("/api/address_login")
+		|| c.req.path.startsWith("/api/open/site_login")
+		|| c.req.path.startsWith("/api/open/admin_login")
 	) {
 		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
 		if (reqIp && c.env.RATE_LIMITER) {

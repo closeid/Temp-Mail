@@ -59,18 +59,19 @@ function AdminAuthDialog() {
   const { t } = useScopedI18n('ui.admin')
   const adminT = useScopedI18n('views.Admin').t
   const state = useAppStore((value) => value)
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [token, setToken] = useState('')
   const turnstile = useRef<TurnstileHandle>(null)
   const authenticate = async () => {
     try {
-      await api.fetch('/api/open/admin_login', { method: 'POST', body: { password: await hashPassword(password), cf_token: token } })
+      if (!username || !password) return toast.error(t('completeAllFields'))
+      await api.fetch('/api/open/admin_login', { method: 'POST', body: { username, password: await hashPassword(password), cf_token: token } })
       appStore.setState({ adminAuth: password, showAdminAuth: false })
       toast.success(t('signedIn'))
     } catch (error) { toast.error(stringifyError(error)); turnstile.current?.refresh() }
   }
-  const open = state.userSettings.fetched && (!canShowAdmin(state) || state.showAdminAuth)
-  return <Dialog open={open}><DialogContent showClose={false} onEscapeKeyDown={(event) => event.preventDefault()} onPointerDownOutside={(event) => event.preventDefault()}><DialogHeader><DialogTitle>{t('administratorAccess')}</DialogTitle><DialogDescription>{t('administratorAccessDescription')}</DialogDescription></DialogHeader><Input autoFocus type="password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && authenticate()} />{state.openSettings.enableGlobalTurnstileCheck && <Turnstile ref={turnstile} value={token} onChange={setToken} />}<DialogFooter><Button onClick={authenticate}><KeyRound />{adminT('confirm')}</Button></DialogFooter></DialogContent></Dialog>
+  return <Dialog open={!canShowAdmin(state) || state.showAdminAuth}><DialogContent showClose={false} onEscapeKeyDown={(event) => event.preventDefault()} onPointerDownOutside={(event) => event.preventDefault()}><DialogHeader><DialogTitle>{t('administratorAccess')}</DialogTitle><DialogDescription>{t('administratorAccessDescription')}</DialogDescription></DialogHeader><div className="grid gap-3"><Input autoFocus autoComplete="username" placeholder={t('administratorUsername')} value={username} onChange={(event) => setUsername(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && authenticate()} /><Input type="password" autoComplete="current-password" placeholder={t('administratorPassword')} value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && authenticate()} /></div>{state.openSettings.enableGlobalTurnstileCheck && <Turnstile ref={turnstile} value={token} onChange={setToken} />}<DialogFooter><Button onClick={authenticate}><KeyRound />{adminT('confirm')}</Button></DialogFooter></DialogContent></Dialog>
 }
 
 function AdminAccountPage() {
@@ -135,5 +136,6 @@ export function AdminWorkspace() {
   const group = groups[primary]
   const content = <SecondaryWorkspace items={group} value={secondary[primary] || group[0].key} onChange={(value) => setSecondary((current) => ({ ...current, [primary]: value }))} ariaLabel={primary === 'maintenance' ? t('configuration') : t(primary)} />
   const method = state.adminAuth ? sessionT('administratorPassword') : state.userSettings.is_admin ? state.userSettings.user_email : sessionT('passwordCheckDisabled')
-  return <><WorkspaceShell scope="admin" items={nav} active={primary} onSelect={(value) => appStore.setState({ adminTab: value })} topbar={<div className="flex h-full min-w-0 items-center gap-2 text-sm"><ShieldCheck className="size-4 shrink-0 text-primary" /><strong className="shrink-0">{t('loginMethod')}</strong><span className="truncate text-muted-foreground">{method}</span></div>}>{canShowAdmin(state) ? content : null}</WorkspaceShell><AdminAuthDialog /></>
+  if (!canShowAdmin(state) || state.showAdminAuth) return <AdminAuthDialog />
+  return <WorkspaceShell scope="admin" items={nav} active={primary} onSelect={(value) => appStore.setState({ adminTab: value })} topbar={<div className="flex h-full min-w-0 items-center gap-2 text-sm"><ShieldCheck className="size-4 shrink-0 text-primary" /><strong className="shrink-0">{t('loginMethod')}</strong><span className="truncate text-muted-foreground">{method}</span></div>}>{content}</WorkspaceShell>
 }

@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { ArrowRightLeft, Link2Off, MoveRight, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { confirmAction } from '@/components/action-dialogs'
 import { AddressLogin } from '@/features/auth/address-login'
+import { useBoundAddresses } from '@/features/address/use-bound-addresses'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -21,7 +21,7 @@ import { getPathWithLocale } from '@/i18n/utils'
 export function UserAddressManagement() {
   const { t, locale } = useScopedI18n('views.user.AddressManagement')
   const navigate = useNavigate()
-  const query = useQuery({ queryKey: ['bound-addresses'], queryFn: () => api.fetch<{ results: any[] }>('/api/user/bind_address') })
+  const query = useBoundAddresses()
   const [transfer, setTransfer] = useState<any>(null)
   const [target, setTarget] = useState('')
   const change = async (id: number) => { try { const result = await api.fetch<{ jwt: string }>(`/api/user/bind_address_jwt/${id}`); if (!result.jwt) throw new Error('jwt not found'); appStore.setState({ jwt: result.jwt, workspaceSection: 'mail' }); navigate(getPathWithLocale('/', locale)); location.reload() } catch (error) { toast.error(stringifyError(error)) } }

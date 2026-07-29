@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { CONSTANTS } from "../constants";
 import { AdminWebhookSettings, WebhookSettings, RawMailRow } from "../models";
-import { commonParseMail, sendWebhook } from "../common";
+import { commonParseMail, sendWebhook, validateWebhookSettings } from "../common";
 import { resolveRawEmail } from "../gzip";
 import i18n from "../i18n";
 
@@ -28,6 +28,7 @@ async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response
         return c.text(msgs.WebhookNotAllowedForUserMsg, 403);
     }
     const settings = await c.req.json<WebhookSettings>();
+    if (!validateWebhookSettings(settings)) return c.text(msgs.InvalidInputMsg, 400);
     await c.env.KV.put(
         `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`,
         JSON.stringify(settings));
@@ -36,6 +37,8 @@ async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response
 
 async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.req.json<WebhookSettings>();
+    const msgs = i18n.getMessagesbyContext(c);
+    if (!validateWebhookSettings(settings)) return c.text(msgs.InvalidInputMsg, 400);
     const { address } = c.get("jwtPayload");
     // random raw email
     const mailRow = await c.env.DB.prepare(

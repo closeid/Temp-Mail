@@ -1,8 +1,9 @@
 import { Context } from "hono";
 import { CONSTANTS } from "../constants";
 import { WebhookSettings, RawMailRow } from "../models";
-import { commonParseMail, sendWebhook } from "../common";
+import { commonParseMail, sendWebhook, validateWebhookSettings } from "../common";
 import { resolveRawEmail } from "../gzip";
+import i18n from "../i18n";
 
 async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.env.KV.get<WebhookSettings>(
@@ -13,6 +14,7 @@ async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response>
 
 async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.req.json<WebhookSettings>();
+    if (!validateWebhookSettings(settings)) return c.text(i18n.getMessagesbyContext(c).InvalidInputMsg, 400);
     await c.env.KV.put(
         CONSTANTS.WEBHOOK_KV_ADMIN_MAIL_SETTINGS_KEY,
         JSON.stringify(settings));
@@ -21,6 +23,7 @@ async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response
 
 async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
     const settings = await c.req.json<WebhookSettings>();
+    if (!validateWebhookSettings(settings)) return c.text(i18n.getMessagesbyContext(c).InvalidInputMsg, 400);
     // random raw email
     const mailRow = await c.env.DB.prepare(
         `SELECT * FROM raw_mails ORDER BY RANDOM() LIMIT 1`

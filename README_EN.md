@@ -134,6 +134,7 @@ Core variables:
 | `DEFAULT_DOMAINS` | Recommended | Domains available to anonymous and no-role users; falls back to `DOMAINS` |
 | `JWT_SECRET` | Yes | Random key used to sign address and user JWTs |
 | `ADMIN_PASSWORDS` | Yes | JSON array of administration passwords; password access is unavailable when omitted |
+| `ADMIN_USERNAME` | No | Username required for password-based administration login; defaults to `admin` |
 | `ENABLE_USER_CREATE_EMAIL` | Yes | Allows address creation from the web client |
 | `ENABLE_USER_DELETE_EMAIL` | Recommended | Allows an address user to delete messages |
 | `PASSWORDS` | No | Optional JSON array that protects the whole site with an access password |
@@ -146,6 +147,9 @@ pnpm wrangler secret put JWT_SECRET
 
 # Enter a JSON array, for example: ["a-strong-password"]
 pnpm wrangler secret put ADMIN_PASSWORDS
+
+# Optional: set the administration username in worker/wrangler.toml under [vars]; defaults to admin
+# ADMIN_USERNAME = "admin"
 
 # Optional whole-site access password
 pnpm wrangler secret put PASSWORDS

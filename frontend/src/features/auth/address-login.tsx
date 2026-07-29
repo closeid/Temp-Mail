@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { AtSign, Dices, LogIn, MailPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
@@ -14,6 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Turnstile, type TurnstileHandle } from '@/components/turnstile'
+import { boundAddressesQueryKey } from '@/features/address/use-bound-addresses'
 
 type Props = {
   loginOnly?: boolean
@@ -26,6 +28,7 @@ type Props = {
 
 export function AddressLogin({ loginOnly = false, preferCredential = false, bindAfterLogin = true, onAuthenticated, newAddressPath, bindUserAddress }: Props) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { t, locale } = useScopedI18n('views.common.Login')
   const { openSettings, userSettings, loading } = useAppStore((state) => ({ openSettings: state.openSettings, userSettings: state.userSettings, loading: state.loading > 0 }))
   const [mode, setMode] = useState<'login' | 'register'>('login')
@@ -48,11 +51,15 @@ export function AddressLogin({ loginOnly = false, preferCredential = false, bind
   useEffect(() => { if (!domain && domains[0]) setDomain(domains[0].value) }, [domain, domains])
 
   const bind = bindUserAddress || api.bindUserAddress
+  const bindCurrentAddress = async () => {
+    await bind()
+    if (appStore.getState().userJwt) await queryClient.invalidateQueries({ queryKey: boundAddressesQueryKey })
+  }
   const finishLogin = async (jwt: string) => {
     appStore.setState({ jwt })
     await api.getSettings()
     if (bindAfterLogin && (bindUserAddress || appStore.getState().userSettings.user_email)) {
-      try { await bind() } catch (error) { toast.error(`${t('bindUserAddressError')}: ${stringifyError(error)}`) }
+      try { await bindCurrentAddress() } catch (error) { toast.error(`${t('bindUserAddressError')}: ${stringifyError(error)}`) }
     }
     onAuthenticated?.()
     navigate(getPathWithLocale('/', locale))
@@ -80,7 +87,7 @@ export function AddressLogin({ loginOnly = false, preferCredential = false, bind
         : await api.fetch<{ jwt: string; password?: string }>('/api/new_address', { method: 'POST', body: { name: cleanName, domain, cf_token: token, enableRandomSubdomain: randomSubdomain } })
       appStore.setState({ jwt: result.jwt, addressPassword: result.password || '', showAddressCredential: true })
       await api.getSettings()
-      if (bindUserAddress || appStore.getState().userSettings.user_email) { try { await bind() } catch (error) { toast.error(`${t('bindUserAddressError')}: ${stringifyError(error)}`) } }
+      if (bindUserAddress || appStore.getState().userSettings.user_email) { try { await bindCurrentAddress() } catch (error) { toast.error(`${t('bindUserAddressError')}: ${stringifyError(error)}`) } }
       navigate(getPathWithLocale('/', locale))
     } catch (error) { toast.error(stringifyError(error)) }
   }

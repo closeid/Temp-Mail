@@ -10,6 +10,7 @@
 | `DOMAINS`                  | JSON        | All domains for temporary email, supports multiple domains             | `["awsl.uk", "dreamhunter2333.xyz"]` |
 | `JWT_SECRET`               | Text/Secret | Secret key for signing JWTs used in login and authentication. Use a random string, e.g. generated via `openssl rand -hex 32` | `a1b2c3d4...`                        |
 | `ADMIN_PASSWORDS`          | JSON        | Admin console passwords, console access disabled if not configured     | `["123", "456"]`                     |
+| `ADMIN_USERNAME`           | Text        | Username for password-based admin login; defaults to `admin`           | `admin`                                |
 | `ENABLE_USER_CREATE_EMAIL` | Text/JSON   | Whether to allow users to create mailboxes, disabled if not configured | `true`                               |
 | `ENABLE_USER_DELETE_EMAIL` | Text/JSON   | Whether to allow users to delete emails, disabled if not configured    | `true`                               |
 
@@ -22,6 +23,7 @@
 | Variable Name                  | Type      | Description                                             | Example          |
 | ------------------------------ | --------- | ------------------------------------------------------- | ---------------- |
 | `PASSWORDS`                    | JSON      | Website private passwords, required after configuration | `["123", "456"]` |
+| `ADMIN_USERNAME`               | Text      | Username for password-based admin login; defaults to `admin` | `admin`          |
 | `DISABLE_ADMIN_PASSWORD_CHECK` | Text/JSON | Warning: Admin console without password or user check   | `false`          |
 
 ## Email Related Variables

@@ -134,6 +134,7 @@ database_id = "替换为 D1 ID"
 | `DEFAULT_DOMAINS` | 建议 | 匿名用户和无角色用户默认可选域名；为空时回退到 `DOMAINS` |
 | `JWT_SECRET` | 是 | 签发地址和用户 JWT 的随机密钥 |
 | `ADMIN_PASSWORDS` | 是 | 管理员密码 JSON 数组；未配置时不能使用密码进入后台 |
+| `ADMIN_USERNAME` | 否 | 管理员密码登录使用的用户名；未配置时默认为 `admin` |
 | `ENABLE_USER_CREATE_EMAIL` | 是 | 是否允许前端创建地址 |
 | `ENABLE_USER_DELETE_EMAIL` | 建议 | 是否允许地址用户删除邮件 |
 | `PASSWORDS` | 否 | 配置后，整个站点在进入前需要输入访问密码 |
@@ -146,6 +147,9 @@ pnpm wrangler secret put JWT_SECRET
 
 # 输入示例：["使用强密码"]
 pnpm wrangler secret put ADMIN_PASSWORDS
+
+# 可选：在 worker/wrangler.toml 的 [vars] 中设置后台管理员用户名；默认是 admin
+# ADMIN_USERNAME = "admin"
 
 # 可选的站点访问密码，输入示例：["使用另一个强密码"]
 pnpm wrangler secret put PASSWORDS

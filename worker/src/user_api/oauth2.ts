@@ -16,8 +16,13 @@ export default {
         if (!setting) {
             return c.text(msgs.Oauth2ClientIDNotFoundMsg, 400);
         }
-        const url = `${setting.authorizationURL}?client_id=${setting.clientID}&response_type=code&redirect_uri=${setting.redirectURL}&scope=${setting.scope}&state=${state}`
-        return c.json({ url });
+        const url = new URL(setting.authorizationURL);
+        url.searchParams.set('client_id', setting.clientID);
+        url.searchParams.set('response_type', 'code');
+        url.searchParams.set('redirect_uri', setting.redirectURL);
+        url.searchParams.set('scope', setting.scope);
+        url.searchParams.set('state', state || '');
+        return c.json({ url: url.toString() });
     },
     oauth2Login: async (c: Context<HonoCustomType>) => {
         const { clientID, code } = await c.req.json<{ clientID?: string, code?: string }>();
@@ -50,7 +55,7 @@ export default {
             }
         })
         if (!res.ok) {
-            console.error(`Failed to get access token: ${res.status} ${res.statusText} ${await res.text()}`)
+            console.error(`Failed to get access token: ${res.status} ${res.statusText}`)
             return c.text(msgs.Oauth2FailedGetAccessTokenMsg, 400);
         }
         const resJson = await res.json();
@@ -63,7 +68,7 @@ export default {
             }
         })
         if (!userRes.ok) {
-            console.error(`Failed to get user info: ${userRes.status} ${userRes.statusText} ${await userRes.text()}`)
+            console.error(`Failed to get user info: ${userRes.status} ${userRes.statusText}`)
             return c.text(msgs.Oauth2FailedGetUserInfoMsg, 400);
         }
         const userInfo = await userRes.json<any>()

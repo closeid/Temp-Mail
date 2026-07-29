@@ -780,9 +780,46 @@ export const getAllowDomains = async (c: Context<HonoCustomType>): Promise<strin
     return getDefaultDomains(c);
 }
 
+const isPrivateWebhookHostname = (hostname: string): boolean => {
+    const normalized = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+    if (normalized === 'localhost' || normalized.endsWith('.localhost') || normalized.endsWith('.local')) return true;
+    const ipv4 = normalized.split('.').map(Number);
+    if (ipv4.length === 4 && ipv4.every((part) => Number.isInteger(part) && part >= 0 && part <= 255)) {
+        const [first, second] = ipv4;
+        return first === 0 || first === 10 || first === 127 || first >= 224
+            || (first === 100 && second >= 64 && second <= 127)
+            || (first === 169 && second === 254)
+            || (first === 172 && second >= 16 && second <= 31)
+            || (first === 192 && second === 168);
+    }
+    if (normalized.includes(':')) {
+        return normalized === '::' || normalized === '::1' || normalized.startsWith('fc') || normalized.startsWith('fd')
+            || /^fe[89ab]/.test(normalized) || normalized.startsWith('ff');
+    }
+    return false;
+}
+
+export const validateWebhookSettings = (settings: WebhookSettings): boolean => {
+    if (!settings || typeof settings.enabled !== 'boolean') return false;
+    if (!settings.url) return !settings.enabled;
+    if (typeof settings.url !== 'string' || settings.url.length > 2048) return false;
+    if (!['POST', 'PUT', 'PATCH'].includes(String(settings.method).toUpperCase())) return false;
+    if (typeof settings.headers !== 'string' || settings.headers.length > 16384) return false;
+    if (typeof settings.body !== 'string' || settings.body.length > 1048576) return false;
+    try {
+        const url = new URL(settings.url);
+        if (!['http:', 'https:'].includes(url.protocol) || !url.hostname || isPrivateWebhookHostname(url.hostname)) return false;
+        const headers = JSON.parse(settings.headers);
+        return Boolean(headers && typeof headers === 'object' && !Array.isArray(headers));
+    } catch {
+        return false;
+    }
+}
+
 export async function sendWebhook(
     settings: WebhookSettings, formatMap: WebhookMail
 ): Promise<{ success: boolean, message?: string }> {
+    if (!validateWebhookSettings(settings)) return { success: false, message: 'invalid webhook settings' };
     // send webhook
     let body = settings.body;
     for (const key of Object.keys(formatMap)) {
@@ -793,15 +830,20 @@ export async function sendWebhook(
             ).replace(/^"(.*)"$/, '$1')
         );
     }
-    const response = await fetch(settings.url, {
-        method: settings.method,
-        headers: JSON.parse(settings.headers),
-        body: body
-    });
-    if (!response.ok) {
-        console.log("send webhook error", settings.url, settings.method, settings.headers, body);
-        console.log("send webhook error", response.status, response.statusText);
-        return { success: false, message: `send webhook error: ${response.status} ${response.statusText}` };
+    try {
+        const response = await fetch(settings.url, {
+            method: settings.method,
+            headers: JSON.parse(settings.headers),
+            body,
+            signal: AbortSignal.timeout(10000),
+        });
+        if (!response.ok) {
+            console.log("send webhook error", settings.method, response.status, response.statusText);
+            return { success: false, message: `send webhook error: ${response.status} ${response.statusText}` };
+        }
+    } catch (error) {
+        console.error('send webhook request failed', (error as Error).message);
+        return { success: false, message: 'send webhook request failed' };
     }
     return { success: true }
 }
