@@ -13,7 +13,6 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       save: 'Save', copied: 'Copied', copy: 'Copy', unknown: 'Unknown', notConfigured: 'Not configured', yes: 'Yes', no: 'No',
       cancel: 'Cancel', confirm: 'Confirm', close: 'Close', previousPage: 'Previous page', nextPage: 'Next page', open: 'Open', unbind: 'Unbind',
       unbindAddress: 'Unbind address', addressUnbound: 'Address unbound', addresses: 'Addresses', addAddress: 'Add address', telegramAddresses: 'Telegram addresses', switch: 'Switch', remove: 'Remove',
-      relatedMailboxes: 'Other account mailboxes', credentialReadOnlyDescription: 'Credential sign-in provides read-only account mailbox information. Sign in with your user account to manage addresses.', relatedMailboxesUnavailable: 'Unable to load related mailboxes.', mailboxHasNoOwner: 'This mailbox is not assigned to a user account.', noRelatedMailboxes: 'There are no other mailboxes under this account.',
     },
     admin: {
       administration: 'Administration', settingLabel: 'Setting: {name}', administratorAccess: 'Administrator access', administratorAccessDescription: 'Enter the administrator username and password to continue.', signedIn: 'Signed in',
@@ -65,7 +64,6 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       save: '保存', copied: '已复制', copy: '复制', unknown: '未知', notConfigured: '未配置', yes: '是', no: '否',
       cancel: '取消', confirm: '确认', close: '关闭', previousPage: '上一页', nextPage: '下一页', open: '打开', unbind: '解除绑定',
       unbindAddress: '解除地址绑定', addressUnbound: '地址已解除绑定', addresses: '地址', addAddress: '添加地址', telegramAddresses: 'Telegram 地址', switch: '切换', remove: '移除',
-      relatedMailboxes: '同账号下的其他邮箱', credentialReadOnlyDescription: '凭据登录仅提供账号邮箱的只读信息；需要管理地址时，请使用用户账号登录。', relatedMailboxesUnavailable: '无法加载同账号邮箱。', mailboxHasNoOwner: '当前邮箱未归属任何用户账号。', noRelatedMailboxes: '该账号下没有其他邮箱。',
     },
     admin: {
       administration: '后台管理', settingLabel: '配置项：{name}', administratorAccess: '后台管理验证', administratorAccessDescription: '请输入后台管理用户名和密码以继续。', signedIn: '登录成功',
@@ -117,7 +115,6 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       save: 'Guardar', copied: 'Copiado', copy: 'Copiar', unknown: 'Desconocido', notConfigured: 'Sin configurar', yes: 'Sí', no: 'No',
       cancel: 'Cancelar', confirm: 'Confirmar', close: 'Cerrar', previousPage: 'Página anterior', nextPage: 'Página siguiente', open: 'Abrir', unbind: 'Desvincular',
       unbindAddress: 'Desvincular dirección', addressUnbound: 'Dirección desvinculada', addresses: 'Direcciones', addAddress: 'Añadir dirección', telegramAddresses: 'Direcciones de Telegram', switch: 'Cambiar', remove: 'Eliminar',
-      relatedMailboxes: 'Otros buzones de la cuenta', credentialReadOnlyDescription: 'El acceso con credencial solo muestra información de buzones. Inicia sesión con tu cuenta para gestionar direcciones.', relatedMailboxesUnavailable: 'No se pudieron cargar los buzones relacionados.', mailboxHasNoOwner: 'Este buzón no está asignado a una cuenta de usuario.', noRelatedMailboxes: 'No hay otros buzones en esta cuenta.',
     },
     admin: {
       administration: 'Administración', settingLabel: 'Configuración: {name}', administratorAccess: 'Acceso de administración', administratorAccessDescription: 'Introduce el nombre de usuario y la contraseña de administración para continuar.', signedIn: 'Sesión iniciada',
@@ -169,7 +166,6 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       save: 'Salvar', copied: 'Copiado', copy: 'Copiar', unknown: 'Desconhecido', notConfigured: 'Não configurado', yes: 'Sim', no: 'Não',
       cancel: 'Cancelar', confirm: 'Confirmar', close: 'Fechar', previousPage: 'Página anterior', nextPage: 'Próxima página', open: 'Abrir', unbind: 'Desvincular',
       unbindAddress: 'Desvincular endereço', addressUnbound: 'Endereço desvinculado', addresses: 'Endereços', addAddress: 'Adicionar endereço', telegramAddresses: 'Endereços do Telegram', switch: 'Alternar', remove: 'Remover',
-      relatedMailboxes: 'Outras caixas da conta', credentialReadOnlyDescription: 'O acesso por credencial mostra apenas informações das caixas. Entre com sua conta para gerenciar endereços.', relatedMailboxesUnavailable: 'Não foi possível carregar as caixas relacionadas.', mailboxHasNoOwner: 'Esta caixa não está atribuída a uma conta de usuário.', noRelatedMailboxes: 'Não há outras caixas nesta conta.',
     },
     admin: {
       administration: 'Administração', settingLabel: 'Configuração: {name}', administratorAccess: 'Acesso administrativo', administratorAccessDescription: 'Digite o nome de usuário e a senha de administrador para continuar.', signedIn: 'Login efetuado',
@@ -221,7 +217,6 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       save: '保存', copied: 'コピーしました', copy: 'コピー', unknown: '不明', notConfigured: '未設定', yes: 'はい', no: 'いいえ',
       cancel: 'キャンセル', confirm: '確認', close: '閉じる', previousPage: '前のページ', nextPage: '次のページ', open: '開く', unbind: '連携解除',
       unbindAddress: 'アドレスの連携を解除', addressUnbound: 'アドレスの連携を解除しました', addresses: 'アドレス', addAddress: 'アドレスを追加', telegramAddresses: 'Telegram アドレス', switch: '切り替え', remove: '削除',
-      relatedMailboxes: '同じアカウントの他のメールボックス', credentialReadOnlyDescription: '資格情報でのログインではメールボックス情報のみ表示します。アドレス管理にはユーザーアカウントでログインしてください。', relatedMailboxesUnavailable: '関連メールボックスを読み込めません。', mailboxHasNoOwner: 'このメールボックスはユーザーアカウントに割り当てられていません。', noRelatedMailboxes: 'このアカウントに他のメールボックスはありません。',
     },
     admin: {
       administration: '管理', settingLabel: '設定項目: {name}', administratorAccess: '管理者アクセス', administratorAccessDescription: '続行するには管理者のユーザー名とパスワードを入力してください。', signedIn: 'ログインしました',
@@ -273,7 +268,6 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       save: 'Speichern', copied: 'Kopiert', copy: 'Kopieren', unknown: 'Unbekannt', notConfigured: 'Nicht konfiguriert', yes: 'Ja', no: 'Nein',
       cancel: 'Abbrechen', confirm: 'Bestätigen', close: 'Schließen', previousPage: 'Vorherige Seite', nextPage: 'Nächste Seite', open: 'Öffnen', unbind: 'Verknüpfung lösen',
       unbindAddress: 'Adressverknüpfung lösen', addressUnbound: 'Adressverknüpfung gelöst', addresses: 'Adressen', addAddress: 'Adresse hinzufügen', telegramAddresses: 'Telegram-Adressen', switch: 'Wechseln', remove: 'Entfernen',
-      relatedMailboxes: 'Weitere Postfächer des Kontos', credentialReadOnlyDescription: 'Die Anmeldung mit Zugangsdaten zeigt nur Postfachinformationen. Melden Sie sich mit dem Benutzerkonto an, um Adressen zu verwalten.', relatedMailboxesUnavailable: 'Verknüpfte Postfächer konnten nicht geladen werden.', mailboxHasNoOwner: 'Dieses Postfach ist keinem Benutzerkonto zugeordnet.', noRelatedMailboxes: 'Dieses Konto hat keine weiteren Postfächer.',
     },
     admin: {
       administration: 'Administration', settingLabel: 'Einstellung: {name}', administratorAccess: 'Administratorzugang', administratorAccessDescription: 'Gib Administrator-Benutzername und Passwort ein, um fortzufahren.', signedIn: 'Angemeldet',

@@ -11,7 +11,7 @@
 ### Features
 
 - feat: |Administration/API| Allow a newly created mailbox address to remain unowned or be assigned by searching a registered user email; `POST /api/admin/new_address` now accepts optional `ownerUserEmail` / `ownerUserId`, rolls back the new address if binding fails, and respects user role address limits
-- feat: |Mailbox credential sign-in| Add a persistent restricted credential session that hides address management, limits the top selector to local addresses, and prevents mailbox creation; other mailboxes owned by the same user are exposed only as a read-only name list without issuing their credentials
+- feat: |Mailbox credential sign-in| Add a persistent restricted credential session that hides address management, limits the top selector to local addresses, and prevents mailbox creation or access to any other mailboxes owned by the same user unless the user signs in with their account password
 - feat: |Frontend| Add a "Full-width mailbox list view" toggle in Appearance settings. When enabled, the mailbox shows a full-width list of subjects and body previews by default; clicking a mail expands it into the two-pane split view, clicking the same mail again returns to the list view; in multi-select mode, clicking a mail updates both its checked state and the right-side preview while disabling same-mail collapse, and the split width still follows the "Left list width in two-column mailbox view" setting. Defaults to off, preserving the original two-pane behavior
 - feat: |Frontend| Add "Body Preview Lines" in Appearance settings for the full-width mailbox list view, allowing runtime control over the body-preview clamp. It defaults to 2 lines, and 0 disables previews
 

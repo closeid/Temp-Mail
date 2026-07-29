@@ -7,7 +7,6 @@ import auto_reply from './auto_reply'
 import webhook_settings from './webhook_settings';
 import s3_attachment from './s3_attachment';
 import address_auth from './address_auth';
-import owner_addresses from './owner_addresses';
 
 export const api = new Hono<HonoCustomType>()
 
@@ -37,7 +36,6 @@ api.get('/api/parsed_mail/:mail_id', parsed_mail_api.getParsedMail)
 
 // address settings / lifecycle
 api.get('/api/settings', mails_crud.getSettings)
-api.get('/api/address/owner_addresses', owner_addresses.listOwnerAddresses)
 api.post('/api/new_address', new_address.createNewAddress)
 api.delete('/api/delete_address', mails_crud.deleteAddress)
 api.delete('/api/clear_inbox', mails_crud.clearInbox)

@@ -87,6 +87,7 @@ function MailRoute({ page }: { page: MailRouteKey }) {
   const hasUser = Boolean(state.userSettings.user_email)
   const fallback = hasUser ? MAIL_ROUTES.addresses : AUTH_ROUTES.login
   if (addressRequiredPages.includes(page) && !hasAddress) return <Navigate to={getPathWithLocale(fallback, locale)} replace />
+  if (page === 'addresses' && state.mailboxAccessMode === 'credential') return <Navigate to={getPathWithLocale(MAIL_ROUTES.mailbox, locale)} replace />
   if (page === 'user_settings' && !hasUser) return <Navigate to={getPathWithLocale(AUTH_ROUTES.login, locale)} replace />
   if ((page === 'sendbox' || page === 'sendmail') && !state.openSettings.enableSendMail) return <Navigate to={getPathWithLocale(MAIL_ROUTES.mailbox, locale)} replace />
   if (page === 'auto_reply' && !state.openSettings.enableAutoReply) return <Navigate to={getPathWithLocale(MAIL_ROUTES.accountSettings, locale)} replace />

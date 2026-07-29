@@ -5,7 +5,6 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { WorkspaceShell, type WorkspaceNavItem } from '@/components/layout/workspace-shell'
 import { SecondaryWorkspace, type SecondaryWorkspaceItem } from '@/components/layout/secondary-workspace'
 import { AddressBar } from '@/features/address/address-bar'
-import { CredentialOwnerAddresses } from '@/features/address/credential-owner-addresses'
 import { AddressLogin } from '@/features/auth/address-login'
 import { AttachmentsPage } from '@/features/settings/attachments'
 import { AppearanceSettings } from '@/features/settings/appearance'
@@ -70,7 +69,7 @@ export function MailWorkspace({ page }: { page: MailRouteKey }) {
   let content: ReactNode
   if (page === 'mailbox') content = simple ? <div className="flex h-full min-h-0 flex-col"><div className="flex min-h-11 items-center justify-end border-b border-border px-3"><button type="button" className="text-sm text-primary" onClick={() => appStore.setState({ useSimpleIndex: false })}>{t('enterSimpleMode')}</button></div><div className="min-h-0 flex-1">{inbox}</div></div> : inbox
   else if (primary === 'mail') content = <SecondaryWorkspace items={mailItems} value={page} onChange={(value) => go(value as MailRouteKey)} ariaLabel={t('sendbox')} />
-  else if (page === 'addresses') content = credentialOnly ? <CredentialOwnerAddresses /> : hasUser ? <UserAddressManagement /> : <div className="h-full overflow-auto"><div className="mx-auto max-w-xl p-5"><AddressLogin /></div></div>
+  else if (page === 'addresses') content = hasUser ? <UserAddressManagement /> : <div className="h-full overflow-auto"><div className="mx-auto max-w-xl p-5"><AddressLogin /></div></div>
   else content = <SecondaryWorkspace items={settingsItems} value={page} onChange={(value) => go(value as MailRouteKey)} ariaLabel={t('accountSettings')} />
 
   const selectPrimary = (value: string) => {

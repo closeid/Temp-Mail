@@ -13,7 +13,7 @@ const PUBLIC_ENDPOINTS: Endpoint[] = [
   ['POST', '/api/open/admin_login'], ['POST', '/api/open/credential_login'],
 ]
 const MAILBOX_ENDPOINTS: Endpoint[] = [
-  ['GET', '/api/settings'], ['GET', '/api/address/owner_addresses'], ['POST', '/api/new_address'], ['POST', '/api/address_login'], ['POST', '/api/address_change_password'],
+  ['GET', '/api/settings'], ['POST', '/api/new_address'], ['POST', '/api/address_login'], ['POST', '/api/address_change_password'],
   ['DELETE', '/api/delete_address'], ['DELETE', '/api/clear_inbox'], ['DELETE', '/api/clear_sent_items'],
   ['GET', '/api/mails'], ['GET', '/api/mail/:mail_id'], ['DELETE', '/api/mails/:id'], ['GET', '/api/parsed_mails'], ['GET', '/api/parsed_mail/:mail_id'],
   ['GET', '/api/auto_reply'], ['POST', '/api/auto_reply'], ['GET', '/api/webhook/settings'], ['POST', '/api/webhook/settings'], ['POST', '/api/webhook/test'],
