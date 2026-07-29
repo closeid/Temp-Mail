@@ -10,11 +10,16 @@
 
 ### Features
 
+- feat: |Administration/API| Allow a newly created mailbox address to remain unowned or be assigned by searching a registered user email; `POST /api/admin/new_address` now accepts optional `ownerUserEmail` / `ownerUserId`, rolls back the new address if binding fails, and respects user role address limits
+- feat: |Mailbox credential sign-in| Add a persistent restricted credential session that hides address management, limits the top selector to local addresses, and prevents mailbox creation; other mailboxes owned by the same user are exposed only as a read-only name list without issuing their credentials
 - feat: |Frontend| Add a "Full-width mailbox list view" toggle in Appearance settings. When enabled, the mailbox shows a full-width list of subjects and body previews by default; clicking a mail expands it into the two-pane split view, clicking the same mail again returns to the list view; in multi-select mode, clicking a mail updates both its checked state and the right-side preview while disabling same-mail collapse, and the split width still follows the "Left list width in two-column mailbox view" setting. Defaults to off, preserving the original two-pane behavior
 - feat: |Frontend| Add "Body Preview Lines" in Appearance settings for the full-width mailbox list view, allowing runtime control over the body-preview clamp. It defaults to 2 lines, and 0 disables previews
 
 ### Bug Fixes
 
+- fix: |Administration| Show each mailbox address owner and explicitly mark unbound anonymous mailboxes; label user counts as bound addresses so the global mailbox total is no longer confused with user bindings
+- fix: |Authentication routing| Remove the legacy `/address-login` route, move password recovery to `/login/forgot-password`, and add `/dashboard/login`; unauthenticated administration routes now redirect to sign-in and return to the requested page after authentication
+- fix: |Authentication| Keep password, email-credential, and passkey sign-in on `/login`; silently handle cancelled or timed-out passkey prompts, and validate user email format in sign-in, registration, password recovery, verification-code, and Worker authentication requests
 - fix: |Worker| Align junk-mail checking with authentication standards: treat SPF, DKIM, and DMARC `none` plus SPF/DKIM `neutral` as absent, and ignore unregistered results and unsupported method versions; `JUNK_MAIL_FORCE_PASS_LIST` still requires an explicit supported `pass`
 - fix: |Admin| When deleting an address from the admin panel, delete its mails, sender records, sendbox and auto-reply entries before removing the address row itself; previously the address row was deleted first, so the name-based subqueries matched nothing and the mails were left orphaned in the database
 - fix: |AI Extract| Strengthen the prompt to keep original link domains from the email, preventing small models from rewriting verification-link domains (issue #1072)
@@ -27,6 +32,7 @@
 
 ### Improvements
 
+- fix: |Administration| Change user role editing to a `USER_ROLES`-backed select with an option to restore the default role, preventing invalid free-form role names
 - refactor: |Frontend routing| Give sign-in, registration, password recovery, address-credential login, inbox, sent mail, compose, address management, every settings page, and every administration subpage an explicit URL. Menus, OAuth callbacks, mail replies, and address switching now navigate through one route registry; session-only `indexTab` and `adminTab` state is removed, and Cloudflare Pages receives an SPA fallback for deep-link refreshes
 - fix: |Administration| Keep role address limits editable when `USER_ROLES` is empty by showing an addable role-limit form and merging saved entries; remove the duplicated heavy divider from the empty OAuth2 sign-in configuration state
 - fix: |Administration| Remove the redundant icon from the address-credential action; align the address name, `@` separator, and domain select at 40px; reuse one bound-address query for the address bar and Address Management and invalidate it after binding so signed-in users do not see unbound local-cache addresses

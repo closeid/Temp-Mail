@@ -1,9 +1,10 @@
 export const AUTH_ROUTES = {
   login: '/login',
   register: '/register',
-  forgotPassword: '/forgot-password',
-  addressLogin: '/address-login',
+  forgotPassword: '/login/forgot-password',
 } as const
+
+export const ADMIN_LOGIN_ROUTE = '/dashboard/login'
 
 export type AuthRouteKey = keyof typeof AUTH_ROUTES
 

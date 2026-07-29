@@ -305,7 +305,7 @@ pnpm build
 - **用户注册**：默认可注册；后台“维护 -> 管理员 -> 用户设置”可开启邮件验证码。开启验证码时必须绑定 KV，并配置可用发信通道和验证码发件地址。
 - **Passkey**：需要 HTTPS 和正确的站点域名。用户登录后在主页账户区域注册凭据。
 - **OAuth2**：在 `/dashboard` 的“维护 -> 管理员 -> OAuth2”添加提供商。回调 URL 为 `https://你的前端域名/user/oauth2/callback`，必须与提供商后台完全一致。
-- **管理员**：访问 `/dashboard`，使用 `ADMIN_PASSWORDS`，或让用户角色等于 `ADMIN_USER_ROLE`。不要在公网部署时开启 `DISABLE_ADMIN_PASSWORD_CHECK`。
+- **管理员**：访问 `/dashboard`，未认证时会自动进入 `/dashboard/login`；使用 `ADMIN_PASSWORDS`，或让用户角色等于 `ADMIN_USER_ROLE`。不要在公网部署时开启 `DISABLE_ADMIN_PASSWORD_CHECK`。
 
 OAuth2 是联合登录，同一邮箱映射到同一个本地用户；当前不是强制 OAuth-only 模式，不能通过配置 OAuth2 自动禁止密码登录。详细字段见 [OAuth2 配置](vitepress-docs/docs/zh/guide/feature/user-oauth2.md)。
 
@@ -437,7 +437,7 @@ crons = ["0 0 * * *"]
 | 现象 | 检查项 |
 | --- | --- |
 | 页面能打开但收不到邮件 | Email Routing 已启用；MX/SPF 已生效；Catch-all 指向正确 Worker；域名存在于 `DOMAINS` |
-| `/dashboard` 无法登录 | `ADMIN_PASSWORDS` 是 JSON 数组或可解析的 Secret；部署后变量已生效 |
+| `/dashboard/login` 无法登录 | `ADMIN_PASSWORDS` 是 JSON 数组或可解析的 Secret；部署后变量已生效 |
 | 注册验证码不发送 | KV 已绑定；后台开启邮件验证；验证码发件地址和至少一个发信通道可用 |
 | Webhook 显示未启用 | KV 已绑定；`ENABLE_WEBHOOK=true`；重新部署后检查 Worker 当前版本变量 |
 | 发信失败 | 后台发信配置状态；发件域名匹配；Resend/SMTP Secret；`SEND_MAIL` binding；用户余额 |

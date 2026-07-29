@@ -166,6 +166,20 @@ export const getMailDomain = (
     return normalizeDomain(address.slice(atIndex + 1));
 }
 
+const USER_EMAIL_PATTERN = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i;
+
+export const isValidUserEmail = (value: unknown): boolean => {
+    if (typeof value !== "string") return false;
+    const email = value.trim();
+    if (!email || email.length > 254) return false;
+    const localPart = email.split("@")[0] || "";
+    return localPart.length <= 64
+        && !localPart.startsWith(".")
+        && !localPart.endsWith(".")
+        && !localPart.includes("..")
+        && USER_EMAIL_PATTERN.test(email);
+}
+
 export const normalizeAddressDomain = (
     value: string | undefined | null
 ): string => {
@@ -513,6 +527,7 @@ export default {
     normalizeDomain,
     normalizeDomains,
     getMailDomain,
+    isValidUserEmail,
     normalizeAddressDomain,
     includesDomain,
     getDomainMapValue,

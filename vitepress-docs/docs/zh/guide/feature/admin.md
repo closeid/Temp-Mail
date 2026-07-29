@@ -4,7 +4,7 @@
 > 需要配置 `ADMIN_PASSWORDS` 或者 `ADMIN_USER_ROLE` 才可以访问 admin 控制台
 > admin 角色配置, 如果用户角色等于 ADMIN_USER_ROLE 则可以访问 admin 控制台
 
-部署前端应用之后，点击左上角 logo 5 次或者访问 `/dashboard` 路径即可进入管理控制台。Worker 的管理接口仍使用 `/api/admin/*` 路径。
+部署前端应用之后，点击左上角 logo 5 次或者访问 `/dashboard` 路径即可进入管理控制台。未认证时前端会自动跳转到 `/dashboard/login`，登录成功后返回原后台页面。Worker 的管理接口仍使用 `/api/admin/*` 路径。
 
 > [!IMPORTANT]
 > Worker API 现在仅使用 `/api` 命名空间。旧的 `/admin/*`、`/open_api/*`、`/user_api/*`、`/telegram/*`、`/external/api/*` 与 `/health_check` 地址不再转发，部署此版本前请先更新调用方。

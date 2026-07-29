@@ -2,8 +2,44 @@ import { Context } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n'
-import { getBooleanValue } from '../utils'
-import { newAddress, handleListQuery } from '../common'
+import { getBooleanValue, isAddressCountLimitReached } from '../utils'
+import { newAddress, handleListQuery, commonGetUserRole } from '../common'
+
+type AddressOwner = {
+    id: number;
+    user_email: string;
+};
+
+const resolveAddressOwner = async (
+    c: Context<HonoCustomType>,
+    ownerUserId: unknown,
+    ownerUserEmail: unknown,
+): Promise<AddressOwner | null> => {
+    const msgs = i18n.getMessagesbyContext(c);
+    const email = typeof ownerUserEmail === 'string' ? ownerUserEmail.trim() : '';
+    const hasId = ownerUserId !== undefined && ownerUserId !== null && ownerUserId !== '';
+    if (!hasId && !email) return null;
+
+    let owner: AddressOwner | null = null;
+    if (hasId) {
+        const id = Number(ownerUserId);
+        if (!Number.isInteger(id) || id <= 0) throw new Error(msgs.InvalidUserIdMsg);
+        owner = await c.env.DB.prepare(
+            `SELECT id, user_email FROM users WHERE id = ?`
+        ).bind(id).first<AddressOwner>();
+    } else {
+        owner = await c.env.DB.prepare(
+            `SELECT id, user_email FROM users WHERE user_email = ? COLLATE NOCASE`
+        ).bind(email).first<AddressOwner>();
+    }
+    if (!owner) throw new Error(msgs.UserNotFoundMsg);
+
+    const userRole = await commonGetUserRole(c, owner.id);
+    if (await isAddressCountLimitReached(c, owner.id, userRole?.role)) {
+        throw new Error(msgs.MaxAddressCountReachedMsg);
+    }
+    return owner;
+};
 
 const listAddresses = async (c: Context<HonoCustomType>) => {
     const { limit, offset, query, sort_by, sort_order } = c.req.query();
@@ -23,35 +59,46 @@ const listAddresses = async (c: Context<HonoCustomType>) => {
         // D1 caps LIKE pattern length at 50 bytes; fall back to instr() for
         // longer queries to avoid "LIKE or GLOB pattern too complex" (#956).
         const useInstr = new TextEncoder().encode(query).length + 2 > 50;
-        const whereClause = useInstr ? `instr(name, ?) > 0` : `name like ?`;
+        const whereClause = useInstr ? `instr(a.name, ?) > 0` : `a.name like ?`;
+        const countWhereClause = useInstr ? `instr(name, ?) > 0` : `name like ?`;
         const param = useInstr ? query : `%${query}%`;
         return await handleListQuery(c,
             `SELECT a.*,`
             + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
-            + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
+            + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count,`
+            + ` u.user_email AS owner_email, ua.user_id AS owner_user_id`
             + ` FROM address a`
+            + ` LEFT JOIN users_address ua ON ua.address_id = a.id`
+            + ` LEFT JOIN users u ON u.id = ua.user_id`
             + ` where ${whereClause}`,
-            `SELECT count(*) as count FROM address where ${whereClause}`,
+            `SELECT count(*) as count FROM address where ${countWhereClause}`,
             [param], limit, offset, orderBy, ['password']
         );
     }
     return await handleListQuery(c,
         `SELECT a.*,`
         + ` (SELECT COUNT(*) FROM raw_mails WHERE address = a.name) AS mail_count,`
-        + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count`
-        + ` FROM address a`,
+        + ` (SELECT COUNT(*) FROM sendbox WHERE address = a.name) AS send_count,`
+        + ` u.user_email AS owner_email, ua.user_id AS owner_user_id`
+        + ` FROM address a`
+        + ` LEFT JOIN users_address ua ON ua.address_id = a.id`
+        + ` LEFT JOIN users u ON u.id = ua.user_id`,
         `SELECT count(*) as count FROM address`,
         [], limit, offset, orderBy, ['password']
     );
 };
 
 const createNewAddress = async (c: Context<HonoCustomType>) => {
-    const { name, domain, enablePrefix, enableRandomSubdomain } = await c.req.json();
+    const {
+        name, domain, enablePrefix, enableRandomSubdomain,
+        ownerUserId, ownerUserEmail,
+    } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     if (!name) {
         return c.text(msgs.RequiredFieldMsg, 400)
     }
     try {
+        const owner = await resolveAddressOwner(c, ownerUserId, ownerUserEmail);
         const res = await newAddress(c, {
             name, domain, enablePrefix,
             enableRandomSubdomain: getBooleanValue(enableRandomSubdomain),
@@ -61,7 +108,20 @@ const createNewAddress = async (c: Context<HonoCustomType>) => {
             enableCheckNameRegex: false,
             sourceMeta: 'admin'
         });
-        return c.json(res);
+        if (!owner) return c.json({ ...res, owner_user_id: null, owner_user_email: null });
+
+        try {
+            const { success } = await c.env.DB.prepare(
+                `INSERT INTO users_address (user_id, address_id) VALUES (?, ?)`
+            ).bind(owner.id, res.address_id).run();
+            if (!success) throw new Error(msgs.OperationFailedMsg);
+        } catch (error) {
+            // Do not leave an unexpected anonymous address when ownership binding fails.
+            await c.env.DB.prepare(`DELETE FROM users_address WHERE address_id = ?`).bind(res.address_id).run();
+            await c.env.DB.prepare(`DELETE FROM address WHERE id = ?`).bind(res.address_id).run();
+            throw error;
+        }
+        return c.json({ ...res, owner_user_id: owner.id, owner_user_email: owner.user_email });
     } catch (e) {
         return c.text(`${msgs.FailedCreateAddressMsg}: ${(e as Error).message}`, 400)
     }

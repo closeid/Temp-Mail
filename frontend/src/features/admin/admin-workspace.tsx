@@ -1,20 +1,14 @@
-import { useRef, useState } from 'react'
-import { AtSign, KeyRound, LogOut, Mail, Settings2, ShieldCheck, Users } from 'lucide-react'
-import { toast } from 'sonner'
+import { AtSign, LogOut, Mail, Settings2, ShieldCheck, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { Turnstile, type TurnstileHandle } from '@/components/turnstile'
 import { WorkspaceShell, type WorkspaceNavItem } from '@/components/layout/workspace-shell'
 import { SecondaryWorkspace, type SecondaryWorkspaceItem } from '@/components/layout/secondary-workspace'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { AppearanceSettings } from '@/features/settings/appearance'
 import { api } from '@/lib/api'
-import { appStore, canShowAdmin, useAppStore } from '@/lib/store'
-import { hashPassword, stringifyError } from '@/lib/utils'
+import { appStore, useAppStore } from '@/lib/store'
 import { useI18n, useScopedI18n } from '@/i18n/react'
 import { getPathWithLocale } from '@/i18n/utils'
-import { ADMIN_PAGE_ROUTES, ADMIN_SECTION_DEFAULTS, getAdminSection, type AdminPageKey, type AdminSectionKey } from '@/app/routes'
+import { ADMIN_LOGIN_ROUTE, ADMIN_PAGE_ROUTES, ADMIN_SECTION_DEFAULTS, getAdminSection, type AdminPageKey, type AdminSectionKey } from '@/app/routes'
 import {
   AccountTable, AdminInbox, AdminMailWebhook, AdminSendMail, AdminSentBox, CreateAddressPage,
   DatabasePage, MaintenancePage, RoleAddressConfigPage, SenderAccessPage, StatisticsPage,
@@ -56,25 +50,6 @@ const saveAccountSettings = (value: any) => ({
   sendMailLimitConfig: value.sendMailLimitConfig || {},
 })
 
-function AdminAuthDialog() {
-  const { t } = useScopedI18n('ui.admin')
-  const adminT = useScopedI18n('views.Admin').t
-  const state = useAppStore((value) => value)
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [token, setToken] = useState('')
-  const turnstile = useRef<TurnstileHandle>(null)
-  const authenticate = async () => {
-    try {
-      if (!username || !password) return toast.error(t('completeAllFields'))
-      await api.fetch('/api/open/admin_login', { method: 'POST', body: { username, password: await hashPassword(password), cf_token: token } })
-      appStore.setState({ adminAuth: password, showAdminAuth: false })
-      toast.success(t('signedIn'))
-    } catch (error) { toast.error(stringifyError(error)); turnstile.current?.refresh() }
-  }
-  return <Dialog open={!canShowAdmin(state) || state.showAdminAuth}><DialogContent showClose={false} onEscapeKeyDown={(event) => event.preventDefault()} onPointerDownOutside={(event) => event.preventDefault()}><DialogHeader><DialogTitle>{t('administratorAccess')}</DialogTitle><DialogDescription>{t('administratorAccessDescription')}</DialogDescription></DialogHeader><div className="grid gap-3"><Input autoFocus autoComplete="username" placeholder={t('administratorUsername')} value={username} onChange={(event) => setUsername(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && authenticate()} /><Input type="password" autoComplete="current-password" placeholder={t('administratorPassword')} value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && authenticate()} /></div>{state.openSettings.enableGlobalTurnstileCheck && <Turnstile ref={turnstile} value={token} onChange={setToken} />}<DialogFooter><Button onClick={authenticate}><KeyRound />{adminT('confirm')}</Button></DialogFooter></DialogContent></Dialog>
-}
-
 function AdminAccountPage() {
   const navigate = useNavigate()
   const { locale } = useI18n()
@@ -82,7 +57,7 @@ function AdminAccountPage() {
   const sessionT = useScopedI18n('ui.admin').t
   const state = useAppStore((value) => value)
   const method = state.adminAuth ? t('loginViaPassword') : state.userSettings.is_admin ? t('loginViaUserAdmin') : t('loginViaDisabledCheck')
-  const logout = () => { appStore.setState({ adminAuth: '', showAdminAuth: false }); navigate(getPathWithLocale('/', locale)) }
+  const logout = () => { appStore.setState({ adminAuth: '', showAdminAuth: false }); navigate(getPathWithLocale(ADMIN_LOGIN_ROUTE, locale)) }
   return <div className="h-full overflow-auto"><div className="mx-auto max-w-2xl p-5"><div className="flex items-center justify-between border-b border-border py-4"><div><p className="font-medium">{t('loginMethod')}</p><p className="mt-1 text-sm text-muted-foreground">{method}</p></div><ShieldCheck className="size-5 text-primary" /></div>{state.adminAuth && <div className="flex items-center justify-between py-4"><div><p className="font-medium">{sessionT('administratorSession')}</p><p className="mt-1 text-sm text-muted-foreground">{sessionT('administratorSessionDescription')}</p></div><Button variant="secondary" onClick={logout}><LogOut />{sessionT('signOut')}</Button></div>}</div></div>
 }
 
@@ -102,7 +77,7 @@ export function AdminWorkspace({ page }: { page: AdminPageKey }) {
   ]
   const groups: Record<string, SecondaryWorkspaceItem[]> = {
     account: [
-      { key: 'account', label: t('account'), content: <AccountTable /> },
+      { key: 'account', label: sessionT('allAddresses'), content: <AccountTable /> },
       { key: 'account_create', label: t('account_create'), content: <CreateAddressPage /> },
       { key: 'account_settings', label: t('account_settings'), content: <ObjectSettings endpoint="/api/admin/account_settings" title={t('account_settings')} transformLoad={loadAccountSettings} transformSave={saveAccountSettings} /> },
       { key: 'senderAccess', label: t('senderAccess'), content: <SenderAccessPage /> },
@@ -138,6 +113,5 @@ export function AdminWorkspace({ page }: { page: AdminPageKey }) {
   const group = groups[primary]
   const content = <SecondaryWorkspace items={group} value={page} onChange={(value) => go(value as AdminPageKey)} ariaLabel={primary === 'maintenance' ? t('configuration') : t(primary)} />
   const method = state.adminAuth ? sessionT('administratorPassword') : state.userSettings.is_admin ? state.userSettings.user_email : sessionT('passwordCheckDisabled')
-  if (!canShowAdmin(state) || state.showAdminAuth) return <AdminAuthDialog />
   return <WorkspaceShell scope="admin" items={nav} active={primary} onSelect={(value) => go(ADMIN_SECTION_DEFAULTS[value as AdminSectionKey])} topbar={<div className="flex h-full min-w-0 items-center gap-2 text-sm"><ShieldCheck className="size-4 shrink-0 text-primary" /><strong className="shrink-0">{t('loginMethod')}</strong><span className="truncate text-muted-foreground">{method}</span></div>}>{content}</WorkspaceShell>
 }

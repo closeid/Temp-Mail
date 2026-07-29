@@ -27,6 +27,8 @@ res = requests.post(
         "enablePrefix": True,
         "name": "<email_name>",
         "domain": "<email_domain>",
+        # Optional: assign the address to a registered user; omit for no owner
+        "ownerUserEmail": "user@example.com",
     },
     headers={
         'x-admin-auth': "<your_website_admin_password>",
@@ -38,6 +40,21 @@ res = requests.post(
 # Returns {"jwt": "<Jwt>", "address": "<email_address>", "address_id": 123}
 print(res.json())
 ```
+
+### Assign Address Ownership
+
+`POST /api/admin/new_address` can bind the newly created address directly to a user:
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `ownerUserEmail` | string | No | Registered user email, matched exactly without case sensitivity |
+| `ownerUserId` | number | No | Registered user ID; use instead of `ownerUserEmail` |
+
+- Omit both fields to create an address with no owner.
+- If the user does not exist or has reached the role address limit, the API returns `400` and does not leave an unbound new address behind.
+- Send either `ownerUserEmail` or `ownerUserId`, not both.
+- Successful responses also include `owner_user_id` and `owner_user_email`; both are `null` for an unowned address.
+- The administration UI searches registered users through `GET /api/admin/users?query=<email>&limit=8&offset=0`.
 
 ### Create a Subdomain Mailbox Address
 

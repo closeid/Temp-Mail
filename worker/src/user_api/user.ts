@@ -2,15 +2,18 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n';
-import utils, { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue, getMailDomain, includesDomain } from "../utils"
+import utils, { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue, getMailDomain, includesDomain, isValidUserEmail } from "../utils"
 import { CONSTANTS } from "../constants";
 import { GeoData, UserInfo, UserSettings } from "../models";
 import { sendMail } from "../mails_api/send_mail_api";
 
 export default {
     verifyCode: async (c: Context<HonoCustomType>) => {
-        const { email, cf_token } = await c.req.json();
+        const body = await c.req.json();
+        const email = typeof body.email === "string" ? body.email.trim() : "";
+        const { cf_token } = body;
         const msgs = i18n.getMessagesbyContext(c);
+        if (!isValidUserEmail(email)) return c.text(msgs.UserEmailNotMatchRegexMsg, 400);
         // check cf turnstile
         try {
             await checkCfTurnstile(c, cf_token);
@@ -77,8 +80,10 @@ export default {
             return c.text(msgs.UserRegistrationDisabledMsg, 403);
         }
         // check request
-        const { email, password, code, cf_token } = await c.req.json();
-        if (!email || !password) {
+        const body = await c.req.json();
+        const email = typeof body.email === "string" ? body.email.trim() : "";
+        const { password, code, cf_token } = body;
+        if (!isValidUserEmail(email) || !password) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
         }
         checkUserPassword(password);
@@ -182,9 +187,11 @@ export default {
         return c.json({ success: true })
     },
     login: async (c: Context<HonoCustomType>) => {
-        const { email, password, cf_token } = await c.req.json();
+        const body = await c.req.json();
+        const email = typeof body.email === "string" ? body.email.trim() : "";
+        const { password, cf_token } = body;
         const msgs = i18n.getMessagesbyContext(c);
-        if (!email || !password) return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
+        if (!isValidUserEmail(email) || !password) return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
         // check cf turnstile if global turnstile is enabled
         if (utils.isGlobalTurnstileEnabled(c)) {
             try {

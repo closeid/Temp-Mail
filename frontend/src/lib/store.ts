@@ -61,6 +61,8 @@ export type UserOpenSettings = {
   [key: string]: any
 }
 
+export type MailboxAccessMode = 'standard' | 'credential'
+
 export type AppState = {
   loading: number
   isDark: boolean
@@ -68,6 +70,7 @@ export type AppState = {
   adminAuth: string
   jwt: string
   userJwt: string
+  mailboxAccessMode: MailboxAccessMode
   addressPassword: string
   preferredLocale: string
   mailboxSplitSize: number
@@ -132,7 +135,9 @@ const initialState: AppState = {
   loading: 0,
   isDark: readString(local, 'vueuse-color-scheme', '') === 'dark' || (!local?.getItem('vueuse-color-scheme') && typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches)),
   auth: readString(local, 'auth'), adminAuth: '', jwt: readString(local, 'jwt'),
-  userJwt: readString(local, 'userJwt'), addressPassword: readString(session, 'addressPassword'),
+  userJwt: readString(local, 'userJwt'),
+  mailboxAccessMode: readString(local, 'mailboxAccessMode') === 'credential' ? 'credential' : 'standard',
+  addressPassword: readString(session, 'addressPassword'),
   preferredLocale: readString(local, 'preferredLocale'),
   mailboxSplitSize: readNumber(local, 'mailboxSplitSize', 0.32), mailListView: readBoolean(local, 'mailListView', false),
   mailListPreviewLineClamp: readNumber(local, 'mailListPreviewLineClamp', 1),
@@ -155,7 +160,7 @@ const initialState: AppState = {
 
 const persistence: Partial<Record<keyof AppState, [Storage | null, string, 'string' | 'json']>> = {
   isDark: [local, 'vueuse-color-scheme', 'string'], auth: [local, 'auth', 'string'],
-  jwt: [local, 'jwt', 'string'], userJwt: [local, 'userJwt', 'string'], addressPassword: [session, 'addressPassword', 'string'],
+  jwt: [local, 'jwt', 'string'], userJwt: [local, 'userJwt', 'string'], mailboxAccessMode: [local, 'mailboxAccessMode', 'string'], addressPassword: [session, 'addressPassword', 'string'],
   preferredLocale: [local, 'preferredLocale', 'string'],
   mailboxSplitSize: [local, 'mailboxSplitSize', 'string'], mailListView: [local, 'mailListView', 'string'],
   mailListPreviewLineClamp: [local, 'mailListPreviewLineClamp', 'string'], useIframeShowMail: [local, 'useIframeShowMail', 'string'],
@@ -186,7 +191,7 @@ export const appStore = {
     }
     listeners.forEach((listener) => listener())
   },
-  resetAddress: () => appStore.setState({ jwt: '', addressPassword: '', settings: { ...initialState.settings, fetched: true } }),
+  resetAddress: () => appStore.setState({ jwt: '', mailboxAccessMode: 'standard', addressPassword: '', settings: { ...initialState.settings, fetched: true } }),
   resetUser: () => appStore.setState({ userJwt: '', userSettings: { ...initialState.userSettings, fetched: true } }),
 }
 

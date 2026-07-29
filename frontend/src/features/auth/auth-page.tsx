@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api } from '@/lib/api'
 import { appStore, useAppStore } from '@/lib/store'
-import { hashPassword, stringifyError } from '@/lib/utils'
+import { hashPassword, isValidEmailAddress, isWebAuthnCancellation, stringifyError } from '@/lib/utils'
 import { getPathWithLocale } from '@/i18n/utils'
 import { useScopedI18n } from '@/i18n/react'
 import { AUTH_ROUTES, MAIL_ROUTES, type AuthRouteKey } from '@/app/routes'
@@ -33,6 +33,8 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
   const [resetToken, setResetToken] = useState('')
   const [verifyUntil, setVerifyUntil] = useState(0)
   const [now, setNow] = useState(Date.now())
+  const [addressLoginOpen, setAddressLoginOpen] = useState(false)
+  const [passkeyPending, setPasskeyPending] = useState(false)
   const loginTurnstile = useRef<TurnstileHandle>(null)
   const go = (route: string, replace = false) => navigate(getPathWithLocale(route, locale), { replace })
 
@@ -45,8 +47,9 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
 
   const login = async () => {
     if (!email || !password) return toast.error(t('pleaseInput'))
+    if (!isValidEmailAddress(email)) return toast.error(t('invalidEmail'))
     try {
-      const result = await api.fetch<{ jwt: string }>('/api/user/login', { method: 'POST', body: { email, password: await hashPassword(password), cf_token: loginToken } })
+      const result = await api.fetch<{ jwt: string }>('/api/user/login', { method: 'POST', body: { email: email.trim(), password: await hashPassword(password), cf_token: loginToken } })
       const hasMailbox = await api.activateUserSession(result.jwt)
       go(hasMailbox ? MAIL_ROUTES.mailbox : MAIL_ROUTES.addresses)
     } catch (error) { toast.error(stringifyError(error)); loginTurnstile.current?.refresh() }
@@ -54,32 +57,40 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
 
   const sendCode = async (reset = false) => {
     if (!email) return toast.error(t('pleaseInputEmail'))
+    if (!isValidEmailAddress(email)) return toast.error(t('invalidEmail'))
     const token = reset ? resetToken : signupToken
     if (openSettings.cfTurnstileSiteKey && !token && userOpenSettings.enableMailVerify) return toast.error(t('pleaseCompleteTurnstile'))
     try {
-      const result = await api.fetch<{ expirationTtl?: number }>('/api/user/verify_code', { method: 'POST', body: { email, cf_token: token } })
+      const result = await api.fetch<{ expirationTtl?: number }>('/api/user/verify_code', { method: 'POST', body: { email: email.trim(), cf_token: token } })
       if (result.expirationTtl) { setVerifyUntil(Date.now() + result.expirationTtl * 1000); setNow(Date.now()); toast.success(t('verifyCodeSent', { timeout: result.expirationTtl })) }
     } catch (error) { toast.error(stringifyError(error)) }
   }
 
   const register = async (reset = false) => {
     if (!email || !password) return toast.error(t('pleaseInput'))
+    if (!isValidEmailAddress(email)) return toast.error(t('invalidEmail'))
     if (!code && userOpenSettings.enableMailVerify) return toast.error(t('pleaseInputCode'))
     try {
-      await api.fetch('/api/user/register', { method: 'POST', body: { email, password: await hashPassword(password), code, cf_token: reset ? resetToken : signupToken } })
+      await api.fetch('/api/user/register', { method: 'POST', body: { email: email.trim(), password: await hashPassword(password), code, cf_token: reset ? resetToken : signupToken } })
       toast.success(t('pleaseLogin'))
       go(AUTH_ROUTES.login, true)
     } catch (error) { toast.error(stringifyError(error)) }
   }
 
   const passkeyLogin = async () => {
+    if (passkeyPending) return
+    setPasskeyPending(true)
     try {
       const options = await api.fetch<any>('/api/user/passkey/authenticate_request', { method: 'POST', body: { domain: location.hostname } })
       const credential = await startAuthentication({ optionsJSON: options })
       const result = await api.fetch<{ jwt: string }>('/api/user/passkey/authenticate_response', { method: 'POST', body: { origin: location.origin, domain: location.hostname, credential } })
       const hasMailbox = await api.activateUserSession(result.jwt)
       go(hasMailbox ? MAIL_ROUTES.mailbox : MAIL_ROUTES.addresses)
-    } catch (error) { toast.error(stringifyError(error)) }
+    } catch (error) {
+      if (!isWebAuthnCancellation(error)) toast.error(stringifyError(error))
+    } finally {
+      setPasskeyPending(false)
+    }
   }
 
   const oauthLogin = async (clientID: string) => {
@@ -105,14 +116,14 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
           <TabsTrigger className="h-9 bg-transparent text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm" value="signup">{t('register')}</TabsTrigger>
         </TabsList>
         <TabsContent value="signin" className="grid gap-4">
-          <Field label={t('email')}><Input className="h-11 bg-muted/35" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
+          <Field label={t('email')}><Input className="h-11 bg-muted/35" autoCapitalize="none" autoComplete="email" inputMode="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
           <Field label={t('password')}><Input className="h-11 bg-muted/35" autoComplete="current-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && login()} /></Field>
           {openSettings.enableGlobalTurnstileCheck && <Turnstile ref={loginTurnstile} value={loginToken} onChange={setLoginToken} />}
           <Button className="h-11 w-full shadow-[0_8px_20px_rgba(21,183,126,0.18)]" onClick={login}><LogIn />{t('login')}</Button>
           <div className="flex justify-center"><Button className="h-[30px] px-[10px]" variant="link" onClick={() => go(AUTH_ROUTES.forgotPassword)}>{t('forgotPassword')}</Button></div>
           <Separator />
-          <Button className="h-10 w-full justify-start bg-background" variant="secondary" onClick={() => go(AUTH_ROUTES.addressLogin)}><AtSign />{t('loginWithAddressCredential')}</Button>
-          <Button className="h-10 w-full justify-start bg-background" variant="secondary" onClick={passkeyLogin}><KeyRound />{t('loginWithPasskey')}</Button>
+          <Button className="h-10 w-full justify-start bg-background" variant="secondary" onClick={() => setAddressLoginOpen(true)}><AtSign />{t('loginWithAddressCredential')}</Button>
+          <Button className="h-10 w-full justify-start bg-background" variant="secondary" disabled={passkeyPending} onClick={passkeyLogin}><KeyRound />{t('loginWithPasskey')}</Button>
           {userOpenSettings.oauth2ClientIDs.map((provider) => <Button key={provider.clientID} className="h-10 w-full justify-start bg-background" variant="secondary" onClick={() => oauthLogin(provider.clientID)}>
             {provider.icon ? <span className="size-4" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(provider.icon, { USE_PROFILES: { svg: true, svgFilters: true } }) }} /> : <Fingerprint />}
             {t('loginWith', { provider: provider.name })}
@@ -120,7 +131,7 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
         </TabsContent>
         <TabsContent value="signup" className="grid gap-4">
           {!userOpenSettings.enable ? <div className="rounded-md border border-border bg-muted/60 p-3 text-sm text-muted-foreground">{t('registrationUnavailable')}</div> : <>
-            <Field label={t('email')}><Input className="h-11 bg-muted/35" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
+            <Field label={t('email')}><Input className="h-11 bg-muted/35" autoCapitalize="none" autoComplete="email" inputMode="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
             <Field label={t('password')}><Input className="h-11 bg-muted/35" autoComplete="new-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
             {userOpenSettings.enableMailVerify && <><Turnstile value={signupToken} onChange={setSignupToken} /><Field label={t('verifyCode')}><div className="flex"><Input className="h-11 rounded-r-none bg-muted/35" value={code} onChange={(event) => setCode(event.target.value)} /><Button className="h-11 rounded-l-none" variant="outline" disabled={seconds > 0} onClick={() => sendCode(false)}><Send />{seconds ? t('waitforVerifyCode', { timeout: seconds }) : t('sendVerificationCode')}</Button></div></Field></>}
             {!userOpenSettings.enableMailVerify && <Turnstile value={signupToken} onChange={setSignupToken} />}
@@ -130,9 +141,9 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
       </Tabs>
     </section>
 
-    <Dialog open={view === 'addressLogin'} onOpenChange={(open) => !open && go(AUTH_ROUTES.login)}><DialogContent><DialogHeader><DialogTitle>{t('loginWithAddressCredential')}</DialogTitle></DialogHeader><AddressLogin loginOnly preferCredential bindAfterLogin={false} /></DialogContent></Dialog>
+    <Dialog open={addressLoginOpen} onOpenChange={setAddressLoginOpen}><DialogContent><DialogHeader><DialogTitle>{t('loginWithAddressCredential')}</DialogTitle></DialogHeader><AddressLogin loginOnly preferCredential bindAfterLogin={false} onAuthenticated={() => setAddressLoginOpen(false)} /></DialogContent></Dialog>
     <Dialog open={view === 'forgotPassword'} onOpenChange={(open) => !open && go(AUTH_ROUTES.login)}><DialogContent><DialogHeader><DialogTitle>{t('forgotPassword')}</DialogTitle><DialogDescription>{userOpenSettings.enable && userOpenSettings.enableMailVerify ? t('resetPassword') : t('cannotForgotPassword')}</DialogDescription></DialogHeader>
-      {userOpenSettings.enable && userOpenSettings.enableMailVerify && <div className="grid gap-4"><Field label={t('email')}><Input value={email} onChange={(event) => setEmail(event.target.value)} /></Field><Field label={t('password')}><Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field><Turnstile value={resetToken} onChange={setResetToken} /><Field label={t('verifyCode')}><div className="flex"><Input className="rounded-r-none" value={code} onChange={(event) => setCode(event.target.value)} /><Button className="rounded-l-none" variant="outline" disabled={seconds > 0} onClick={() => sendCode(true)}>{seconds ? t('waitforVerifyCode', { timeout: seconds }) : t('sendVerificationCode')}</Button></div></Field><Button onClick={() => register(true)}>{t('resetPassword')}</Button></div>}
+      {userOpenSettings.enable && userOpenSettings.enableMailVerify && <div className="grid gap-4"><Field label={t('email')}><Input autoCapitalize="none" autoComplete="email" inputMode="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field><Field label={t('password')}><Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field><Turnstile value={resetToken} onChange={setResetToken} /><Field label={t('verifyCode')}><div className="flex"><Input className="rounded-r-none" value={code} onChange={(event) => setCode(event.target.value)} /><Button className="rounded-l-none" variant="outline" disabled={seconds > 0} onClick={() => sendCode(true)}>{seconds ? t('waitforVerifyCode', { timeout: seconds }) : t('sendVerificationCode')}</Button></div></Field><Button onClick={() => register(true)}>{t('resetPassword')}</Button></div>}
     </DialogContent></Dialog>
   </main>
 }

@@ -758,6 +758,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Email",
       "zh": "邮箱"
     },
+    "invalidEmail": {
+      "en": "Please enter a valid email address",
+      "zh": "请输入有效的邮箱地址"
+    },
     "forgotPassword": {
       "en": "Forgot Password",
       "zh": "忘记密码"
@@ -1387,7 +1391,7 @@ export const MESSAGE_REGISTRY = {
       "zh": "确定要删除这个邮箱吗？"
     },
     "itemCount": {
-      "en": "itemCount",
+      "en": "Total",
       "zh": "总数"
     },
     "mail_count": {

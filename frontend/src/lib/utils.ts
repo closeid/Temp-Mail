@@ -41,3 +41,22 @@ export const parseJson = <T>(value: string | null, fallback: T): T => {
 }
 
 export const stringifyError = (error: unknown) => error instanceof Error ? error.message : String(error)
+
+const EMAIL_PATTERN = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i
+
+export const isValidEmailAddress = (value: string) => {
+  const email = value.trim()
+  if (!email || email.length > 254) return false
+  const [localPart = ''] = email.split('@')
+  return localPart.length <= 64 && !localPart.startsWith('.') && !localPart.endsWith('.') && !localPart.includes('..') && EMAIL_PATTERN.test(email)
+}
+
+type WebAuthnFailure = Error & { code?: string; cause?: unknown }
+
+export const isWebAuthnCancellation = (error: unknown): boolean => {
+  if (!(error instanceof Error)) return false
+  const failure = error as WebAuthnFailure
+  if (failure.name === 'NotAllowedError' || failure.name === 'AbortError') return true
+  if (failure.code === 'ERROR_CEREMONY_ABORTED') return true
+  return failure.cause !== error && isWebAuthnCancellation(failure.cause)
+}

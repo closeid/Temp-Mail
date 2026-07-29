@@ -305,7 +305,7 @@ The home page contains user login, registration, password recovery, passkey logi
 - **Registration:** available by default. Maintenance -> Administrator -> User Settings can require email verification. Verification requires KV, a working send provider, and a configured verification sender.
 - **Passkeys:** require HTTPS and the correct relying-party domain. A signed-in user can register credentials from the account area.
 - **OAuth2:** add providers under Maintenance -> Administrator -> OAuth2 in `/dashboard`. The callback is `https://your-frontend-domain/user/oauth2/callback` and must exactly match the provider configuration.
-- **Administrators:** open `/dashboard` and authenticate with `ADMIN_PASSWORDS`, or assign a user the role configured by `ADMIN_USER_ROLE`. Never enable `DISABLE_ADMIN_PASSWORD_CHECK` on a public deployment.
+- **Administrators:** open `/dashboard`; unauthenticated sessions are redirected to `/dashboard/login`. Authenticate with `ADMIN_PASSWORDS`, or assign a user the role configured by `ADMIN_USER_ROLE`. Never enable `DISABLE_ADMIN_PASSWORD_CHECK` on a public deployment.
 
 OAuth2 is federated sign-in: the same email maps to the same local user. The current implementation is not an OAuth-only account mode and enabling OAuth2 does not disable password login. See the [OAuth2 guide](vitepress-docs/docs/en/guide/feature/user-oauth2.md).
 
@@ -437,7 +437,7 @@ Do not rerun the full `schema.sql` on an existing database.
 | Symptom | Check |
 | --- | --- |
 | Website works but mail never arrives | Email Routing, MX/SPF records, Catch-all Worker target, and membership in `DOMAINS` |
-| Cannot sign in to `/dashboard` | `ADMIN_PASSWORDS` is a JSON array or parseable Secret and is present in the active Worker version |
+| Cannot sign in to `/dashboard/login` | `ADMIN_PASSWORDS` is a JSON array or parseable Secret and is present in the active Worker version |
 | Registration verification is not sent | KV binding, verification setting, sender address, and at least one outbound provider |
 | Webhook reports disabled | KV binding, `ENABLE_WEBHOOK=true`, and the variables on the latest deployment |
 | Sending fails | Console provider status, matching sender domain, provider Secret or Binding, and user balance |

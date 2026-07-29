@@ -27,6 +27,8 @@ res = requests.post(
         "enablePrefix": True,
         "name": "<邮箱名称>",
         "domain": "<邮箱域名>",
+        # 可选：指定已注册用户作为地址归属；省略则创建无归属地址
+        "ownerUserEmail": "user@example.com",
     },
     headers={
         'x-admin-auth': "<你的网站admin密码>",
@@ -38,6 +40,21 @@ res = requests.post(
 # 返回值 {"jwt": "<Jwt>", "address": "<邮箱地址>", "address_id": 123}
 print(res.json())
 ```
+
+### 指定地址归属
+
+`POST /api/admin/new_address` 支持在创建时直接绑定用户：
+
+| 字段 | 类型 | 必填 | 说明 |
+| --- | --- | --- | --- |
+| `ownerUserEmail` | string | 否 | 已注册用户邮箱，不区分大小写精确匹配 |
+| `ownerUserId` | number | 否 | 已注册用户 ID，可替代 `ownerUserEmail` |
+
+- 两个字段都省略时，地址不归属任何用户。
+- 指定用户不存在或已达到角色地址上限时，请求返回 `400`，且不会留下未绑定的新地址。
+- 建议每次只传 `ownerUserEmail` 或 `ownerUserId` 其中一个。
+- 成功响应会额外返回 `owner_user_id` 和 `owner_user_email`；无归属地址对应字段为 `null`。
+- 后台页面的归属用户输入框使用 `GET /api/admin/users?query=<邮箱>&limit=8&offset=0` 查询已注册用户。
 
 ### 创建子域名邮箱地址
 

@@ -56,8 +56,9 @@ export function AddressLogin({ loginOnly = false, preferCredential = false, bind
     await bind()
     if (appStore.getState().userJwt) await queryClient.invalidateQueries({ queryKey: boundAddressesQueryKey })
   }
-  const finishLogin = async (jwt: string) => {
-    appStore.setState({ jwt })
+  const finishLogin = async (jwt: string, credentialSession = false) => {
+    if (credentialSession) appStore.resetUser()
+    appStore.setState({ jwt, mailboxAccessMode: credentialSession ? 'credential' : 'standard' })
     await api.getSettings()
     if (bindAfterLogin && (bindUserAddress || appStore.getState().userSettings.user_email)) {
       try { await bindCurrentAddress() } catch (error) { toast.error(`${t('bindUserAddressError')}: ${stringifyError(error)}`) }
@@ -75,7 +76,8 @@ export function AddressLogin({ loginOnly = false, preferCredential = false, bind
       } else {
         if (!credential) return toast.error(t('credentialInput'))
         await api.fetch('/api/open/credential_login', { method: 'POST', body: { credential, cf_token: token } })
-        await finishLogin(credential)
+        const credentialSession = !bindAfterLogin || (!appStore.getState().userSettings.user_email && !bindUserAddress)
+        await finishLogin(credential, credentialSession)
       }
     } catch (error) { toast.error(stringifyError(error)); turnstileRef.current?.refresh() }
   }
@@ -86,7 +88,7 @@ export function AddressLogin({ loginOnly = false, preferCredential = false, bind
       const result = newAddressPath
         ? await newAddressPath(cleanName, domain, token, randomSubdomain)
         : await api.fetch<{ jwt: string; password?: string }>('/api/new_address', { method: 'POST', body: { name: cleanName, domain, cf_token: token, enableRandomSubdomain: randomSubdomain } })
-      appStore.setState({ jwt: result.jwt, addressPassword: result.password || '', showAddressCredential: true })
+      appStore.setState({ jwt: result.jwt, mailboxAccessMode: 'standard', addressPassword: result.password || '', showAddressCredential: true })
       await api.getSettings()
       if (bindUserAddress || appStore.getState().userSettings.user_email) { try { await bindCurrentAddress() } catch (error) { toast.error(`${t('bindUserAddressError')}: ${stringifyError(error)}`) } }
       navigate(getPathWithLocale(MAIL_ROUTES.mailbox, locale))

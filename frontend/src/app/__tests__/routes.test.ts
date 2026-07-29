@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { getPathWithLocale } from '@/i18n/utils'
 import {
   ADMIN_PAGE_ROUTES,
+  ADMIN_LOGIN_ROUTE,
   ADMIN_SECTION_PAGES,
   AUTH_ROUTES,
   MAIL_ROUTES,
@@ -14,10 +15,11 @@ describe('explicit application routes', () => {
     const paths = [
       ...Object.values(AUTH_ROUTES),
       ...Object.values(MAIL_ROUTES),
-      ...Object.values(ADMIN_PAGE_ROUTES),
+      ...Object.values(ADMIN_PAGE_ROUTES), ADMIN_LOGIN_ROUTE,
     ]
     expect(new Set(paths).size).toBe(paths.length)
     expect(paths.every((path) => path.startsWith('/') && !path.endsWith('/'))).toBe(true)
+    expect(Object.values(AUTH_ROUTES)).toEqual(['/login', '/register', '/login/forgot-password'])
   })
 
   it('places every administration page in exactly one section', () => {

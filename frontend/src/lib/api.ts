@@ -125,6 +125,7 @@ export async function activateUserSession(userJwt: string) {
       userJwt: effectiveUserJwt,
       userSettings,
       jwt: '',
+      mailboxAccessMode: 'standard',
       settings: { fetched: true, address: '', auto_reply: {}, send_balance: 0 },
     })
     return false
@@ -137,6 +138,7 @@ export async function activateUserSession(userJwt: string) {
     userJwt: effectiveUserJwt,
     userSettings,
     jwt: mailbox.jwt,
+    mailboxAccessMode: 'standard',
     settings: { fetched: true, address: addressResult.address || '', auto_reply: addressResult.auto_reply || {}, send_balance: addressResult.send_balance || 0 },
   })
   return true

@@ -13,7 +13,7 @@ const PUBLIC_ENDPOINTS: Endpoint[] = [
   ['POST', '/api/open/admin_login'], ['POST', '/api/open/credential_login'],
 ]
 const MAILBOX_ENDPOINTS: Endpoint[] = [
-  ['GET', '/api/settings'], ['POST', '/api/new_address'], ['POST', '/api/address_login'], ['POST', '/api/address_change_password'],
+  ['GET', '/api/settings'], ['GET', '/api/address/owner_addresses'], ['POST', '/api/new_address'], ['POST', '/api/address_login'], ['POST', '/api/address_change_password'],
   ['DELETE', '/api/delete_address'], ['DELETE', '/api/clear_inbox'], ['DELETE', '/api/clear_sent_items'],
   ['GET', '/api/mails'], ['GET', '/api/mail/:mail_id'], ['DELETE', '/api/mails/:id'], ['GET', '/api/parsed_mails'], ['GET', '/api/parsed_mail/:mail_id'],
   ['GET', '/api/auto_reply'], ['POST', '/api/auto_reply'], ['GET', '/api/webhook/settings'], ['POST', '/api/webhook/settings'], ['POST', '/api/webhook/test'],
@@ -54,6 +54,7 @@ export function ApiDocsPage() {
   const commonT = useScopedI18n('ui.common').t
   const baseUrl = (import.meta.env.VITE_API_BASE || location.origin).replace(/\/$/, '')
   const example = `curl "${baseUrl}/api/open/settings"`
+  const adminCreateAddressBody = JSON.stringify({ name: 'inbox', domain: 'example.com', enablePrefix: false, ownerUserEmail: 'user@example.com' }, null, 2)
   const groups: ApiGroup[] = [
     { title: t('publicApis'), auth: t('publicAuth'), endpoints: PUBLIC_ENDPOINTS },
     { title: t('mailboxApis'), auth: t('mailboxAuth'), endpoints: MAILBOX_ENDPOINTS },
@@ -66,7 +67,7 @@ export function ApiDocsPage() {
   return <section className="h-full overflow-auto">
     <header className="border-b border-border px-5 py-4"><h1 className="text-base font-semibold">{t('apiDocumentation')}</h1></header>
     <div className="mx-auto grid w-full max-w-5xl gap-7 px-5 py-6">
-      <div className="grid gap-3 border-b border-border pb-6"><div><span className="text-xs font-medium text-muted-foreground">{t('baseUrl')}</span><code className="mt-1 block break-all text-sm">{baseUrl}</code></div><div><span className="text-xs font-medium text-muted-foreground">{t('authentication')}</span><p className="mt-1 text-sm">{t('customAuth')}</p></div><div><span className="text-xs font-medium text-muted-foreground">{t('requestExample')}</span><div className="mt-1 flex items-center gap-2"><code className="min-w-0 flex-1 overflow-auto rounded-md bg-muted px-3 py-2 text-xs">{example}</code><Button size="icon" variant="secondary" title={commonT('copy')} onClick={copy}><Copy /></Button></div></div></div>
+      <div className="grid gap-3 border-b border-border pb-6"><div><span className="text-xs font-medium text-muted-foreground">{t('baseUrl')}</span><code className="mt-1 block break-all text-sm">{baseUrl}</code></div><div><span className="text-xs font-medium text-muted-foreground">{t('authentication')}</span><p className="mt-1 text-sm">{t('customAuth')}</p></div><div><span className="text-xs font-medium text-muted-foreground">{t('requestExample')}</span><div className="mt-1 flex items-center gap-2"><code className="min-w-0 flex-1 overflow-auto rounded-md bg-muted px-3 py-2 text-xs">{example}</code><Button size="icon" variant="secondary" title={commonT('copy')} onClick={copy}><Copy /></Button></div></div><div><span className="text-xs font-medium text-muted-foreground">{t('adminCreateAddressRequest')}</span><p className="mt-1 text-xs text-muted-foreground">{t('adminCreateAddressRequestDescription')}</p><pre className="mt-2 overflow-auto rounded-md bg-muted px-3 py-2 text-xs">{adminCreateAddressBody}</pre></div></div>
       {groups.map((group) => <section key={group.title} className="grid gap-3"><div><h2 className="text-sm font-semibold">{group.title}</h2><p className="mt-1 text-xs text-muted-foreground">{group.auth}</p></div><div className="overflow-hidden rounded-md border border-border"><Table><TableHeader><TableRow><TableHead className="w-28">{t('method')}</TableHead><TableHead>{t('endpoint')}</TableHead></TableRow></TableHeader><TableBody>{group.endpoints.map(([method, path]) => <TableRow key={`${method}-${path}`}><TableCell><code className="text-xs font-semibold">{method}</code></TableCell><TableCell><code className="break-all text-xs">{path}</code></TableCell></TableRow>)}</TableBody></Table></div></section>)}
     </div>
   </section>

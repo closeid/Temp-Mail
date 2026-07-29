@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { confirmAction, promptAction } from '@/components/action-dialogs'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Field } from '@/components/ui/field'
@@ -38,6 +39,7 @@ export function AccountTable() {
   const { locale } = useI18n()
   const navigate = useNavigate()
   const commonT = useScopedI18n('ui.common').t
+  const adminT = useScopedI18n('ui.admin').t
   const open = useAppStore((state) => state.openSettings)
   const [credential, setCredential] = useState<{ address: string; jwt: string } | null>(null)
   const columns = [
@@ -46,6 +48,7 @@ export function AccountTable() {
     { key: 'created_at', label: t('created_at'), className: 'numeric whitespace-nowrap text-xs text-muted-foreground' },
     { key: 'updated_at', label: t('updated_at'), className: 'numeric whitespace-nowrap text-xs text-muted-foreground' },
     { key: 'source_meta', label: t('source_meta'), className: 'text-xs' },
+    { key: 'owner_email', label: adminT('owner'), className: 'text-sm', render: (row: any) => row.owner_email ? <span className="font-medium">{row.owner_email}</span> : <Badge variant="secondary">{adminT('unbound')}</Badge> },
     { key: 'mail_count', label: t('mail_count'), className: 'numeric text-right' },
     { key: 'send_count', label: t('send_count'), className: 'numeric text-right' },
   ]
@@ -65,30 +68,74 @@ export function AccountTable() {
 
 export function CreateAddressPage() {
   const { t } = useScopedI18n('ui.admin')
+  const commonT = useScopedI18n('ui.common').t
   const settings = useAppStore((state) => state.openSettings)
+  const client = useQueryClient()
   const [name, setName] = useState('')
   const [domain, setDomain] = useState(settings.domains[0]?.value || '')
   const [prefix, setPrefix] = useState(Boolean(settings.prefix))
   const [random, setRandom] = useState(false)
-  const [result, setResult] = useState<Record<string, string> | null>(null)
+  const [ownership, setOwnership] = useState<'unowned' | 'user'>('unowned')
+  const [ownerEmail, setOwnerEmail] = useState('')
+  const [ownerSearch, setOwnerSearch] = useState('')
+  const [ownerResultsOpen, setOwnerResultsOpen] = useState(false)
+  const [result, setResult] = useState<Record<string, any> | null>(null)
   useEffect(() => { if (!domain && settings.domains[0]) setDomain(settings.domains[0].value) }, [domain, settings.domains])
-  const create = async () => { if (!name || !domain) return toast.error(t('completeAllFields')); try { setResult(await api.fetch('/api/admin/new_address', { method: 'POST', body: { enablePrefix: prefix, enableRandomSubdomain: random, name, domain } })); toast.success(t('addressCreated')) } catch (error) { toast.error(stringifyError(error)) } }
-  return <div className="h-full overflow-auto"><div className="mx-auto grid max-w-2xl gap-5 p-5"><Field label={t('address')}><div className="flex"><Input className="h-10 rounded-r-none" value={name} onChange={(event) => setName(event.target.value)} /><span className="grid h-10 place-items-center border-y border-border bg-muted px-2">@</span><Select value={domain} onValueChange={setDomain}><SelectTrigger className="h-10 w-[220px] rounded-l-none"><SelectValue /></SelectTrigger><SelectContent>{settings.domains.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select></div></Field>{settings.prefix && <label className="flex items-center justify-between border-b border-border pb-3 text-sm font-medium"><span>{t('useConfiguredPrefix', { prefix: settings.prefix })}</span><Switch checked={prefix} onCheckedChange={setPrefix} /></label>}{settings.randomSubdomainDomains.includes(domain) && <label className="flex items-center justify-between border-b border-border pb-3 text-sm font-medium"><span>{t('useRandomSubdomain')}</span><Switch checked={random} onCheckedChange={setRandom} /></label>}<Button onClick={create}><Plus />{t('createAddress')}</Button>{result && <div className="grid gap-3 border-t border-border pt-4"><Field label={t('address')}><Input readOnly value={result.address || ''} /></Field><Field label={t('credential')}><div className="flex gap-2"><Input className="font-mono text-xs" readOnly value={result.jwt || ''} /><Button size="icon" variant="secondary" onClick={() => copyText(result.jwt || '')}><Copy /></Button></div></Field>{result.password && <Field label={t('password')}><Input readOnly value={result.password} /></Field>}</div>}</div></div>
+  useEffect(() => {
+    const timer = window.setTimeout(() => setOwnerSearch(ownerEmail.trim()), 250)
+    return () => window.clearTimeout(timer)
+  }, [ownerEmail])
+  const users = useQuery({
+    queryKey: ['admin-owner-user-search', ownerSearch],
+    enabled: ownership === 'user' && ownerSearch.length >= 2,
+    queryFn: () => api.fetch<{ results?: Array<{ id: number; user_email: string }> }>(`/api/admin/users?limit=8&offset=0&query=${encodeURIComponent(ownerSearch)}`),
+  })
+  const create = async () => {
+    if (!name || !domain || (ownership === 'user' && !ownerEmail.trim())) return toast.error(t('completeAllFields'))
+    try {
+      const created = await api.fetch<Record<string, any>>('/api/admin/new_address', { method: 'POST', body: { enablePrefix: prefix, enableRandomSubdomain: random, name, domain, ...(ownership === 'user' ? { ownerUserEmail: ownerEmail.trim() } : {}) } })
+      setResult(created)
+      await client.invalidateQueries({ queryKey: ['admin-table', '/api/admin/address'] })
+      toast.success(t('addressCreated'))
+    } catch (error) { toast.error(stringifyError(error)) }
+  }
+  return <div className="h-full overflow-auto"><div className="mx-auto grid max-w-2xl gap-5 p-5">
+    <Field label={t('address')}><div className="flex"><Input className="h-10 rounded-r-none" value={name} onChange={(event) => setName(event.target.value)} /><span className="grid h-10 place-items-center border-y border-border bg-muted px-2">@</span><Select value={domain} onValueChange={setDomain}><SelectTrigger className="h-10 w-[220px] rounded-l-none"><SelectValue /></SelectTrigger><SelectContent>{settings.domains.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select></div></Field>
+    <Field label={t('addressOwnership')}><Select value={ownership} onValueChange={(value) => { setOwnership(value as 'unowned' | 'user'); setOwnerResultsOpen(false) }}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unowned">{t('createUnownedAddress')}</SelectItem><SelectItem value="user">{t('assignToRegisteredUser')}</SelectItem></SelectContent></Select></Field>
+    {ownership === 'user' && <Field label={t('ownerUserEmail')} description={t('ownerUserSearchHint')}><div className="relative" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOwnerResultsOpen(false) }}><Input className="h-10" type="email" autoComplete="off" value={ownerEmail} placeholder={t('searchRegisteredUser')} onFocus={() => setOwnerResultsOpen(true)} onChange={(event) => { setOwnerEmail(event.target.value); setOwnerResultsOpen(true) }} />
+      {ownerResultsOpen && ownerSearch.length >= 2 && <div className="absolute inset-x-0 top-[calc(100%+4px)] z-20 max-h-52 overflow-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md">
+        {users.isFetching ? <p className="px-2 py-2 text-xs text-muted-foreground">{commonT('loading')}</p>
+          : (users.data?.results || []).length ? (users.data?.results || []).map((user) => <button key={user.id} type="button" className="flex h-9 w-full items-center rounded-sm px-2 text-left text-sm hover:bg-accent hover:text-accent-foreground" onMouseDown={(event) => event.preventDefault()} onClick={() => { setOwnerEmail(user.user_email); setOwnerResultsOpen(false) }}>{user.user_email}</button>)
+            : <p className="px-2 py-2 text-xs text-muted-foreground">{t('noMatchingUsers')}</p>}
+      </div>}
+    </div></Field>}
+    {settings.prefix && <label className="flex items-center justify-between border-b border-border pb-3 text-sm font-medium"><span>{t('useConfiguredPrefix', { prefix: settings.prefix })}</span><Switch checked={prefix} onCheckedChange={setPrefix} /></label>}
+    {settings.randomSubdomainDomains.includes(domain) && <label className="flex items-center justify-between border-b border-border pb-3 text-sm font-medium"><span>{t('useRandomSubdomain')}</span><Switch checked={random} onCheckedChange={setRandom} /></label>}
+    <Button onClick={create}><Plus />{t('createAddress')}</Button>
+    {result && <div className="grid gap-3 border-t border-border pt-4"><Field label={t('address')}><Input readOnly value={result.address || ''} /></Field>{result.owner_user_email && <Field label={t('owner')}><Input readOnly value={result.owner_user_email} /></Field>}<Field label={t('credential')}><div className="flex gap-2"><Input className="font-mono text-xs" readOnly value={result.jwt || ''} /><Button size="icon" variant="secondary" onClick={() => copyText(result.jwt || '')}><Copy /></Button></div></Field>{result.password && <Field label={t('password')}><Input readOnly value={result.password} /></Field>}</div>}
+  </div></div>
 }
 
 export function UserTable() {
   const { t } = useScopedI18n('ui.admin')
+  const commonT = useScopedI18n('ui.common').t
   const client = useQueryClient()
   const [createOpen, setCreateOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [addressesFor, setAddressesFor] = useState<number | null>(null)
+  const [roleEditor, setRoleEditor] = useState<{ row: Record<string, any>; refetch: () => Promise<any> } | null>(null)
+  const [roleValue, setRoleValue] = useState('__default__')
   const addresses = useQuery({ queryKey: ['admin-user-addresses', addressesFor], queryFn: () => api.fetch<{ results?: any[] }>(`/api/admin/users/bind_address/${addressesFor}`), enabled: addressesFor != null })
+  const roles = useQuery({ queryKey: ['admin-user-roles'], queryFn: () => api.fetch<Array<{ role: string }>>('/api/admin/user_roles') })
+  const roleIsConfigured = roleValue === '__default__' || Boolean(roles.data?.some((role) => role.role === roleValue))
   const create = async () => { if (!email || !password) return; const hashed = await hashPassword(password); if (await run(() => api.fetch('/api/admin/users', { method: 'POST', body: { email, password: hashed } }), t('userCreated'))) { setCreateOpen(false); setEmail(''); setPassword(''); await client.invalidateQueries({ queryKey: ['admin-table', '/api/admin/users'] }) } }
-  const columns = [{ key: 'id', label: 'ID', className: 'numeric w-16' }, { key: 'user_email', label: t('email'), className: 'font-medium' }, { key: 'role_text', label: t('role') }, { key: 'address_count', label: t('addresses'), className: 'numeric text-right' }, { key: 'created_at', label: t('created'), className: 'numeric text-xs text-muted-foreground' }]
-  return <><DataTablePage endpoint="/api/admin/users" columns={columns} leading={<Button onClick={() => setCreateOpen(true)}><Plus />{t('createUser')}</Button>} actions={(row, refetch) => <Actions><DropdownMenuItem disabled={!row.address_count} onSelect={() => setAddressesFor(row.id)}>{t('manageAddresses')}</DropdownMenuItem><DropdownMenuItem onSelect={async () => { const role = await promptAction({ title: t('changeRole'), defaultValue: row.role_text || '' }); if (role !== null && await run(() => api.fetch('/api/admin/user_roles', { method: 'POST', body: { user_id: row.id, role_text: role } }))) await refetch() }}>{t('changeRole')}</DropdownMenuItem><DropdownMenuItem onSelect={async () => { const value = await promptAction({ title: t('resetPassword'), description: row.user_email, inputType: 'password' }); if (value) { const hashed = await hashPassword(value); await run(() => api.fetch(`/api/admin/users/${row.id}/reset_password`, { method: 'POST', body: { password: hashed } })) } }}>{t('resetPassword')}</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem className="text-destructive" onSelect={async () => { if (await confirmAction({ title: t('deleteUser'), description: row.user_email, destructive: true }) && await run(() => api.fetch(`/api/admin/users/${row.id}`, { method: 'DELETE' }))) await refetch() }}><Trash2 />{t('delete')}</DropdownMenuItem></Actions>} />
+  const columns = [{ key: 'id', label: 'ID', className: 'numeric w-16' }, { key: 'user_email', label: t('email'), className: 'font-medium' }, { key: 'role_text', label: t('role') }, { key: 'address_count', label: t('boundAddressCount'), className: 'numeric text-right' }, { key: 'created_at', label: t('created'), className: 'numeric text-xs text-muted-foreground' }]
+  return <><DataTablePage endpoint="/api/admin/users" columns={columns} leading={<Button onClick={() => setCreateOpen(true)}><Plus />{t('createUser')}</Button>} actions={(row, refetch) => <Actions><DropdownMenuItem disabled={!row.address_count} onSelect={() => setAddressesFor(row.id)}>{t('manageAddresses')}</DropdownMenuItem><DropdownMenuItem onSelect={() => { setRoleValue(row.role_text || '__default__'); setRoleEditor({ row, refetch }) }}>{t('changeRole')}</DropdownMenuItem><DropdownMenuItem onSelect={async () => { const value = await promptAction({ title: t('resetPassword'), description: row.user_email, inputType: 'password' }); if (value) { const hashed = await hashPassword(value); await run(() => api.fetch(`/api/admin/users/${row.id}/reset_password`, { method: 'POST', body: { password: hashed } })) } }}>{t('resetPassword')}</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem className="text-destructive" onSelect={async () => { if (await confirmAction({ title: t('deleteUser'), description: row.user_email, destructive: true }) && await run(() => api.fetch(`/api/admin/users/${row.id}`, { method: 'DELETE' }))) await refetch() }}><Trash2 />{t('delete')}</DropdownMenuItem></Actions>} />
   <Dialog open={createOpen} onOpenChange={setCreateOpen}><DialogContent><DialogHeader><DialogTitle>{t('createUser')}</DialogTitle></DialogHeader><Field label={t('email')}><Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field><Field label={t('password')}><Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field><DialogFooter><Button onClick={create}>{t('createUser')}</Button></DialogFooter></DialogContent></Dialog>
-  <Dialog open={addressesFor != null} onOpenChange={(value) => !value && setAddressesFor(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{t('boundAddresses')}</DialogTitle></DialogHeader><div className="max-h-[60dvh] overflow-auto"><Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>{t('address')}</TableHead><TableHead>{t('created')}</TableHead></TableRow></TableHeader><TableBody>{(addresses.data?.results || []).map((row) => <TableRow key={row.id}><TableCell>{row.id}</TableCell><TableCell>{row.name || row.address}</TableCell><TableCell>{row.created_at}</TableCell></TableRow>)}</TableBody></Table></div></DialogContent></Dialog></>
+  <Dialog open={addressesFor != null} onOpenChange={(value) => !value && setAddressesFor(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{t('boundAddresses')}</DialogTitle></DialogHeader><div className="max-h-[60dvh] overflow-auto"><Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>{t('address')}</TableHead><TableHead>{t('created')}</TableHead></TableRow></TableHeader><TableBody>{(addresses.data?.results || []).map((row) => <TableRow key={row.id}><TableCell>{row.id}</TableCell><TableCell>{row.name || row.address}</TableCell><TableCell>{row.created_at}</TableCell></TableRow>)}</TableBody></Table></div></DialogContent></Dialog>
+  <Dialog open={Boolean(roleEditor)} onOpenChange={(value) => !value && setRoleEditor(null)}><DialogContent><DialogHeader><DialogTitle>{t('changeRole')}</DialogTitle><DialogDescription>{roleEditor?.row.user_email}</DialogDescription></DialogHeader><Field label={t('role')}><Select value={roleValue} onValueChange={setRoleValue}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="__default__">{t('defaultRole')}</SelectItem>{roleValue !== '__default__' && !roleIsConfigured && <SelectItem value={roleValue} disabled>{roleValue}</SelectItem>}{(roles.data || []).map((role) => <SelectItem key={role.role} value={role.role}>{role.role}</SelectItem>)}</SelectContent></Select></Field><DialogFooter><Button disabled={roles.isLoading || !roleIsConfigured} onClick={async () => { if (!roleEditor) return; if (await run(() => api.fetch('/api/admin/user_roles', { method: 'POST', body: { user_id: roleEditor.row.id, role_text: roleValue === '__default__' ? '' : roleValue } }), commonT('saved'))) { await roleEditor.refetch(); setRoleEditor(null) } }}><Save />{commonT('save')}</Button></DialogFooter></DialogContent></Dialog>
+  </>
 }
 
 export function SenderAccessPage() {
