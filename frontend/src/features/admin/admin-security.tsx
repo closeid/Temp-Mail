@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Copy, KeyRound, LogOut, Plus, ShieldCheck, Trash2 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Copy, KeyRound, Plus, ShieldCheck, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -11,8 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { useI18n, useScopedI18n } from '@/i18n/react'
-import { getPathWithLocale } from '@/i18n/utils'
+import { useScopedI18n } from '@/i18n/react'
 import { api } from '@/lib/api'
 import { appStore, useAppStore } from '@/lib/store'
 import { copyText, formatDate, hashPassword, stringifyError } from '@/lib/utils'
@@ -28,15 +26,12 @@ type AdminAccessToken = {
 type CreatedAccessToken = AdminAccessToken & { token: string }
 
 export function AdminAccountPage() {
-  const navigate = useNavigate()
-  const { locale } = useI18n()
   const { t } = useScopedI18n('views.Admin')
   const { t: securityT } = useScopedI18n('ui.admin')
   const state = useAppStore((value) => value)
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const method = state.adminAuth ? t('loginViaPassword') : state.userSettings.is_admin ? t('loginViaUserAdmin') : t('loginViaDisabledCheck')
-  const logout = () => { appStore.setState({ adminAuth: '', showAdminAuth: false }); navigate(getPathWithLocale('/', locale)) }
   const changePassword = useMutation({
     mutationFn: async () => {
       if (password.length < 8 || password.length > 100) throw new Error(securityT('administratorPasswordRules'))
@@ -56,7 +51,6 @@ export function AdminAccountPage() {
     <div className="mx-auto grid max-w-2xl gap-7 p-5">
       <section>
         <div className="flex items-center justify-between border-b border-border py-4"><div><p className="font-medium">{t('loginMethod')}</p><p className="mt-1 text-sm text-muted-foreground">{method}</p></div><ShieldCheck className="size-5 text-primary" /></div>
-        {state.adminAuth && <div className="flex items-center justify-between gap-4 py-4"><div><p className="font-medium">{securityT('administratorSession')}</p><p className="mt-1 text-sm text-muted-foreground">{securityT('administratorSessionDescription')}</p></div><Button variant="secondary" onClick={logout}><LogOut />{securityT('signOut')}</Button></div>}
       </section>
       {state.adminAuth ? <section className="grid gap-4 border-t border-border pt-6">
         <div><h2 className="text-base font-semibold">{securityT('changeAdministratorPassword')}</h2><p className="mt-1 text-sm text-muted-foreground">{securityT('changeAdministratorPasswordDescription')}</p></div>

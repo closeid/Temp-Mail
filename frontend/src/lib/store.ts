@@ -100,7 +100,8 @@ export type AppState = {
 const local = typeof window === 'undefined' ? null : window.localStorage
 const session = typeof window === 'undefined' ? null : window.sessionStorage
 
-// Admin credentials are intentionally memory-only to limit exposure after a browser restart.
+// Keep administrator credentials within the current tab so reloads preserve the session,
+// while closing the tab still clears the plaintext credential.
 local?.removeItem('adminAuth')
 for (const key of ['indexTab', 'userTab', 'adminTab', 'workspaceSection']) session?.removeItem(key)
 
@@ -134,7 +135,7 @@ const openSettingsDefaults: OpenSettings = {
 const initialState: AppState = {
   loading: 0,
   isDark: readString(local, 'vueuse-color-scheme', '') === 'dark' || (!local?.getItem('vueuse-color-scheme') && typeof window !== 'undefined' && Boolean(window.matchMedia?.('(prefers-color-scheme: dark)').matches)),
-  auth: readString(local, 'auth'), adminAuth: '', jwt: readString(local, 'jwt'),
+  auth: readString(local, 'auth'), adminAuth: readString(session, 'adminAuth'), jwt: readString(local, 'jwt'),
   userJwt: readString(local, 'userJwt'),
   mailboxAccessMode: readString(local, 'mailboxAccessMode') === 'credential' ? 'credential' : 'standard',
   addressPassword: readString(session, 'addressPassword'),
@@ -160,6 +161,7 @@ const initialState: AppState = {
 
 const persistence: Partial<Record<keyof AppState, [Storage | null, string, 'string' | 'json']>> = {
   isDark: [local, 'vueuse-color-scheme', 'string'], auth: [local, 'auth', 'string'],
+  adminAuth: [session, 'adminAuth', 'string'],
   jwt: [local, 'jwt', 'string'], userJwt: [local, 'userJwt', 'string'], mailboxAccessMode: [local, 'mailboxAccessMode', 'string'], addressPassword: [session, 'addressPassword', 'string'],
   preferredLocale: [local, 'preferredLocale', 'string'],
   mailboxSplitSize: [local, 'mailboxSplitSize', 'string'], mailListView: [local, 'mailListView', 'string'],

@@ -21,6 +21,8 @@
 
 ### Bug Fixes
 
+- fix: |Frontend sessions and headers| Persist administrator credentials for the current browser tab so reloads do not require another sign-in; move frontend and administration sign-out actions to the top-right header, remove duplicate settings-page actions, and keep mobile mailbox header actions on one icon-only row
+- fix: |Document titles| Format mailbox workspace titles as "Page - mailbox@example.com - Get an Email" while administration pages use "Administration - Get an Email" without inheriting a mailbox address
 - fix: |Authentication| Show only the sign-in tab and form when administrators disable new user registration, and redirect direct registration-route visits back to sign-in
 
 - fix: |Frontend| Display address credentials and connection methods directly in mailbox settings; remove the sign-out action from User Settings, send all remaining sign-out actions to the root route, and use the current mailbox address as the document title

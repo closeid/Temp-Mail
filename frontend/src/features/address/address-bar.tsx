@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Copy, RefreshCw, Shuffle } from 'lucide-react'
+import { Copy, LogOut, RefreshCw, Shuffle } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { confirmAction } from '@/components/action-dialogs'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -9,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { api } from '@/lib/api'
 import { appStore, hasAccountSession, isCredentialOnlySession, useAppStore } from '@/lib/store'
 import { copyText, stringifyError } from '@/lib/utils'
-import { useScopedI18n } from '@/i18n/react'
+import { useI18n, useScopedI18n } from '@/i18n/react'
+import { getPathWithLocale } from '@/i18n/utils'
 import { AddressLogin } from '@/features/auth/address-login'
 import { useBoundAddresses } from '@/features/address/use-bound-addresses'
 
@@ -29,6 +32,9 @@ export function AddressBar({ manageContent, onManage }: { manageContent?: React.
   const { t } = useScopedI18n('views.index.AddressBar')
   const addressT = useScopedI18n('components.AddressSelect').t
   const commonT = useScopedI18n('ui.common').t
+  const accountT = useScopedI18n('views.index.AccountSettings').t
+  const { locale } = useI18n()
+  const navigate = useNavigate()
   const state = useAppStore((value) => value)
   const accountSession = hasAccountSession(state)
   const credentialOnly = isCredentialOnlySession(state)
@@ -65,10 +71,21 @@ export function AddressBar({ manageContent, onManage }: { manageContent?: React.
     } catch (error) { toast.error(stringifyError(error)) }
   }
   const removeLocal = (jwt: string) => { if (jwt === state.jwt) return; writeCache(readCache().filter((item) => item !== jwt)); setCacheRevision((value) => value + 1) }
-  if (!state.settings.address) return null
+  const logout = async () => {
+    if (!(await confirmAction({ title: accountT('logout'), description: accountT('logoutConfirm') }))) return
+    appStore.resetUser()
+    appStore.resetAddress()
+    navigate(getPathWithLocale('/', locale))
+  }
+  const logoutButton = <Button className="size-9 shrink-0 px-0 sm:w-auto sm:px-3" variant="secondary" aria-label={accountT('logout')} title={accountT('logout')} onClick={logout}><LogOut /><span className="hidden sm:inline">{accountT('logout')}</span></Button>
+  if (!state.settings.address) return state.userJwt || state.userSettings.user_email
+    ? <div className="flex w-full items-center justify-end">{logoutButton}</div>
+    : null
   return <div className="flex w-full min-w-0 flex-nowrap items-center gap-1.5 sm:gap-2">
     <Select value={current} onValueChange={change}><SelectTrigger className="h-9 w-0 min-w-0 flex-1 px-2 sm:max-w-[500px] sm:px-3"><SelectValue placeholder={addressT('address')} /></SelectTrigger><SelectContent>{!credentialOnly && userOptions.length > 0 && <SelectGroup><SelectLabel>{addressT('userAddresses')}</SelectLabel>{userOptions.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectGroup>}{!credentialOnly && telegramOptions.length > 0 && <SelectGroup><SelectLabel>Telegram</SelectLabel>{telegramOptions.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectGroup>}{localDisplayOptions.length > 0 && <SelectGroup><SelectLabel>{addressT('localAddresses')}</SelectLabel>{localDisplayOptions.map((item) => <SelectItem key={item.key} value={item.key}>{item.label}</SelectItem>)}</SelectGroup>}</SelectContent></Select>
-    {!credentialOnly && <Button className="shrink-0 px-2 text-xs sm:px-3 sm:text-sm" variant="secondary" onClick={() => onManage ? onManage() : setManage(true)}><Shuffle />{t('addressManage')}</Button>}<Button className="shrink-0 px-2 text-xs sm:px-3 sm:text-sm" variant="secondary" onClick={async () => { await copyText(state.settings.address); toast.success(addressT('copied')) }}><Copy />{addressT('copy')}</Button>
+    {!credentialOnly && <Button className="size-9 shrink-0 px-0 sm:w-auto sm:px-3" variant="secondary" aria-label={t('addressManage')} title={t('addressManage')} onClick={() => onManage ? onManage() : setManage(true)}><Shuffle /><span className="hidden sm:inline">{t('addressManage')}</span></Button>}
+    <Button className="size-9 shrink-0 px-0 sm:w-auto sm:px-3" variant="secondary" aria-label={addressT('copy')} title={addressT('copy')} onClick={async () => { await copyText(state.settings.address); toast.success(addressT('copied')) }}><Copy /><span className="hidden sm:inline">{addressT('copy')}</span></Button>
+    {logoutButton}
     <Dialog open={manage} onOpenChange={setManage}><DialogContent className="w-[min(760px,calc(100vw-32px))]"><DialogHeader><DialogTitle>{t('addressManage')}</DialogTitle></DialogHeader>{manageContent || <div className="grid gap-5"><Table><TableHeader><TableRow><TableHead>{addressT('address')}</TableHead><TableHead className="w-40">{commonT('actions')}</TableHead></TableRow></TableHeader><TableBody>{localOptions.map((item) => <TableRow key={item.key}><TableCell>{item.address}</TableCell><TableCell><div className="flex gap-1"><Button size="sm" variant="ghost" onClick={() => change(item.key)}><RefreshCw />{commonT('switch')}</Button><Button size="sm" variant="ghost" className="text-destructive" disabled={item.payload === state.jwt} onClick={() => removeLocal(item.payload)}>{commonT('remove')}</Button></div></TableCell></TableRow>)}</TableBody></Table><div className="border-t border-border pt-5"><AddressLogin bindUserAddress={async () => { setCacheRevision((value) => value + 1) }} /></div></div>}</DialogContent></Dialog>
   </div>
 }

@@ -118,6 +118,20 @@ test('mail workspace remains dense and responsive', async ({ page }, testInfo) =
   await page.route('**/api/mails?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 12, source: 'sender@example.com', address: 'sample@getanemail.net', created_at: '2026-07-27 00:56:00', raw: 'From: Sender <sender@example.com>\r\nTo: sample@getanemail.net\r\nSubject: Layout verification\r\nContent-Type: text/plain; charset=utf-8\r\n\r\nA compact mailbox message.' }] } }))
   await page.goto('/')
   await expect(page.getByText('sample@getanemail.net').first()).toBeVisible()
+  await expect(page).toHaveTitle(/sample@getanemail\.net - Get an Email$/)
+  const headerActions = page.locator('header button[title]')
+  await expect(headerActions).toHaveCount(3)
+  const actionBoxes = await headerActions.evaluateAll((buttons) => buttons.map((button) => {
+    const box = button.getBoundingClientRect()
+    return { y: Math.round(box.y), height: Math.round(box.height) }
+  }))
+  expect(new Set(actionBoxes.map((box) => box.y)).size).toBe(1)
+  expect(new Set(actionBoxes.map((box) => box.height))).toEqual(new Set([36]))
+  if (testInfo.project.name === 'mobile') {
+    const actionLabels = headerActions.locator('span')
+    await expect(actionLabels).toHaveCount(3)
+    for (let index = 0; index < 3; index += 1) await expect(actionLabels.nth(index)).toBeHidden()
+  }
   const mailSubject = page.getByText('Layout verification').filter({ visible: true }).first()
   await expect(mailSubject).toBeVisible()
   await expectNoHorizontalOverflow(page)
@@ -141,6 +155,21 @@ test('mail workspace remains dense and responsive', async ({ page }, testInfo) =
   const bodyBox = await body.boundingBox()
   expect(bodyBox?.y).toBeLessThan(420)
   await page.screenshot({ path: `test-results/mail-fullscreen-${testInfo.project.name}.png`, fullPage: true })
+})
+
+test('mailbox settings use the mailbox title and keep sign-out only in the header', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('jwt', 'test.jwt.credential'))
+  await mockCommon(page)
+  await page.route('**/api/settings', (route) => route.fulfill({ json: { address: 'sample@getanemail.net', send_balance: 8, auto_reply: {} } }))
+  await page.goto('/en/settings/mailbox')
+
+  await expect(page).toHaveTitle('Settings - sample@getanemail.net - Get an Email')
+  await expect(page.locator('header').getByRole('button', { name: 'Logout' })).toHaveCount(1)
+  await expect(page.locator('main').getByRole('button', { name: 'Logout' })).toHaveCount(0)
+  await page.locator('header').getByRole('button', { name: 'Logout' }).click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('jwt'))).toBe('')
+  await expect(page).toHaveURL(/\/en\/login$/)
 })
 
 test('address management actions stay on one row', async ({ page }, testInfo) => {
@@ -315,9 +344,16 @@ test('administrator can change the password from the administrator page', async 
   await page.getByLabel('Administrator password').fill('old-password')
   await page.getByRole('button', { name: 'Confirm' }).click()
   await expect(page).toHaveURL(/\/en\/dashboard$/)
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('adminAuth'))).toBe('old-password')
+
+  await page.reload()
+  await expect(page).toHaveURL(/\/en\/dashboard$/)
+  await expect(page).toHaveTitle('Administration - Get an Email')
+  await expect(page.getByRole('button', { name: 'Sign out' })).toHaveCount(1)
 
   await page.getByRole('button', { name: 'User', exact: true }).click()
   await page.getByRole('button', { name: 'Admin', exact: true }).click()
+  await expect(page.locator('main').getByRole('button', { name: 'Sign out' })).toHaveCount(0)
   await page.getByLabel('New password', { exact: true }).fill('new-password-2026')
   await page.getByLabel('Confirm new password', { exact: true }).fill('new-password-2026')
   await page.getByRole('button', { name: 'Change password' }).click()
@@ -371,7 +407,7 @@ test('standalone mailbox JWT is restricted to the current mailbox', async ({ pag
   await page.route('**/api/mails?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
   await page.goto('/en/mailbox')
 
-  await expect(page).toHaveTitle('single@getanemail.net')
+  await expect(page).toHaveTitle(/^(Mail Box|收件箱) - single@getanemail\.net - Get an Email$/)
   await expect(page.getByRole('button', { name: /Address Management|地址管理/ })).toHaveCount(0)
   await page.getByRole('combobox').filter({ hasText: 'single@getanemail.net' }).click()
   await expect(page.getByRole('option')).toHaveCount(1)
@@ -397,7 +433,7 @@ test('account session keeps mailbox switching and can bind the current JWT mailb
   await page.route('**/api/mails?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
   await page.goto('/en/?jwt=current.mailbox.jwt')
 
-  await expect(page).toHaveTitle('current@getanemail.net')
+  await expect(page).toHaveTitle('Mail Box - current@getanemail.net - Get an Email')
   await expect(page.getByRole('button', { name: /Address Management|地址管理/ })).toBeVisible()
   await page.getByRole('combobox').filter({ hasText: 'current@getanemail.net' }).click()
   await expect(page.getByRole('option', { name: 'current@getanemail.net' })).toBeVisible()

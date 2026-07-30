@@ -12,7 +12,7 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       invalidJson: 'Invalid JSON', inherit: 'Inherit', enabled: 'Enabled', disabled: 'Disabled', saved: 'Saved',
       save: 'Save', copied: 'Copied', copy: 'Copy', unknown: 'Unknown', notConfigured: 'Not configured', yes: 'Yes', no: 'No',
       cancel: 'Cancel', confirm: 'Confirm', close: 'Close', previousPage: 'Previous page', nextPage: 'Next page', open: 'Open', unbind: 'Unbind',
-      unbindAddress: 'Unbind address', addressUnbound: 'Address unbound', addresses: 'Addresses', addAddress: 'Add address', telegramAddresses: 'Telegram addresses', switch: 'Switch', remove: 'Remove',
+      unbindAddress: 'Unbind address', addressUnbound: 'Address unbound', addresses: 'Addresses', addAddress: 'Add address', telegramAddresses: 'Telegram addresses', switch: 'Switch', remove: 'Remove', settings: 'Settings',
     },
     admin: {
       administration: 'Administration', settingLabel: 'Setting: {name}', administratorAccess: 'Administrator access', administratorAccessDescription: 'Enter the administrator username and password to continue.', signedIn: 'Signed in',
@@ -68,7 +68,7 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       invalidJson: 'JSON 格式无效', inherit: '跟随默认设置', enabled: '已启用', disabled: '已禁用', saved: '已保存',
       save: '保存', copied: '已复制', copy: '复制', unknown: '未知', notConfigured: '未配置', yes: '是', no: '否',
       cancel: '取消', confirm: '确认', close: '关闭', previousPage: '上一页', nextPage: '下一页', open: '打开', unbind: '解除绑定',
-      unbindAddress: '解除地址绑定', addressUnbound: '地址已解除绑定', addresses: '地址', addAddress: '添加地址', telegramAddresses: 'Telegram 地址', switch: '切换', remove: '移除',
+      unbindAddress: '解除地址绑定', addressUnbound: '地址已解除绑定', addresses: '地址', addAddress: '添加地址', telegramAddresses: 'Telegram 地址', switch: '切换', remove: '移除', settings: '设置',
     },
     admin: {
       administration: '后台管理', settingLabel: '配置项：{name}', administratorAccess: '后台管理验证', administratorAccessDescription: '请输入后台管理用户名和密码以继续。', signedIn: '登录成功',

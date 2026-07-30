@@ -1,9 +1,10 @@
-import { AtSign, Home, Mail, Settings2, ShieldCheck, Users } from 'lucide-react'
+import { AtSign, Home, LogOut, Mail, Settings2, ShieldCheck, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { WorkspaceShell, type WorkspaceNavItem } from '@/components/layout/workspace-shell'
 import { SecondaryWorkspace, type SecondaryWorkspaceItem } from '@/components/layout/secondary-workspace'
+import { Button } from '@/components/ui/button'
 import { AppearanceSettings } from '@/features/settings/appearance'
-import { useAppStore } from '@/lib/store'
+import { appStore, useAppStore } from '@/lib/store'
 import { useI18n, useScopedI18n } from '@/i18n/react'
 import { getPathWithLocale } from '@/i18n/utils'
 import { ADMIN_PAGE_ROUTES, ADMIN_SECTION_DEFAULTS, getAdminSection, type AdminPageKey, type AdminSectionKey } from '@/app/routes'
@@ -57,6 +58,14 @@ export function AdminWorkspace({ page }: { page: AdminPageKey }) {
   const navigate = useNavigate()
   const primary = getAdminSection(page)
   const go = (target: AdminPageKey) => navigate(getPathWithLocale(ADMIN_PAGE_ROUTES[target], locale))
+  const logout = () => {
+    appStore.setState({ adminAuth: '', showAdminAuth: false })
+    if (state.userSettings.is_admin) {
+      appStore.resetUser()
+      appStore.resetAddress()
+    }
+    navigate(getPathWithLocale('/', locale))
+  }
   const nav: WorkspaceNavItem[] = [
     { key: 'home', label: t('home'), icon: Home },
     { key: 'account', label: t('account'), icon: AtSign },
@@ -104,5 +113,5 @@ export function AdminWorkspace({ page }: { page: AdminPageKey }) {
     ? <StatisticsPage />
     : <SecondaryWorkspace items={group} value={page} onChange={(value) => go(value as AdminPageKey)} ariaLabel={primary === 'maintenance' ? t('configuration') : t(primary)} />
   const method = state.adminAuth ? sessionT('administratorPassword') : state.userSettings.is_admin ? state.userSettings.user_email : sessionT('passwordCheckDisabled')
-  return <WorkspaceShell scope="admin" items={nav} active={primary} onSelect={(value) => go(ADMIN_SECTION_DEFAULTS[value as AdminSectionKey])} topbar={<div className="flex h-full min-w-0 items-center gap-2 text-sm"><ShieldCheck className="size-4 shrink-0 text-primary" /><strong className="shrink-0">{t('loginMethod')}</strong><span className="truncate text-muted-foreground">{method}</span></div>}>{content}</WorkspaceShell>
+  return <WorkspaceShell scope="admin" items={nav} active={primary} onSelect={(value) => go(ADMIN_SECTION_DEFAULTS[value as AdminSectionKey])} topbar={<div className="flex h-full w-full min-w-0 items-center justify-between gap-3 text-sm"><div className="flex min-w-0 items-center gap-2"><ShieldCheck className="size-4 shrink-0 text-primary" /><strong className="shrink-0">{t('loginMethod')}</strong><span className="truncate text-muted-foreground">{method}</span></div><Button className="shrink-0" variant="secondary" aria-label={sessionT('signOut')} title={sessionT('signOut')} onClick={logout}><LogOut /><span className="hidden sm:inline">{sessionT('signOut')}</span></Button></div>}>{content}</WorkspaceShell>
 }
