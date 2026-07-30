@@ -34,7 +34,6 @@ export const ADMIN_PAGE_ROUTES = {
   roleAddressConfig: '/dashboard/users/role-addresses',
   userOauth2Settings: '/dashboard/users/oauth2',
   accessTokens: '/dashboard/users/access-tokens',
-  adminAccount: '/dashboard/users/admin-login',
   mails: '/dashboard/mail/inbox',
   unknow: '/dashboard/mail/unknown',
   sendBox: '/dashboard/mail/sent',
@@ -58,7 +57,7 @@ export type AdminSectionKey = 'home' | 'account' | 'user' | 'mails' | 'maintenan
 export const ADMIN_SECTION_PAGES: Record<AdminSectionKey, readonly AdminPageKey[]> = {
   home: ['statistics'],
   account: ['account', 'account_create', 'account_settings', 'senderAccess'],
-  user: ['user_management', 'user_settings', 'roleAddressConfig', 'userOauth2Settings', 'accessTokens', 'adminAccount'],
+  user: ['user_management', 'user_settings', 'roleAddressConfig', 'userOauth2Settings', 'accessTokens'],
   mails: ['mails', 'unknow', 'sendBox', 'sendMail', 'sendConfiguration', 'aiExtractSettings', 'mailWebhook', 'webhook', 'telegram'],
   maintenance: ['workerconfig', 'ipBlacklistSettings', 'database', 'maintenance', 'appearance', 'apiDocs'],
 }

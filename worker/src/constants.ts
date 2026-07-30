@@ -18,7 +18,6 @@ export const CONSTANTS = {
     ROLE_ADDRESS_CONFIG_KEY: 'role_address_config',
     IP_BLACKLIST_SETTINGS_KEY: 'ip_blacklist_settings',
     AI_EXTRACT_SETTINGS_KEY: 'ai_extract_settings',
-    ADMIN_PASSWORD_HASH_KEY: 'admin_password_hash',
 
     // KV
     TG_KV_PREFIX: "temp-mail-telegram",

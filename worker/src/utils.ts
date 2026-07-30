@@ -343,13 +343,9 @@ export const getAdminPasswords = (c: Context<HonoCustomType>): string[] => {
     return c.env.ADMIN_PASSWORDS.filter((item) => item.length > 0);
 }
 
-export const checkIsAdmin = async (c: Context<HonoCustomType>): Promise<boolean> => {
+export const checkIsAdmin = (c: Context<HonoCustomType>): boolean => {
     const adminAuth = c.req.raw.headers.get("x-admin-auth");
     if (!adminAuth) return false;
-    const storedHash = await getSetting(c, CONSTANTS.ADMIN_PASSWORD_HASH_KEY);
-    if (storedHash) {
-        return await hashPassword(adminAuth) === storedHash;
-    }
     return getAdminPasswords(c).includes(adminAuth);
 }
 

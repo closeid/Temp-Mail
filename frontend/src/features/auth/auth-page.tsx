@@ -96,7 +96,7 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
 
   const oauthLogin = async (clientID: string) => {
     try {
-      const state = Math.random().toString(36).slice(2)
+      const state = crypto.randomUUID()
       appStore.setState({ userOauth2SessionClientID: clientID, userOauth2SessionState: state })
       const result = await api.fetch<{ url: string }>(`/api/user/oauth2/login_url?clientID=${encodeURIComponent(clientID)}&state=${encodeURIComponent(state)}`)
       location.href = result.url
@@ -116,19 +116,21 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
           <TabsTrigger className="h-9 bg-transparent text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm" value="signin">{t('login')}</TabsTrigger>
           {registrationEnabled && <TabsTrigger className="h-9 bg-transparent text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm" value="signup">{t('register')}</TabsTrigger>}
         </TabsList>
-        <TabsContent value="signin" className="grid gap-4">
-          <Field label={t('email')}><Input className="h-11 bg-muted/35" autoCapitalize="none" autoComplete="email" inputMode="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
-          <Field label={t('password')}><Input className="h-11 bg-muted/35" autoComplete="current-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && login()} /></Field>
-          {openSettings.enableGlobalTurnstileCheck && <Turnstile ref={loginTurnstile} value={loginToken} onChange={setLoginToken} />}
-          <Button className="h-11 w-full shadow-[0_8px_20px_rgba(21,183,126,0.18)]" onClick={login}><LogIn />{t('login')}</Button>
-          <div className="flex justify-center"><Button className="h-[30px] px-[10px]" variant="link" onClick={() => go(AUTH_ROUTES.forgotPassword)}>{t('forgotPassword')}</Button></div>
-          <Separator />
-          <Button className="h-10 w-full justify-start bg-background" variant="secondary" onClick={() => setAddressLoginOpen(true)}><AtSign />{t('loginWithAddressCredential')}</Button>
-          <Button className="h-10 w-full justify-start bg-background" variant="secondary" disabled={passkeyPending} onClick={passkeyLogin}><KeyRound />{t('loginWithPasskey')}</Button>
-          {userOpenSettings.oauth2ClientIDs.map((provider) => <Button key={provider.clientID} className="h-10 w-full justify-start bg-background" variant="secondary" onClick={() => oauthLogin(provider.clientID)}>
-            {provider.icon ? <span className="size-4" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(provider.icon, { USE_PROFILES: { svg: true, svgFilters: true } }) }} /> : <Fingerprint />}
-            {t('loginWith', { provider: provider.name })}
-          </Button>)}
+        <TabsContent value="signin">
+          <form className="grid gap-4" onSubmit={(event) => { event.preventDefault(); void login() }}>
+            <Field label={t('email')}><Input className="h-11 bg-muted/35" autoCapitalize="none" autoComplete="email" inputMode="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
+            <Field label={t('password')}><Input className="h-11 bg-muted/35" autoComplete="current-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
+            {openSettings.enableGlobalTurnstileCheck && <Turnstile ref={loginTurnstile} value={loginToken} onChange={setLoginToken} />}
+            <Button className="h-11 w-full shadow-[0_8px_20px_rgba(21,183,126,0.18)]" type="submit"><LogIn />{t('login')}</Button>
+            <div className="flex justify-center"><Button className="h-[30px] px-[10px]" type="button" variant="link" onClick={() => go(AUTH_ROUTES.forgotPassword)}>{t('forgotPassword')}</Button></div>
+            <Separator />
+            <Button className="h-10 w-full justify-start bg-background" type="button" variant="secondary" onClick={() => setAddressLoginOpen(true)}><AtSign />{t('loginWithAddressCredential')}</Button>
+            <Button className="h-10 w-full justify-start bg-background" type="button" variant="secondary" disabled={passkeyPending} onClick={passkeyLogin}><KeyRound />{t('loginWithPasskey')}</Button>
+            {userOpenSettings.oauth2ClientIDs.map((provider) => <Button key={provider.clientID} className="h-10 w-full justify-start bg-background" type="button" variant="secondary" onClick={() => oauthLogin(provider.clientID)}>
+              {provider.icon ? <span className="size-4" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(provider.icon, { USE_PROFILES: { svg: true, svgFilters: true } }) }} /> : <Fingerprint />}
+              {t('loginWith', { provider: provider.name })}
+            </Button>)}
+          </form>
         </TabsContent>
         {registrationEnabled && <TabsContent value="signup" className="grid gap-4">
           <>

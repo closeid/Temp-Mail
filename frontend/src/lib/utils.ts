@@ -42,6 +42,16 @@ export const parseJson = <T>(value: string | null, fallback: T): T => {
 
 export const stringifyError = (error: unknown) => error instanceof Error ? error.message : String(error)
 
+export const getSafeExternalUrl = (value: unknown) => {
+  if (typeof value !== 'string') return null
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : null
+  } catch {
+    return null
+  }
+}
+
 const EMAIL_PATTERN = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i
 
 export const isValidEmailAddress = (value: string) => {

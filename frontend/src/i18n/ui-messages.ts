@@ -17,9 +17,7 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
     admin: {
       administration: 'Administration', settingLabel: 'Setting: {name}', administratorAccess: 'Administrator access', administratorAccessDescription: 'Enter the administrator username and password to continue.', signedIn: 'Signed in',
       administratorUsername: 'Administrator username', administratorPassword: 'Administrator password', userAdministratorRole: 'User administrator role', passwordCheckDisabled: 'Password check disabled',
-      administratorSession: 'Administrator session', administratorSessionDescription: 'Only the administrator credential will be cleared.', signOut: 'Sign out',
-      changeAdministratorPassword: 'Change administrator password', changeAdministratorPasswordDescription: 'The new password replaces the ADMIN_PASSWORDS values for future administrator sign-ins. Only its SHA-256 hash is stored.',
-      newAdministratorPassword: 'New password', confirmAdministratorPassword: 'Confirm new password', changePassword: 'Change password', administratorPasswordRules: 'Use 8 to 100 characters.', passwordsDoNotMatch: 'The passwords do not match.', administratorPasswordChanged: 'Administrator password changed', passwordChangeRequiresPasswordSession: 'Sign in with the administrator password to change it.',
+      signOut: 'Sign out',
       accessTokens: 'Access Tokens', accessTokensDescription: 'Manage revocable credentials with full access to the administration API.', createAccessToken: 'Create token', createAccessTokenDescription: 'The token is shown only once. Store it in a secure secret manager.',
       tokenName: 'Name', tokenNamePlaceholder: 'For example: deployment automation', expiresAt: 'Expires', expiresAtDescription: 'Leave empty for a token that does not expire.', createdAt: 'Created', lastUsedAt: 'Last used', neverExpires: 'Never', neverUsed: 'Never used', active: 'Active', expired: 'Expired',
       deleteAccessToken: 'Delete access token', deleteAccessTokenConfirmation: 'Delete the access token “{name}”? This cannot be undone.', accessTokenDeleted: 'Access token deleted', accessTokenCreated: 'Access token created', accessTokenCreatedDescription: 'Copy this token now. It cannot be displayed again.', accessTokenHeaderHelp: 'Send the token in the x-admin-token header when calling any /api/admin/* endpoint.',
@@ -73,9 +71,7 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
     admin: {
       administration: '后台管理', settingLabel: '配置项：{name}', administratorAccess: '后台管理验证', administratorAccessDescription: '请输入后台管理用户名和密码以继续。', signedIn: '登录成功',
       administratorUsername: '后台管理用户名', administratorPassword: '后台管理密码', userAdministratorRole: '用户管理员角色', passwordCheckDisabled: '已禁用密码验证',
-      administratorSession: '后台管理会话', administratorSessionDescription: '退出后只会清除后台管理凭据。', signOut: '退出登录',
-      changeAdministratorPassword: '修改管理员密码', changeAdministratorPasswordDescription: '新密码将覆盖 ADMIN_PASSWORDS，用于之后的后台登录；数据库仅保存其 SHA-256 哈希。',
-      newAdministratorPassword: '新密码', confirmAdministratorPassword: '确认新密码', changePassword: '修改密码', administratorPasswordRules: '密码长度为 8 至 100 个字符。', passwordsDoNotMatch: '两次输入的密码不一致。', administratorPasswordChanged: '管理员密码已修改', passwordChangeRequiresPasswordSession: '请使用管理员密码登录后再修改密码。',
+      signOut: '退出登录',
       accessTokens: '访问令牌', accessTokensDescription: '管理可撤销、可过期且拥有全部后台 API 权限的访问凭据。', createAccessToken: '生成令牌', createAccessTokenDescription: '令牌只显示一次，请保存到安全的密钥管理工具。',
       tokenName: '名称', tokenNamePlaceholder: '例如：自动部署', expiresAt: '过期时间', expiresAtDescription: '留空表示永不过期。', createdAt: '创建时间', lastUsedAt: '最后使用', neverExpires: '永不过期', neverUsed: '从未使用', active: '有效', expired: '已过期',
       deleteAccessToken: '删除访问令牌', deleteAccessTokenConfirmation: '确定删除访问令牌“{name}”吗？此操作无法撤销。', accessTokenDeleted: '访问令牌已删除', accessTokenCreated: '访问令牌已生成', accessTokenCreatedDescription: '请立即复制该令牌，关闭后将无法再次查看。', accessTokenHeaderHelp: '调用任意 /api/admin/* 接口时，通过 x-admin-token 请求头发送该令牌。',

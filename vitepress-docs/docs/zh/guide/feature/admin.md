@@ -19,15 +19,7 @@
 
 如果希望某个用户也能进入 Admin 控制台，请配置 `ADMIN_USER_ROLE`，并在用户管理中给该用户设置相同的角色。
 
-## 修改管理员密码
-
-使用 `ADMIN_PASSWORDS` 登录后，可在 **用户 -> Admin** 中修改管理员密码。新密码会覆盖部署变量中的管理员密码用于后续登录；D1 的 `settings` 表只保存 SHA-256 哈希，不保存明文。通过 `ADMIN_USER_ROLE` 或后台访问令牌进入的会话不能修改这个根管理员密码。
-
-如遗忘修改后的密码，可在 D1 控制台执行以下语句，删除覆盖值并恢复使用 `ADMIN_PASSWORDS`：
-
-```sql
-DELETE FROM settings WHERE key = 'admin_password_hash';
-```
+管理员密码只能通过 Worker 部署变量或 Secret `ADMIN_PASSWORDS` 配置。前端不会将密码写入 localStorage、sessionStorage 或 D1；刷新页面或关闭标签页后需要重新登录。修改密码时请更新 Worker 配置并重新部署。
 
 ## 后台访问令牌
 

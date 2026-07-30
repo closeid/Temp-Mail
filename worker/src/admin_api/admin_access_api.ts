@@ -1,8 +1,7 @@
 import { Context } from 'hono';
 
-import { CONSTANTS } from '../constants';
 import i18n from '../i18n';
-import { checkIsAdmin, hashPassword, saveSetting } from '../utils';
+import { hashPassword } from '../utils';
 
 const TOKEN_PREFIX = 'gae_admin_';
 const MAX_TOKEN_COUNT = 100;
@@ -61,15 +60,5 @@ export const deleteAccessToken = async (c: Context<HonoCustomType>) => {
     if (!Number.isInteger(id) || id <= 0) return c.text(msgs.InvalidInputMsg, 400);
     const result = await c.env.DB.prepare(`DELETE FROM admin_access_tokens WHERE id = ?`).bind(id).run();
     if (!result.meta.changes) return c.text(msgs.OperationFailedMsg, 404);
-    return c.json({ success: true });
-};
-
-export const changeAdminPassword = async (c: Context<HonoCustomType>) => {
-    const msgs = i18n.getMessagesbyContext(c);
-    if (!await checkIsAdmin(c)) return c.text(msgs.NeedAdminPasswordMsg, 403);
-    const body = await c.req.json<{ passwordHash?: unknown }>();
-    const passwordHash = typeof body.passwordHash === 'string' ? body.passwordHash.toLowerCase() : '';
-    if (!/^[a-f0-9]{64}$/.test(passwordHash)) return c.text(msgs.InvalidInputMsg, 400);
-    await saveSetting(c, CONSTANTS.ADMIN_PASSWORD_HASH_KEY, passwordHash);
     return c.json({ success: true });
 };

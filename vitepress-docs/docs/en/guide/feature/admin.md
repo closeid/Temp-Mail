@@ -24,15 +24,7 @@ whose email looks like `admin@example.com` does not automatically grant admin pe
 If you want a user account to access the Admin console, configure `ADMIN_USER_ROLE` and assign the
 same role to that user in user management.
 
-## Change the administrator password
-
-After signing in with `ADMIN_PASSWORDS`, open **User -> Admin** to change the administrator password. The new password overrides the deployment variable for subsequent sign-ins. D1 stores only its SHA-256 hash in `settings`, never the plaintext password. Sessions authenticated through `ADMIN_USER_ROLE` or an administration access token cannot change this root password.
-
-If the changed password is lost, remove the override in the D1 console to restore `ADMIN_PASSWORDS`:
-
-```sql
-DELETE FROM settings WHERE key = 'admin_password_hash';
-```
+Administrator passwords are configured only through the Worker deployment variable or secret `ADMIN_PASSWORDS`. The frontend never writes the password to localStorage, sessionStorage, or D1; reloading or closing the tab requires another sign-in. Update the Worker configuration and redeploy to change the password.
 
 ## Administration access tokens
 

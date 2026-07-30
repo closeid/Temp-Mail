@@ -103,7 +103,7 @@ test('user login opens the first bound mailbox', async ({ page }) => {
   await page.goto('/en')
   await page.locator('input').nth(0).fill('owner@example.com')
   await page.locator('input').nth(1).fill('password')
-  await page.getByRole('button', { name: 'Login', exact: true }).click()
+  await page.locator('input').nth(1).press('Enter')
 
   await expect(page.getByText('first@getanemail.net').first()).toBeVisible()
   await expect(page.getByRole('button', { name: /Mail Box|Inbox/i })).toHaveAttribute('aria-current', 'page')
@@ -313,7 +313,7 @@ test('dashboard navigation groups related settings', async ({ page }) => {
   await expect(secondaryNav).toHaveText(['All addresses', 'Create Address', 'Address Rules', 'Sender Access Control'])
 
   await primaryNav.getByRole('button', { name: 'User', exact: true }).click()
-  await expect(page.locator('main nav').getByRole('button')).toHaveText(['User Management', 'User Settings', 'Role Address Config', 'Oauth2 Settings', 'Access Tokens', 'Admin'])
+  await expect(page.locator('main nav').getByRole('button')).toHaveText(['User Management', 'User Settings', 'Role Address Config', 'Oauth2 Settings', 'Access Tokens'])
   await page.locator('main nav').getByRole('button', { name: 'User Settings', exact: true }).click()
   await expect(page.getByText('Allow new user registration', { exact: true })).toBeVisible()
 
@@ -327,39 +327,26 @@ test('dashboard navigation groups related settings', async ({ page }) => {
   await expect(page.getByText(/legacy paths|old paths/i)).toHaveCount(0)
 })
 
-test('administrator can change the password from the administrator page', async ({ page }) => {
+test('administrator password remains memory-only and reload requires sign-in', async ({ page }) => {
   await mockCommon(page)
-  let passwordBody: Record<string, unknown> | undefined
   await page.route('**/api/open/admin_login', (route) => route.fulfill({ json: { success: true } }))
   await page.route('**/api/admin/statistics', (route) => route.fulfill({ json: { mailCount: 0, addressCount: 0, userCount: 0 } }))
-  await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
-  await page.route('**/api/admin/user_roles', (route) => route.fulfill({ json: [] }))
-  await page.route('**/api/admin/password', async (route) => {
-    passwordBody = route.request().postDataJSON()
-    await route.fulfill({ json: { success: true } })
-  })
 
   await page.goto('/en/dashboard/login')
   await page.getByLabel('Administrator username').fill('admin')
   await page.getByLabel('Administrator password').fill('old-password')
   await page.getByRole('button', { name: 'Confirm' }).click()
   await expect(page).toHaveURL(/\/en\/dashboard$/)
-  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('adminAuth'))).toBe('old-password')
-
-  await page.reload()
-  await expect(page).toHaveURL(/\/en\/dashboard$/)
+  await expect.poll(() => page.evaluate(() => ({
+    local: localStorage.getItem('adminAuth'),
+    session: sessionStorage.getItem('adminAuth'),
+  }))).toEqual({ local: null, session: null })
   await expect(page).toHaveTitle('Administration - Get an Email')
   await expect(page.getByRole('button', { name: 'Sign out' })).toHaveCount(1)
 
-  await page.getByRole('button', { name: 'User', exact: true }).click()
-  await page.getByRole('button', { name: 'Admin', exact: true }).click()
-  await expect(page.locator('main').getByRole('button', { name: 'Sign out' })).toHaveCount(0)
-  await page.getByLabel('New password', { exact: true }).fill('new-password-2026')
-  await page.getByLabel('Confirm new password', { exact: true }).fill('new-password-2026')
-  await page.getByRole('button', { name: 'Change password' }).click()
-
-  await expect.poll(() => passwordBody?.passwordHash).toMatch(/^[a-f0-9]{64}$/)
-  await expect(page.getByText('Administrator password changed')).toBeVisible()
+  await page.reload()
+  await expect(page).toHaveURL(/\/en\/dashboard\/login$/)
+  await expect(page.getByLabel('Administrator password')).toBeVisible()
 })
 
 test('administrator can create and revoke access tokens', async ({ page }, testInfo) => {

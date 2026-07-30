@@ -138,7 +138,7 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
     const { initData, mailId } = await c.req.json();
     const msgs = i18n.getMessagesbyContext(c);
     try {
-        if (await checkIsAdmin(c)) {
+        if (checkIsAdmin(c)) {
             const result = await c.env.DB.prepare(
                 `SELECT * FROM raw_mails where id = ?`
             ).bind(mailId).first();

@@ -1,8 +1,7 @@
 import { Hono } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
-import utils, { checkCfTurnstile, getPasswords, getAdminPasswords, getSetting, hashPassword } from '../utils';
-import { CONSTANTS } from '../constants';
+import utils, { checkCfTurnstile, getPasswords, getAdminPasswords, hashPassword } from '../utils';
 import i18n from '../i18n';
 
 const api = new Hono<HonoCustomType>()
@@ -36,10 +35,7 @@ api.post('/api/open/admin_login', async (c) => {
         }
     }
     const adminUsername = c.env.ADMIN_USERNAME || 'admin';
-    const storedHash = await getSetting(c, CONSTANTS.ADMIN_PASSWORD_HASH_KEY);
-    const hashedPasswords = storedHash
-        ? [storedHash]
-        : await Promise.all(getAdminPasswords(c).map(p => hashPassword(p)));
+    const hashedPasswords = await Promise.all(getAdminPasswords(c).map(p => hashPassword(p)));
     if (!hashedPasswords.length || !username || username !== adminUsername || !password || !hashedPasswords.includes(password)) {
         return c.text(msgs.NeedAdminPasswordMsg, 401)
     }

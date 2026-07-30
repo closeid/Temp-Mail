@@ -10,7 +10,7 @@
 
 ### Features
 
-- feat: |Administration security| Allow password-authenticated administrators to replace the root password while storing only its SHA-256 hash in D1; add User -> Access Tokens to create, name, expire, and revoke full administration API tokens whose plaintext is shown once and whose database representation is hash-only
+- feat: |Administration security| Add User -> Access Tokens to create, name, expire, and revoke full administration API tokens whose plaintext is shown once and whose database representation is hash-only
 - feat: |Authentication UI| Confirm that configured OAuth2 providers automatically appear as sign-in actions and add desktop/mobile visual regression screenshots
 - feat: |Administration| Let administrators assign an unowned mailbox from the All Addresses action menu by searching and selecting a registered user email, then refresh address ownership and user address counts after binding
 - feat: |Session permissions| Preserve multi-mailbox switching when an authenticated account opens any mailbox JWT, and allow the current unowned mailbox to be bound to that account; standalone mailbox JWT sessions are restricted to the current mailbox, with no address management, user settings, or mailbox creation
@@ -21,7 +21,8 @@
 
 ### Bug Fixes
 
-- fix: |Frontend sessions and headers| Persist administrator credentials for the current browser tab so reloads do not require another sign-in; move frontend and administration sign-out actions to the top-right header, remove duplicate settings-page actions, and keep mobile mailbox header actions on one icon-only row
+- fix: |Frontend sessions and headers| Keep the Worker-configured administrator password in memory only and clear it on reload or sign-out; move frontend and administration sign-out actions to the top-right header, remove duplicate settings-page actions, and keep mobile mailbox header actions on one icon-only row
+- fix: |Authentication security| Generate OAuth2 state with a cryptographically secure random value and clear both session and mobile-compatibility state immediately after callback; allow Enter in either sign-in field to submit the login form; only open HTTP/HTTPS URLs extracted from email by AI; upgrade DOMPurify and the AWS S3 SDK to remove known HTML-sanitizer and XML-parser dependency vulnerabilities
 - fix: |Document titles| Format mailbox workspace titles as "Page - mailbox@example.com - Get an Email" while administration pages use "Administration - Get an Email" without inheriting a mailbox address
 - fix: |Authentication| Show only the sign-in tab and form when administrators disable new user registration, and redirect direct registration-route visits back to sign-in
 

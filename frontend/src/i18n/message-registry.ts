@@ -590,10 +590,6 @@ export const MESSAGE_REGISTRY = {
       "en": "Address Rules",
       "zh": "地址规则"
     },
-    "adminAccount": {
-      "en": "Admin",
-      "zh": "管理员"
-    },
     "aiExtractSettings": {
       "en": "AI Extract Settings",
       "zh": "AI 提取设置"
@@ -625,18 +621,6 @@ export const MESSAGE_REGISTRY = {
     "loginMethod": {
       "en": "Login Method",
       "zh": "登录方式"
-    },
-    "loginViaDisabledCheck": {
-      "en": "Disabled Password Check",
-      "zh": "已禁用密码检查"
-    },
-    "loginViaPassword": {
-      "en": "Admin Password Login",
-      "zh": "管理员密码登录"
-    },
-    "loginViaUserAdmin": {
-      "en": "User Admin Permission",
-      "zh": "用户管理员权限"
     },
     "logout": {
       "en": "Logout",

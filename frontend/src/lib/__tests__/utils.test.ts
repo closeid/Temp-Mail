@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { isValidEmailAddress, isWebAuthnCancellation } from '../utils'
+import { getSafeExternalUrl, isValidEmailAddress, isWebAuthnCancellation } from '../utils'
+
+describe('external URL validation', () => {
+  it('allows only absolute HTTP and HTTPS URLs', () => {
+    expect(getSafeExternalUrl('https://example.com/path')).toBe('https://example.com/path')
+    expect(getSafeExternalUrl('http://example.com')).toBe('http://example.com/')
+    expect(getSafeExternalUrl('javascript:alert(1)')).toBeNull()
+    expect(getSafeExternalUrl('data:text/html,test')).toBeNull()
+    expect(getSafeExternalUrl('/relative')).toBeNull()
+  })
+})
 
 describe('email validation', () => {
   it('accepts standard user email addresses', () => {

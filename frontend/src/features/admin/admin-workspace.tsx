@@ -17,7 +17,7 @@ import { ObjectSettings } from './object-settings'
 import { ApiDocsPage } from './api-docs'
 import { OAuthSettingsPage } from './oauth-settings'
 import { SendProviderSettingsPage } from './send-provider-settings'
-import { AdminAccessTokensPage, AdminAccountPage } from './admin-security'
+import { AdminAccessTokensPage } from './admin-security'
 
 const loadAccountSettings = (value: any) => ({
   blockList: value.blockList || [],
@@ -86,7 +86,6 @@ export function AdminWorkspace({ page }: { page: AdminPageKey }) {
       { key: 'roleAddressConfig', label: t('roleAddressConfig'), content: <RoleAddressConfigPage /> },
       { key: 'userOauth2Settings', label: t('userOauth2Settings'), content: <OAuthSettingsPage /> },
       { key: 'accessTokens', label: sessionT('accessTokens'), content: <AdminAccessTokensPage /> },
-      { key: 'adminAccount', label: t('adminAccount'), content: <AdminAccountPage /> },
     ],
     mails: [
       { key: 'mails', label: t('mails'), content: <AdminInbox /> },

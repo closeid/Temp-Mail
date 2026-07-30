@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Copy, KeyRound, Plus, ShieldCheck, Trash2 } from 'lucide-react'
+import { Copy, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -12,8 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useScopedI18n } from '@/i18n/react'
 import { api } from '@/lib/api'
-import { appStore, useAppStore } from '@/lib/store'
-import { copyText, formatDate, hashPassword, stringifyError } from '@/lib/utils'
+import { copyText, formatDate, stringifyError } from '@/lib/utils'
 
 type AdminAccessToken = {
   id: number
@@ -24,46 +23,6 @@ type AdminAccessToken = {
 }
 
 type CreatedAccessToken = AdminAccessToken & { token: string }
-
-export function AdminAccountPage() {
-  const { t } = useScopedI18n('views.Admin')
-  const { t: securityT } = useScopedI18n('ui.admin')
-  const state = useAppStore((value) => value)
-  const [password, setPassword] = useState('')
-  const [confirmation, setConfirmation] = useState('')
-  const method = state.adminAuth ? t('loginViaPassword') : state.userSettings.is_admin ? t('loginViaUserAdmin') : t('loginViaDisabledCheck')
-  const changePassword = useMutation({
-    mutationFn: async () => {
-      if (password.length < 8 || password.length > 100) throw new Error(securityT('administratorPasswordRules'))
-      if (password !== confirmation) throw new Error(securityT('passwordsDoNotMatch'))
-      await api.fetch('/api/admin/password', { method: 'POST', body: { passwordHash: await hashPassword(password) } })
-    },
-    onSuccess: () => {
-      appStore.setState({ adminAuth: password })
-      setPassword('')
-      setConfirmation('')
-      toast.success(securityT('administratorPasswordChanged'))
-    },
-    onError: (error) => toast.error(stringifyError(error)),
-  })
-
-  return <div className="h-full overflow-auto">
-    <div className="mx-auto grid max-w-2xl gap-7 p-5">
-      <section>
-        <div className="flex items-center justify-between border-b border-border py-4"><div><p className="font-medium">{t('loginMethod')}</p><p className="mt-1 text-sm text-muted-foreground">{method}</p></div><ShieldCheck className="size-5 text-primary" /></div>
-      </section>
-      {state.adminAuth ? <section className="grid gap-4 border-t border-border pt-6">
-        <div><h2 className="text-base font-semibold">{securityT('changeAdministratorPassword')}</h2><p className="mt-1 text-sm text-muted-foreground">{securityT('changeAdministratorPasswordDescription')}</p></div>
-        <form className="grid gap-4" onSubmit={(event) => { event.preventDefault(); changePassword.mutate() }}>
-          <Field label={securityT('newAdministratorPassword')} htmlFor="new-admin-password"><Input id="new-admin-password" type="password" autoComplete="new-password" minLength={8} maxLength={100} value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
-          <Field label={securityT('confirmAdministratorPassword')} htmlFor="confirm-admin-password"><Input id="confirm-admin-password" type="password" autoComplete="new-password" minLength={8} maxLength={100} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} /></Field>
-          <p className="text-xs text-muted-foreground">{securityT('administratorPasswordRules')}</p>
-          <Button className="justify-self-start" disabled={changePassword.isPending || !password || !confirmation} type="submit"><KeyRound />{securityT('changePassword')}</Button>
-        </form>
-      </section> : <p className="text-sm text-muted-foreground">{securityT('passwordChangeRequiresPasswordSession')}</p>}
-    </div>
-  </div>
-}
 
 export function AdminAccessTokensPage() {
   const { t } = useScopedI18n('ui.admin')

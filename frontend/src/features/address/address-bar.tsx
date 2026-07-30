@@ -77,7 +77,7 @@ export function AddressBar({ manageContent, onManage }: { manageContent?: React.
     appStore.resetAddress()
     navigate(getPathWithLocale('/', locale))
   }
-  const logoutButton = <Button className="size-9 shrink-0 px-0 sm:w-auto sm:px-3" variant="secondary" aria-label={accountT('logout')} title={accountT('logout')} onClick={logout}><LogOut /><span className="hidden sm:inline">{accountT('logout')}</span></Button>
+  const logoutButton = <Button className="ml-auto size-9 shrink-0 px-0 sm:w-auto sm:px-3" variant="secondary" aria-label={accountT('logout')} title={accountT('logout')} onClick={logout}><LogOut /><span className="hidden sm:inline">{accountT('logout')}</span></Button>
   if (!state.settings.address) return state.userJwt || state.userSettings.user_email
     ? <div className="flex w-full items-center justify-end">{logoutButton}</div>
     : null
