@@ -19,6 +19,31 @@
 
 如果希望某个用户也能进入 Admin 控制台，请配置 `ADMIN_USER_ROLE`，并在用户管理中给该用户设置相同的角色。
 
+## 修改管理员密码
+
+使用 `ADMIN_PASSWORDS` 登录后，可在 **用户 -> Admin** 中修改管理员密码。新密码会覆盖部署变量中的管理员密码用于后续登录；D1 的 `settings` 表只保存 SHA-256 哈希，不保存明文。通过 `ADMIN_USER_ROLE` 或后台访问令牌进入的会话不能修改这个根管理员密码。
+
+如遗忘修改后的密码，可在 D1 控制台执行以下语句，删除覆盖值并恢复使用 `ADMIN_PASSWORDS`：
+
+```sql
+DELETE FROM settings WHERE key = 'admin_password_hash';
+```
+
+## 后台访问令牌
+
+在 **用户 -> 访问令牌** 中可生成具有全部 `/api/admin/*` 权限的令牌。每个令牌必须设置名称，可选设置精确过期时间；明文只在创建成功后显示一次，D1 只保存令牌哈希。删除令牌会立即撤销访问。
+
+升级已有数据库后，请先运行后台数据库迁移，或执行 `db/2026-07-30-admin-access-tokens.sql`。
+
+调用时通过 `x-admin-token` 请求头发送令牌：
+
+```bash
+curl "https://mail.example.com/api/admin/statistics" \
+  -H "x-admin-token: gae_admin_your_token"
+```
+
+访问令牌提供后台管理权限，但不会伪造某个邮箱或普通用户身份；需要邮箱 JWT 或用户 JWT 上下文的接口仍使用各自的认证方式。
+
 ![admin](/feature/admin.png)
 
 ## 账号列表排序

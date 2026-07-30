@@ -18,6 +18,7 @@ import db_api from './db_api'
 import ip_blacklist_settings from './ip_blacklist_settings'
 import ai_extract_settings from './ai_extract_settings'
 import e2e_test_api from './e2e_test_api'
+import { changeAdminPassword, createAccessToken, deleteAccessToken, listAccessTokens } from './admin_access_api'
 
 export const api = new Hono<HonoCustomType>()
 
@@ -65,6 +66,10 @@ api.post('/api/admin/users', admin_user_api.createUser)
 api.post('/api/admin/users/:user_id/reset_password', admin_user_api.resetPassword)
 api.get('/api/admin/user_roles', async (c: Context<HonoCustomType>) => c.json(getUserRoles(c)))
 api.post('/api/admin/user_roles', admin_user_api.updateUserRoles)
+api.post('/api/admin/password', changeAdminPassword)
+api.get('/api/admin/access_tokens', listAccessTokens)
+api.post('/api/admin/access_tokens', createAccessToken)
+api.delete('/api/admin/access_tokens/:id', deleteAccessToken)
 api.get('/api/admin/role_address_config', admin_user_api.getRoleAddressConfig)
 api.post('/api/admin/role_address_config', admin_user_api.saveRoleAddressConfig)
 api.get('/api/admin/users/bind_address/:user_id', admin_user_api.getBindedAddresses)

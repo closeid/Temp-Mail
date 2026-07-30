@@ -24,6 +24,7 @@ export const MAIL_ROUTES = {
 export type MailRouteKey = keyof typeof MAIL_ROUTES
 
 export const ADMIN_PAGE_ROUTES = {
+  statistics: '/dashboard',
   account: '/dashboard/addresses/list',
   account_create: '/dashboard/addresses/create',
   account_settings: '/dashboard/addresses/rules',
@@ -32,6 +33,7 @@ export const ADMIN_PAGE_ROUTES = {
   user_settings: '/dashboard/users/settings',
   roleAddressConfig: '/dashboard/users/role-addresses',
   userOauth2Settings: '/dashboard/users/oauth2',
+  accessTokens: '/dashboard/users/access-tokens',
   adminAccount: '/dashboard/users/admin-login',
   mails: '/dashboard/mail/inbox',
   unknow: '/dashboard/mail/unknown',
@@ -46,29 +48,30 @@ export const ADMIN_PAGE_ROUTES = {
   ipBlacklistSettings: '/dashboard/configuration/ip-access',
   database: '/dashboard/configuration/database',
   maintenance: '/dashboard/configuration/cleanup',
-  statistics: '/dashboard/configuration/statistics',
   appearance: '/dashboard/configuration/appearance',
   apiDocs: '/dashboard/configuration/api',
 } as const
 
 export type AdminPageKey = keyof typeof ADMIN_PAGE_ROUTES
-export type AdminSectionKey = 'account' | 'user' | 'mails' | 'maintenance'
+export type AdminSectionKey = 'home' | 'account' | 'user' | 'mails' | 'maintenance'
 
 export const ADMIN_SECTION_PAGES: Record<AdminSectionKey, readonly AdminPageKey[]> = {
+  home: ['statistics'],
   account: ['account', 'account_create', 'account_settings', 'senderAccess'],
-  user: ['user_management', 'user_settings', 'roleAddressConfig', 'userOauth2Settings', 'adminAccount'],
+  user: ['user_management', 'user_settings', 'roleAddressConfig', 'userOauth2Settings', 'accessTokens', 'adminAccount'],
   mails: ['mails', 'unknow', 'sendBox', 'sendMail', 'sendConfiguration', 'aiExtractSettings', 'mailWebhook', 'webhook', 'telegram'],
-  maintenance: ['workerconfig', 'ipBlacklistSettings', 'database', 'maintenance', 'statistics', 'appearance', 'apiDocs'],
+  maintenance: ['workerconfig', 'ipBlacklistSettings', 'database', 'maintenance', 'appearance', 'apiDocs'],
 }
 
 export const ADMIN_SECTION_DEFAULTS: Record<AdminSectionKey, AdminPageKey> = {
+  home: 'statistics',
   account: 'account',
   user: 'user_management',
   mails: 'mails',
   maintenance: 'workerconfig',
 }
 
-export const ADMIN_DEFAULT_PAGE: AdminPageKey = ADMIN_SECTION_DEFAULTS.account
+export const ADMIN_DEFAULT_PAGE: AdminPageKey = ADMIN_SECTION_DEFAULTS.home
 
 export const getAdminSection = (page: AdminPageKey): AdminSectionKey => {
   return (Object.keys(ADMIN_SECTION_PAGES) as AdminSectionKey[])

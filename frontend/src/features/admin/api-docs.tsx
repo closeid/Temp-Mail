@@ -35,6 +35,7 @@ const ADMIN_ENDPOINTS: Endpoint[] = [
   ['GET', '/api/admin/account_settings'], ['POST', '/api/admin/account_settings'], ['POST', '/api/admin/cleanup'], ['GET', '/api/admin/auto_cleanup'], ['POST', '/api/admin/auto_cleanup'],
   ['GET', '/api/admin/user_settings'], ['POST', '/api/admin/user_settings'], ['GET', '/api/admin/users'], ['POST', '/api/admin/users'], ['DELETE', '/api/admin/users/:user_id'], ['POST', '/api/admin/users/:user_id/reset_password'],
   ['GET', '/api/admin/user_roles'], ['POST', '/api/admin/user_roles'], ['GET', '/api/admin/role_address_config'], ['POST', '/api/admin/role_address_config'],
+  ['POST', '/api/admin/password'], ['GET', '/api/admin/access_tokens'], ['POST', '/api/admin/access_tokens'], ['DELETE', '/api/admin/access_tokens/:id'],
   ['GET', '/api/admin/users/bind_address/:user_id'], ['POST', '/api/admin/users/bind_address'], ['GET', '/api/admin/user_oauth2_settings'], ['POST', '/api/admin/user_oauth2_settings'],
   ['GET', '/api/admin/webhook/settings'], ['POST', '/api/admin/webhook/settings'], ['GET', '/api/admin/mail_webhook/settings'], ['POST', '/api/admin/mail_webhook/settings'], ['POST', '/api/admin/mail_webhook/test'],
   ['GET', '/api/admin/worker/configs'], ['POST', '/api/admin/send_mail'], ['POST', '/api/admin/send_mail_by_binding'],

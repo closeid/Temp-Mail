@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { getPathWithLocale } from '@/i18n/utils'
 import {
   ADMIN_PAGE_ROUTES,
+  ADMIN_DEFAULT_PAGE,
   ADMIN_LOGIN_ROUTE,
   ADMIN_SECTION_PAGES,
   AUTH_ROUTES,
@@ -32,9 +33,17 @@ describe('explicit application routes', () => {
     }
   })
 
+  it('uses statistics as the administration home page', () => {
+    expect(ADMIN_DEFAULT_PAGE).toBe('statistics')
+    expect(ADMIN_PAGE_ROUTES.statistics).toBe('/dashboard')
+    expect(ADMIN_SECTION_PAGES.home).toEqual(['statistics'])
+    expect(ADMIN_SECTION_PAGES.maintenance).not.toContain('statistics')
+  })
+
   it('preserves the explicit page when adding or removing a locale prefix', () => {
     expect(getPathWithLocale(MAIL_ROUTES.auto_reply, 'en')).toBe('/en/settings/auto-reply')
     expect(getPathWithLocale(ADMIN_PAGE_ROUTES.roleAddressConfig, 'en')).toBe('/en/dashboard/users/role-addresses')
     expect(getPathWithLocale(ADMIN_PAGE_ROUTES.userOauth2Settings, 'zh')).toBe('/dashboard/users/oauth2')
+    expect(getPathWithLocale(ADMIN_PAGE_ROUTES.accessTokens, 'en')).toBe('/en/dashboard/users/access-tokens')
   })
 })

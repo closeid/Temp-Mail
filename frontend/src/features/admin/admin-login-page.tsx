@@ -60,8 +60,8 @@ export function AdminLoginPage() {
       <div className="mb-5 flex items-center gap-3"><Brand compact className="[&>span:first-child]:size-12" /><div className="min-w-0"><h1 className="text-lg font-semibold">{t('administratorAccess')}</h1><p className="text-xs text-muted-foreground">{t('administration')}</p></div></div>
       <p className="mb-5 text-sm text-muted-foreground">{t('administratorAccessDescription')}</p>
       <div className="grid gap-4">
-        <Field label={t('administratorUsername')}><Input autoFocus autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} /></Field>
-        <Field label={t('administratorPassword')}><Input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && authenticate()} /></Field>
+        <Field label={t('administratorUsername')} htmlFor="administrator-username"><Input id="administrator-username" autoFocus autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} /></Field>
+        <Field label={t('administratorPassword')} htmlFor="administrator-password"><Input id="administrator-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === 'Enter' && authenticate()} /></Field>
         {state.openSettings.enableGlobalTurnstileCheck && <Turnstile ref={turnstile} value={token} onChange={setToken} />}
         <Button className="h-11 w-full" disabled={submitting} onClick={authenticate}><KeyRound />{adminT('confirm')}</Button>
       </div>

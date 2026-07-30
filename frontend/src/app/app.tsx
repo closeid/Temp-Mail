@@ -7,7 +7,6 @@ import { SiteAccessDialog } from '@/features/auth/site-access-dialog'
 import { appStore, canShowAdmin, isCredentialOnlySession, useAppStore } from '@/lib/store'
 import { DEFAULT_LOCALE, getPathWithLocale, resolveSupportedLocale } from '@/i18n/utils'
 import {
-  ADMIN_DEFAULT_PAGE,
   ADMIN_LOGIN_ROUTE,
   ADMIN_PAGE_ROUTES,
   ADMIN_SECTION_DEFAULTS,
@@ -128,8 +127,7 @@ export function App() {
       {(Object.entries(ADMIN_PAGE_ROUTES) as [AdminPageKey, string][]).map(([page, path]) => localeRoutePair(path, <AdminRoute page={page} />))}
       {localeRoutePair(ADMIN_LOGIN_ROUTE, <AdminLoginPage />)}
 
-      {localeRoutePair('/dashboard', <LocalizedRedirect path={ADMIN_PAGE_ROUTES[ADMIN_DEFAULT_PAGE]} />)}
-      {(Object.entries(ADMIN_SECTION_DEFAULTS) as [AdminSectionKey, AdminPageKey][]).map(([section, page]) => localeRoutePair(`/dashboard/${section === 'account' ? 'addresses' : section === 'user' ? 'users' : section === 'mails' ? 'mail' : 'configuration'}`, <LocalizedRedirect path={ADMIN_PAGE_ROUTES[page]} />))}
+      {(Object.entries(ADMIN_SECTION_DEFAULTS) as [AdminSectionKey, AdminPageKey][]).filter(([section]) => section !== 'home').map(([section, page]) => localeRoutePair(`/dashboard/${section === 'account' ? 'addresses' : section === 'user' ? 'users' : section === 'mails' ? 'mail' : 'configuration'}`, <LocalizedRedirect path={ADMIN_PAGE_ROUTES[page]} />))}
       {localeRoutePair('/mail', <LocalizedRedirect path={MAIL_ROUTES.mailbox} />)}
       {localeRoutePair('/settings', <LocalizedRedirect path={MAIL_ROUTES.appearance} />)}
       {localeRoutePair('/user', <LocalizedRedirect path={MAIL_ROUTES.addresses} />)}

@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 import { useI18n, useScopedI18n } from '@/i18n/react'
 import { getPathWithLocale } from '@/i18n/utils'
 import { LOCALE_REGISTRY } from '@/i18n/locale-registry'
-import { ADMIN_PAGE_ROUTES, MAIL_ROUTES } from '@/app/routes'
+import { ADMIN_DEFAULT_PAGE, ADMIN_PAGE_ROUTES, MAIL_ROUTES } from '@/app/routes'
 
 export type WorkspaceNavItem = { key: string; label: string; icon: ComponentType<{ className?: string }>; hidden?: boolean }
 
@@ -30,7 +30,7 @@ export function WorkspaceShell({ items, mobileItems, active, onSelect, topbar, s
   const visible = items.filter((item) => !item.hidden)
   const mobileVisible = (mobileItems || visible).filter((item) => !item.hidden)
   const go = (target: 'mail' | 'admin') => {
-    if (target === 'admin') return navigate(getPathWithLocale(ADMIN_PAGE_ROUTES.account, locale))
+    if (target === 'admin') return navigate(getPathWithLocale(ADMIN_PAGE_ROUTES[ADMIN_DEFAULT_PAGE], locale))
     navigate(getPathWithLocale(MAIL_ROUTES.mailbox, locale))
   }
 

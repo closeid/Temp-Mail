@@ -610,6 +610,10 @@ export const MESSAGE_REGISTRY = {
       "en": "Configuration",
       "zh": "配置"
     },
+    "home": {
+      "en": "Home",
+      "zh": "首页"
+    },
     "database": {
       "en": "Database",
       "zh": "数据库"

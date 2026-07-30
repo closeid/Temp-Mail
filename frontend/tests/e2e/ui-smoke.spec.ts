@@ -63,6 +63,15 @@ test('disabled registration leaves only the login entry', async ({ page }) => {
   await expect(page.getByRole('tab', { name: 'Register' })).toHaveCount(0)
 })
 
+test('configured OAuth2 provider appears on the login page', async ({ page }, testInfo) => {
+  await mockCommon(page, {}, { oauth2ClientIDs: [{ clientID: 'closeid-workspace', name: 'CloseID Workspace' }] })
+  await page.goto('/en/login')
+
+  await expect(page.getByRole('button', { name: 'Login with CloseID Workspace' })).toBeVisible()
+  await expectNoHorizontalOverflow(page)
+  await page.screenshot({ path: `test-results/oauth2-login-${testInfo.project.name}.png`, fullPage: true })
+})
+
 test('dark theme preserves form contrast', async ({ page }, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('vueuse-color-scheme', 'dark'))
   await mockCommon(page)
@@ -172,25 +181,29 @@ test('new address form localizes the address label and aligns its controls', asy
   expect(selectBox?.height).toBe(40)
 })
 
-test('dashboard uses two-level workspace navigation', async ({ page }, testInfo) => {
+test('dashboard home shows statistics and primary navigation', async ({ page }, testInfo) => {
   await mockCommon(page, { disableAdminPasswordCheck: true })
-  await page.route('**/api/admin/address?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 1, name: 'admin@getanemail.net', created_at: '2026-07-27', updated_at: '2026-07-27', source_meta: '127.0.0.1', mail_count: 2, send_count: 1 }] } }))
+  await page.route('**/api/admin/statistics', (route) => route.fulfill({ json: { mailCount: 12, addressCount: 4, userCount: 2 } }))
   await page.goto('/en/dashboard')
-  await expect(page.getByText('admin@getanemail.net')).toBeVisible()
+  await expect(page.getByText('Received mail')).toBeVisible()
+  await expect(page.getByText('12', { exact: true })).toBeVisible()
   if (testInfo.project.name === 'mobile') {
     const bottomNav = page.locator('nav.fixed.inset-x-0.bottom-0')
     await expect(bottomNav).toBeVisible()
-    await expect(bottomNav.locator('button')).toHaveCount(4)
+    await expect(bottomNav.locator('button')).toHaveCount(5)
   } else {
     await expect(page.locator('aside nav')).toBeVisible()
   }
-  await expect(page.locator('main nav')).toBeVisible()
+  await expect(page.locator('main nav')).toHaveCount(0)
   await expectNoHorizontalOverflow(page)
   await page.screenshot({ path: `test-results/dashboard-${testInfo.project.name}.png`, fullPage: true })
-  await page.getByTitle('Actions').click()
-  await page.getByRole('menuitem', { name: 'Delete' }).click()
-  await expect(page.getByRole('alertdialog')).toContainText('Delete Account')
-  await page.getByRole('button', { name: 'Cancel' }).click()
+})
+
+test('dashboard root requires administrator authentication', async ({ page }) => {
+  await mockCommon(page)
+  await page.goto('/en/dashboard')
+  await expect(page).toHaveURL(/\/en\/dashboard\/login$/)
+  await expect(page.getByRole('heading', { name: 'Administrator access' })).toBeVisible()
 })
 
 test('dashboard assigns an unowned address to a searched user', async ({ page }) => {
@@ -205,7 +218,9 @@ test('dashboard assigns an unowned address to a searched user', async ({ page })
 
   await page.goto('/en/dashboard/addresses/list')
   await page.getByTitle('Actions').click()
-  await page.getByRole('menuitem', { name: 'Assign to a registered user' }).click()
+  const assignItem = page.getByRole('menuitem', { name: 'Assign to a registered user' })
+  await expect(assignItem.locator('svg')).toHaveCount(0)
+  await assignItem.click()
 
   const dialog = page.getByRole('dialog')
   await expect(dialog).toContainText('unowned@getanemail.net')
@@ -220,6 +235,7 @@ test('dashboard assigns an unowned address to a searched user', async ({ page })
 
 test('dashboard administration settings stay available and aligned', async ({ page }, testInfo) => {
   await mockCommon(page, { disableAdminPasswordCheck: true, enableWebhook: false })
+  await page.route('**/api/admin/statistics', (route) => route.fulfill({ json: { mailCount: 0, addressCount: 0 } }))
   await page.route('**/api/admin/address?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
   await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
   await page.route('**/api/admin/user_roles', (route) => route.fulfill({ json: [] }))
@@ -251,6 +267,7 @@ test('dashboard administration settings stay available and aligned', async ({ pa
 
 test('dashboard navigation groups related settings', async ({ page }) => {
   await mockCommon(page, { disableAdminPasswordCheck: true })
+  await page.route('**/api/admin/statistics', (route) => route.fulfill({ json: { mailCount: 0, addressCount: 0 } }))
   await page.route('**/api/admin/address?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
   await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
   await page.route('**/api/admin/user_roles', (route) => route.fulfill({ json: [] }))
@@ -258,13 +275,16 @@ test('dashboard navigation groups related settings', async ({ page }) => {
   await page.goto('/en/dashboard')
 
   const primaryNav = page.locator('aside nav').first().or(page.locator('nav.fixed.inset-x-0.bottom-0'))
-  await expect(primaryNav.getByRole('button')).toHaveText(['Addresses', 'User', 'Emails', 'Configuration'])
+  await expect(primaryNav.getByRole('button')).toHaveText(['Home', 'Addresses', 'User', 'Emails', 'Configuration'])
 
-  const secondaryLabels = async () => page.locator('main nav').getByRole('button').allTextContents()
-  expect(await secondaryLabels()).toEqual(['All addresses', 'Create Address', 'Address Rules', 'Sender Access Control'])
+  const secondaryNav = page.locator('main nav').getByRole('button')
+  await expect(secondaryNav).toHaveCount(0)
+
+  await primaryNav.getByRole('button', { name: 'Addresses', exact: true }).click()
+  await expect(secondaryNav).toHaveText(['All addresses', 'Create Address', 'Address Rules', 'Sender Access Control'])
 
   await primaryNav.getByRole('button', { name: 'User', exact: true }).click()
-  await expect(page.locator('main nav').getByRole('button')).toHaveText(['User Management', 'User Settings', 'Role Address Config', 'Oauth2 Settings', 'Admin'])
+  await expect(page.locator('main nav').getByRole('button')).toHaveText(['User Management', 'User Settings', 'Role Address Config', 'Oauth2 Settings', 'Access Tokens', 'Admin'])
   await page.locator('main nav').getByRole('button', { name: 'User Settings', exact: true }).click()
   await expect(page.getByText('Allow new user registration', { exact: true })).toBeVisible()
 
@@ -272,10 +292,70 @@ test('dashboard navigation groups related settings', async ({ page }) => {
   await expect(page.locator('main nav').getByRole('button')).toHaveText(['Emails', 'Mails with unknow receiver', 'Send Box', 'Send Mail', 'Sending configuration', 'AI Extract Settings', 'Mail Webhook', 'Webhook Settings', 'Telegram Bot'])
 
   await primaryNav.getByRole('button', { name: 'Configuration', exact: true }).click()
-  await expect(page.locator('main nav').getByRole('button')).toHaveText(['Worker Config', 'IP Blacklist', 'Database', 'Maintenance', 'Statistics', 'Appearance', 'API documentation'])
+  await expect(page.locator('main nav').getByRole('button')).toHaveText(['Worker Config', 'IP Blacklist', 'Database', 'Maintenance', 'Appearance', 'API documentation'])
   await page.locator('main nav').getByRole('button', { name: 'API documentation', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'API documentation' })).toBeVisible()
   await expect(page.getByText(/legacy paths|old paths/i)).toHaveCount(0)
+})
+
+test('administrator can change the password from the administrator page', async ({ page }) => {
+  await mockCommon(page)
+  let passwordBody: Record<string, unknown> | undefined
+  await page.route('**/api/open/admin_login', (route) => route.fulfill({ json: { success: true } }))
+  await page.route('**/api/admin/statistics', (route) => route.fulfill({ json: { mailCount: 0, addressCount: 0, userCount: 0 } }))
+  await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
+  await page.route('**/api/admin/user_roles', (route) => route.fulfill({ json: [] }))
+  await page.route('**/api/admin/password', async (route) => {
+    passwordBody = route.request().postDataJSON()
+    await route.fulfill({ json: { success: true } })
+  })
+
+  await page.goto('/en/dashboard/login')
+  await page.getByLabel('Administrator username').fill('admin')
+  await page.getByLabel('Administrator password').fill('old-password')
+  await page.getByRole('button', { name: 'Confirm' }).click()
+  await expect(page).toHaveURL(/\/en\/dashboard$/)
+
+  await page.getByRole('button', { name: 'User', exact: true }).click()
+  await page.getByRole('button', { name: 'Admin', exact: true }).click()
+  await page.getByLabel('New password', { exact: true }).fill('new-password-2026')
+  await page.getByLabel('Confirm new password', { exact: true }).fill('new-password-2026')
+  await page.getByRole('button', { name: 'Change password' }).click()
+
+  await expect.poll(() => passwordBody?.passwordHash).toMatch(/^[a-f0-9]{64}$/)
+  await expect(page.getByText('Administrator password changed')).toBeVisible()
+})
+
+test('administrator can create and revoke access tokens', async ({ page }, testInfo) => {
+  await mockCommon(page, { disableAdminPasswordCheck: true })
+  let createdBody: Record<string, unknown> | undefined
+  let deletedId = ''
+  await page.route('**/api/admin/access_tokens', async (route) => {
+    if (route.request().method() === 'POST') {
+      createdBody = route.request().postDataJSON()
+      return route.fulfill({ status: 201, json: { id: 4, name: 'Automation', token: 'gae_admin_example-once-only', expires_at: null } })
+    }
+    return route.fulfill({ json: { results: [{ id: 3, name: 'Existing integration', created_at: '2026-07-29 12:00:00', expires_at: null, last_used_at: null }] } })
+  })
+  await page.route('**/api/admin/access_tokens/*', async (route) => {
+    deletedId = route.request().url().split('/').pop() || ''
+    await route.fulfill({ json: { success: true } })
+  })
+
+  await page.goto('/en/dashboard/users/access-tokens')
+  await expect(page.getByRole('heading', { name: 'Access Tokens' })).toBeVisible()
+  await page.getByRole('button', { name: 'Create token' }).click()
+  await page.getByLabel('Name').fill('Automation')
+  await page.getByRole('dialog').getByRole('button', { name: 'Create token' }).click()
+  await expect(page.getByText('gae_admin_example-once-only')).toBeVisible()
+  expect(createdBody).toEqual({ name: 'Automation', expiresAt: null })
+  await page.getByRole('button', { name: 'Confirm' }).click()
+
+  await page.getByTitle('Delete access token').click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
+  await expect.poll(() => deletedId).toBe('3')
+  await expectNoHorizontalOverflow(page)
+  await page.screenshot({ path: `test-results/admin-access-tokens-${testInfo.project.name}.png`, fullPage: true })
 })
 
 test('standalone mailbox JWT is restricted to the current mailbox', async ({ page }) => {

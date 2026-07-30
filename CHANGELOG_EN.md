@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |Administration security| Allow password-authenticated administrators to replace the root password while storing only its SHA-256 hash in D1; add User -> Access Tokens to create, name, expire, and revoke full administration API tokens whose plaintext is shown once and whose database representation is hash-only
+- feat: |Authentication UI| Confirm that configured OAuth2 providers automatically appear as sign-in actions and add desktop/mobile visual regression screenshots
 - feat: |Administration| Let administrators assign an unowned mailbox from the All Addresses action menu by searching and selecting a registered user email, then refresh address ownership and user address counts after binding
 - feat: |Session permissions| Preserve multi-mailbox switching when an authenticated account opens any mailbox JWT, and allow the current unowned mailbox to be bound to that account; standalone mailbox JWT sessions are restricted to the current mailbox, with no address management, user settings, or mailbox creation
 - feat: |Administration/API| Allow a newly created mailbox address to remain unowned or be assigned by searching a registered user email; `POST /api/admin/new_address` now accepts optional `ownerUserEmail` / `ownerUserId`, rolls back the new address if binding fails, and respects user role address limits
@@ -38,6 +40,8 @@
 - test: |Worker| Add junk_mail_policy regression tests (issue #1084): `none`/`neutral` results for SPF/DKIM/DMARC are treated as the method being absent, explicit `fail` results are still rejected, and `JUNK_MAIL_FORCE_PASS_LIST` only accepts an explicit `pass`
 
 ### Improvements
+
+- refactor: |Administration navigation| Promote statistics to the `/dashboard` home page with a new primary Home entry and `/dashboard/login` authentication fallback; remove Statistics from Configuration and remove the leading icon from the mailbox-owner action
 
 - fix: |Administration| Change user role editing to a `USER_ROLES`-backed select with an option to restore the default role, preventing invalid free-form role names
 - refactor: |Frontend routing| Give sign-in, registration, password recovery, address-credential login, inbox, sent mail, compose, address management, every settings page, and every administration subpage an explicit URL. Menus, OAuth callbacks, mail replies, and address switching now navigate through one route registry; session-only `indexTab` and `adminTab` state is removed, and Cloudflare Pages receives an SPA fallback for deep-link refreshes

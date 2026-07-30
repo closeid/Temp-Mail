@@ -24,6 +24,31 @@ whose email looks like `admin@example.com` does not automatically grant admin pe
 If you want a user account to access the Admin console, configure `ADMIN_USER_ROLE` and assign the
 same role to that user in user management.
 
+## Change the administrator password
+
+After signing in with `ADMIN_PASSWORDS`, open **User -> Admin** to change the administrator password. The new password overrides the deployment variable for subsequent sign-ins. D1 stores only its SHA-256 hash in `settings`, never the plaintext password. Sessions authenticated through `ADMIN_USER_ROLE` or an administration access token cannot change this root password.
+
+If the changed password is lost, remove the override in the D1 console to restore `ADMIN_PASSWORDS`:
+
+```sql
+DELETE FROM settings WHERE key = 'admin_password_hash';
+```
+
+## Administration access tokens
+
+Open **User -> Access Tokens** to create a credential with full access to `/api/admin/*`. Each token has a required name and an optional exact expiration time. The plaintext is shown once after creation; D1 stores only its hash. Deleting a token revokes it immediately.
+
+For an existing database, run the console database migration or apply `db/2026-07-30-admin-access-tokens.sql` first.
+
+Send the token in the `x-admin-token` header:
+
+```bash
+curl "https://mail.example.com/api/admin/statistics" \
+  -H "x-admin-token: gae_admin_your_token"
+```
+
+An access token grants administration privileges but does not impersonate a mailbox or regular user. Endpoints that need mailbox-JWT or user-JWT context keep their own authentication requirements.
+
 ![admin](/feature/admin.png)
 
 ## Account List Sorting

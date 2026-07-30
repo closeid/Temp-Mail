@@ -123,6 +123,18 @@ CREATE TABLE IF NOT EXISTS user_passkeys (
 CREATE INDEX IF NOT EXISTS idx_user_passkeys_user_id ON user_passkeys(user_id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_passkeys_user_id_passkey_id ON user_passkeys(user_id, passkey_id);
+
+CREATE TABLE IF NOT EXISTS admin_access_tokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    token_hash TEXT UNIQUE NOT NULL,
+    expires_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_used_at DATETIME
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_access_tokens_token_hash ON admin_access_tokens(token_hash);
+CREATE INDEX IF NOT EXISTS idx_admin_access_tokens_expires_at ON admin_access_tokens(expires_at);
 `
 
 export default {

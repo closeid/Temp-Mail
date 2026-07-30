@@ -307,6 +307,8 @@ pnpm build
 - **OAuth2**：在 `/dashboard` 的“维护 -> 管理员 -> OAuth2”添加提供商。回调 URL 为 `https://你的前端域名/user/oauth2/callback`，必须与提供商后台完全一致。
 - **管理员**：访问 `/dashboard`，未认证时会自动进入 `/dashboard/login`；使用 `ADMIN_PASSWORDS`，或让用户角色等于 `ADMIN_USER_ROLE`。不要在公网部署时开启 `DISABLE_ADMIN_PASSWORD_CHECK`。
 
+密码管理员可在“用户 -> Admin”修改管理员密码，新密码的 SHA-256 哈希保存在 D1 并覆盖 `ADMIN_PASSWORDS`；“用户 -> 访问令牌”可创建带名称和可选过期时间的后台 API 令牌。令牌明文只显示一次，调用 `/api/admin/*` 时放入 `x-admin-token` 请求头。已有数据库必须先运行后台数据库迁移或执行 `db/2026-07-30-admin-access-tokens.sql`。完整说明见 [后台管理](vitepress-docs/docs/zh/guide/feature/admin.md)。
+
 OAuth2 是联合登录，同一邮箱映射到同一个本地用户；当前不是强制 OAuth-only 模式，不能通过配置 OAuth2 自动禁止密码登录。详细字段见 [OAuth2 配置](vitepress-docs/docs/zh/guide/feature/user-oauth2.md)。
 
 ## 配置发送邮件

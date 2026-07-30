@@ -14,7 +14,7 @@ import { api as telegramApi } from './telegram_api'
 import i18n from './i18n';
 import { email } from './email';
 import { scheduled } from './scheduled';
-import { getPasswords, getBooleanValue, getDomains, checkIsAdmin } from './utils';
+import { getPasswords, getBooleanValue, getDomains, checkIsAdmin, hashPassword } from './utils';
 import { checkAccessControl } from './ip_blacklist';
 
 const API_PATHS = ["/api/"];
@@ -53,7 +53,8 @@ app.use('/*', async (c, next) => {
 
 	// check header x-custom-auth
 	const passwords = getPasswords(c);
-	if (!c.req.path.startsWith("/api/open/") && !c.req.path.startsWith("/api/telegram/") && passwords && passwords.length > 0) {
+	const usesAdminToken = c.req.path.startsWith("/api/admin/") && Boolean(c.req.raw.headers.get("x-admin-token"));
+	if (!usesAdminToken && !c.req.path.startsWith("/api/open/") && !c.req.path.startsWith("/api/telegram/") && passwords && passwords.length > 0) {
 		const auth = c.req.raw.headers.get("x-custom-auth");
 		if (!auth || !passwords.includes(auth)) {
 			return c.text(msgs.CustomAuthPasswordMsg, 401)
@@ -222,9 +223,32 @@ app.use('/api/user/*', async (c, next) => {
 });
 // admin auth
 app.use('/api/admin/*', async (c, next) => {
+	const adminToken = c.req.raw.headers.get("x-admin-token");
+	if (adminToken && adminToken.startsWith("gae_admin_") && adminToken.length <= 80) {
+		try {
+			const tokenHash = await hashPassword(adminToken);
+			const token = await c.env.DB.prepare(
+				`SELECT id, last_used_at FROM admin_access_tokens
+				 WHERE token_hash = ? AND (expires_at IS NULL OR datetime(expires_at) > datetime('now'))`
+			).bind(tokenHash).first<{ id: number, last_used_at: string | null }>();
+			if (token) {
+				c.set("adminAccessTokenId", token.id);
+				const lastUsedAt = token.last_used_at ? Date.parse(`${token.last_used_at}Z`) : 0;
+				if (!lastUsedAt || Date.now() - lastUsedAt > 15 * 60 * 1000) {
+					await c.env.DB.prepare(
+						`UPDATE admin_access_tokens SET last_used_at = datetime('now') WHERE id = ?`
+					).bind(token.id).run();
+				}
+				await next();
+				return;
+			}
+		} catch (error) {
+			console.warn("Failed to validate admin access token", error);
+		}
+	}
 
 	// check header x-admin-auth
-	if (checkIsAdmin(c)) {
+	if (await checkIsAdmin(c)) {
 		await next();
 		return;
 	}

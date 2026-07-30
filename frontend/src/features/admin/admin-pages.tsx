@@ -107,7 +107,7 @@ export function AccountTable() {
     <DropdownMenuItem onSelect={async () => { const jwt = await api.adminShowAddressCredential(row.id); setCredential({ address: row.name, jwt }) }}>{t('showCredential')}</DropdownMenuItem>
     <DropdownMenuItem onSelect={() => navigate(`${getPathWithLocale(ADMIN_PAGE_ROUTES.mails, locale)}?address=${encodeURIComponent(row.name)}`)}>{t('viewMails')}</DropdownMenuItem>
     <DropdownMenuItem onSelect={() => navigate(`${getPathWithLocale(ADMIN_PAGE_ROUTES.sendBox, locale)}?address=${encodeURIComponent(row.name)}`)}>{t('viewSendBox')}</DropdownMenuItem>
-    {!row.owner_email && <DropdownMenuItem onSelect={() => { setBindEmail(''); setBindUser(null); setBinding({ row, refetch }) }}><UserRoundPlus />{adminT('assignToRegisteredUser')}</DropdownMenuItem>}
+    {!row.owner_email && <DropdownMenuItem onSelect={() => { setBindEmail(''); setBindUser(null); setBinding({ row, refetch }) }}>{adminT('assignToRegisteredUser')}</DropdownMenuItem>}
     <DropdownMenuSeparator />
     <DropdownMenuItem disabled={!row.mail_count} onSelect={async () => { if (await confirmAction({ title: t('clearInbox'), description: row.name, destructive: true }) && await run(() => api.fetch(`/api/admin/clear_inbox/${row.id}`, { method: 'DELETE' }))) await refetch() }}>{t('clearInbox')}</DropdownMenuItem>
     <DropdownMenuItem disabled={!row.send_count} onSelect={async () => { if (await confirmAction({ title: t('clearSentItems'), description: row.name, destructive: true }) && await run(() => api.fetch(`/api/admin/clear_sent_items/${row.id}`, { method: 'DELETE' }))) await refetch() }}>{t('clearSentItems')}</DropdownMenuItem>
