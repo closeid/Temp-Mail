@@ -291,6 +291,7 @@ test('dashboard unbinds owned addresses from address and user management', async
   await userRow.getByTitle('Actions').click()
   await page.getByRole('menuitem', { name: 'Manage addresses' }).click()
   const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('cell', { name: '2026-07-27' })).toHaveCSS('white-space', 'nowrap')
   const userAddressButton = dialog.getByRole('button', { name: 'Unbind address' })
   await expect(userAddressButton.locator('svg')).toHaveCount(0)
   await userAddressButton.click()
