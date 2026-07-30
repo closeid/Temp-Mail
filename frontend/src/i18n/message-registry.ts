@@ -488,14 +488,6 @@ export const MESSAGE_REGISTRY = {
       "en": "Delete Passkey",
       "zh": "删除 Passkey"
     },
-    "logout": {
-      "en": "Logout",
-      "zh": "退出登录"
-    },
-    "logoutConfirm": {
-      "en": "Are you sure you want to logout?",
-      "zh": "确定要退出登录吗？"
-    },
     "passkeyCreated": {
       "en": "Passkey created successfully",
       "zh": "Passkey 创建成功"
@@ -849,6 +841,18 @@ export const MESSAGE_REGISTRY = {
     "address": {
       "en": "Address",
       "zh": "地址"
+    },
+    "bindCurrent": {
+      "en": "Bind current mailbox",
+      "zh": "绑定当前邮箱"
+    },
+    "bindCurrentDescription": {
+      "en": "This mailbox is not attached to your account. Bind it to include it in your mailbox list.",
+      "zh": "当前邮箱尚未归属此账号，绑定后可加入账号的邮箱列表。"
+    },
+    "bindCurrentSuccess": {
+      "en": "Current mailbox bound",
+      "zh": "当前邮箱已绑定"
     },
     "changeMailAddress": {
       "en": "Change Address",
@@ -2389,6 +2393,10 @@ export const MESSAGE_REGISTRY = {
     "emptyAddressLabel": {
       "en": "Cleanup the empty address before n days",
       "zh": "清理 n 天前空邮件的邮箱地址"
+    },
+    "enable": {
+      "en": "Enable",
+      "zh": "开启"
     },
     "inactiveAddressLabel": {
       "en": "Cleanup the inactive address before n days",

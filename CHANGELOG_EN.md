@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Session permissions| Preserve multi-mailbox switching when an authenticated account opens any mailbox JWT, and allow the current unowned mailbox to be bound to that account; standalone mailbox JWT sessions are restricted to the current mailbox, with no address management, user settings, or mailbox creation
 - feat: |Administration/API| Allow a newly created mailbox address to remain unowned or be assigned by searching a registered user email; `POST /api/admin/new_address` now accepts optional `ownerUserEmail` / `ownerUserId`, rolls back the new address if binding fails, and respects user role address limits
 - feat: |Mailbox credential sign-in| Add a persistent restricted credential session that hides address management, limits the top selector to local addresses, and prevents mailbox creation or access to any other mailboxes owned by the same user unless the user signs in with their account password
 - feat: |Frontend| Add a "Full-width mailbox list view" toggle in Appearance settings. When enabled, the mailbox shows a full-width list of subjects and body previews by default; clicking a mail expands it into the two-pane split view, clicking the same mail again returns to the list view; in multi-select mode, clicking a mail updates both its checked state and the right-side preview while disabling same-mail collapse, and the split width still follows the "Left list width in two-column mailbox view" setting. Defaults to off, preserving the original two-pane behavior
@@ -17,6 +18,9 @@
 
 ### Bug Fixes
 
+- fix: |Frontend| Display address credentials and connection methods directly in mailbox settings; remove the sign-out action from User Settings, send all remaining sign-out actions to the root route, and use the current mailbox address as the document title
+- fix: |Administration| Rebuild automatic cleanup as explicit retention-day fields with right-aligned enable switches; render custom SQL as separate name, SQL, and enabled controls with a usable DELETE example
+- fix: |Internationalization| Limit frontend and documentation languages to Chinese and English, removing Spanish, Portuguese, Japanese, and German runtime dictionaries and route recognition
 - fix: |Administration| Show each mailbox address owner and explicitly mark unbound anonymous mailboxes; label user counts as bound addresses so the global mailbox total is no longer confused with user bindings
 - fix: |Authentication routing| Remove the legacy `/address-login` route, move password recovery to `/login/forgot-password`, and add `/dashboard/login`; unauthenticated administration routes now redirect to sign-in and return to the requested page after authentication
 - fix: |Authentication| Keep password, email-credential, and passkey sign-in on `/login`; silently handle cancelled or timed-out passkey prompts, and validate user email format in sign-in, registration, password recovery, verification-code, and Worker authentication requests

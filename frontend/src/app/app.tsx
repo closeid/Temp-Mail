@@ -4,7 +4,7 @@ import { LoadingBar } from '@/components/loading-bar'
 import { AuthPage } from '@/features/auth/auth-page'
 import { CredentialDialog } from '@/features/auth/credential-dialog'
 import { SiteAccessDialog } from '@/features/auth/site-access-dialog'
-import { appStore, canShowAdmin, useAppStore } from '@/lib/store'
+import { appStore, canShowAdmin, isCredentialOnlySession, useAppStore } from '@/lib/store'
 import { DEFAULT_LOCALE, getPathWithLocale, resolveSupportedLocale } from '@/i18n/utils'
 import {
   ADMIN_DEFAULT_PAGE,
@@ -51,7 +51,6 @@ function RuntimeRouteSync() {
     const params = new URLSearchParams(location.search)
     const jwt = params.get('jwt')
     if (!jwt) return
-    appStore.resetUser()
     appStore.setState((state) => ({ jwt, mailboxAccessMode: 'credential', settings: { ...state.settings, fetched: false, address: '' } }))
     params.delete('jwt')
     const locale = resolveSupportedLocale(location.pathname.split('/')[1]) || DEFAULT_LOCALE
@@ -87,7 +86,9 @@ function MailRoute({ page }: { page: MailRouteKey }) {
   const hasUser = Boolean(state.userSettings.user_email)
   const fallback = hasUser ? MAIL_ROUTES.addresses : AUTH_ROUTES.login
   if (addressRequiredPages.includes(page) && !hasAddress) return <Navigate to={getPathWithLocale(fallback, locale)} replace />
-  if (page === 'addresses' && state.mailboxAccessMode === 'credential') return <Navigate to={getPathWithLocale(MAIL_ROUTES.mailbox, locale)} replace />
+  const credentialOnly = isCredentialOnlySession(state)
+  if (page === 'addresses' && credentialOnly) return <Navigate to={getPathWithLocale(MAIL_ROUTES.mailbox, locale)} replace />
+  if (page === 'user_settings' && credentialOnly) return <Navigate to={getPathWithLocale(MAIL_ROUTES.mailbox, locale)} replace />
   if (page === 'user_settings' && !hasUser) return <Navigate to={getPathWithLocale(AUTH_ROUTES.login, locale)} replace />
   if ((page === 'sendbox' || page === 'sendmail') && !state.openSettings.enableSendMail) return <Navigate to={getPathWithLocale(MAIL_ROUTES.mailbox, locale)} replace />
   if (page === 'auto_reply' && !state.openSettings.enableAutoReply) return <Navigate to={getPathWithLocale(MAIL_ROUTES.accountSettings, locale)} replace />

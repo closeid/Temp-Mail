@@ -2,7 +2,7 @@
 
 基于 Cloudflare Workers、Email Routing 和 D1 的临时邮箱服务。项目包含响应式 Web 客户端、用户系统、地址凭据登录、管理后台、邮件发送、Webhook、OAuth2、Passkey 和多语言支持。
 
-[中文](README.md) | [English](README_EN.md) | [日本語](README_JA.md) | [更新日志](CHANGELOG.md)
+[中文](README.md) | [English](README_EN.md) | [更新日志](CHANGELOG.md)
 
 > 本项目仅供学习和个人用途。部署者需要自行遵守域名、邮件服务商和所在地的法律及服务条款。
 
@@ -15,7 +15,7 @@
 - OAuth2 联合登录、角色和域名分配、发信余额管理
 - 全局及地址级 Webhook、自动回复、邮件转发、垃圾邮件检查
 - 可选 Workers AI 内容提取、S3/R2 附件存储、Telegram 和 SMTP/IMAP 代理
-- 中文、英文、日文、德文、西班牙文和葡萄牙文界面
+- 中文和英文界面
 - 管理后台路径 `/dashboard`，全部后端接口统一位于 `/api/`
 - 登录、邮箱、设置和管理后台子页面均使用显性路由，可直接收藏并在刷新后恢复当前页面
 

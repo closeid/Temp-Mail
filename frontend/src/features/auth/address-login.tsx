@@ -57,7 +57,6 @@ export function AddressLogin({ loginOnly = false, preferCredential = false, bind
     if (appStore.getState().userJwt) await queryClient.invalidateQueries({ queryKey: boundAddressesQueryKey })
   }
   const finishLogin = async (jwt: string, credentialSession = false) => {
-    if (credentialSession) appStore.resetUser()
     appStore.setState({ jwt, mailboxAccessMode: credentialSession ? 'credential' : 'standard' })
     await api.getSettings()
     if (bindAfterLogin && (bindUserAddress || appStore.getState().userSettings.user_email)) {

@@ -15,7 +15,7 @@ import { WebhookSettings } from '@/features/settings/webhook-settings'
 import { UserAddressManagement } from '@/features/user/address-management'
 import { UserSettingsPage } from '@/features/user/user-settings'
 import { api } from '@/lib/api'
-import { appStore, useAppStore } from '@/lib/store'
+import { appStore, isCredentialOnlySession, useAppStore } from '@/lib/store'
 import { stringifyError } from '@/lib/utils'
 import { useI18n, useScopedI18n } from '@/i18n/react'
 import { getPathWithLocale } from '@/i18n/utils'
@@ -34,7 +34,7 @@ export function MailWorkspace({ page }: { page: MailRouteKey }) {
   const simple = state.useSimpleIndex
   const hasAddress = Boolean(settings.address)
   const hasUser = Boolean(state.userSettings.user_email)
-  const credentialOnly = state.mailboxAccessMode === 'credential'
+  const credentialOnly = isCredentialOnlySession(state)
   const mailId = new URLSearchParams(location.search).get('mail_id')
   const go = (target: MailRouteKey) => navigate(getPathWithLocale(MAIL_ROUTES[target], locale))
   const primary = page === 'mailbox' ? 'mailbox'

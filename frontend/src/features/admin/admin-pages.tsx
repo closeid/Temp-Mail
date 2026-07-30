@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Copy, Database, MoreHorizontal, Plus, Save, Trash2, Wrench } from 'lucide-react'
+import { Copy, Database, MoreHorizontal, Plus, RefreshCw, Save, Trash2, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { confirmAction, promptAction } from '@/components/action-dialogs'
@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Textarea } from '@/components/ui/textarea'
 import { Mailbox } from '@/features/mail/mailbox'
 import { SentBox } from '@/features/mail/sent-box'
 import { SendMailPage } from '@/features/settings/send-mail'
@@ -170,8 +171,56 @@ export function StatisticsPage() {
 
 export function MaintenancePage() {
   const { t } = useScopedI18n('ui.admin')
+  const maintenanceT = useScopedI18n('views.admin.Maintenance').t
+  const commonT = useScopedI18n('ui.common').t
+  const client = useQueryClient()
+  type CleanupModel = {
+    enableMailsAutoCleanup: boolean; cleanMailsDays: number
+    enableUnknowMailsAutoCleanup: boolean; cleanUnknowMailsDays: number
+    enableSendBoxAutoCleanup: boolean; cleanSendBoxDays: number
+    enableAddressAutoCleanup: boolean; cleanAddressDays: number
+    enableInactiveAddressAutoCleanup: boolean; cleanInactiveAddressDays: number
+    enableUnboundAddressAutoCleanup: boolean; cleanUnboundAddressDays: number
+    enableEmptyAddressAutoCleanup: boolean; cleanEmptyAddressDays: number
+    customSqlCleanupList: Array<{ id: string; name: string; sql: string; enabled: boolean }>
+  }
+  const defaults: CleanupModel = {
+    enableMailsAutoCleanup: false, cleanMailsDays: 30,
+    enableUnknowMailsAutoCleanup: false, cleanUnknowMailsDays: 30,
+    enableSendBoxAutoCleanup: false, cleanSendBoxDays: 30,
+    enableAddressAutoCleanup: false, cleanAddressDays: 30,
+    enableInactiveAddressAutoCleanup: false, cleanInactiveAddressDays: 30,
+    enableUnboundAddressAutoCleanup: false, cleanUnboundAddressDays: 30,
+    enableEmptyAddressAutoCleanup: false, cleanEmptyAddressDays: 30,
+    customSqlCleanupList: [],
+  }
+  const query = useQuery({ queryKey: ['admin-settings', '/api/admin/auto_cleanup'], queryFn: () => api.fetch<Partial<CleanupModel>>('/api/admin/auto_cleanup') })
+  const [model, setModel] = useState<CleanupModel>(defaults)
+  useEffect(() => { if (query.data) setModel({ ...defaults, ...query.data, customSqlCleanupList: query.data.customSqlCleanupList || [] }) }, [query.data])
+  const save = useMutation({
+    mutationFn: () => api.fetch('/api/admin/auto_cleanup', { method: 'POST', body: model }),
+    onSuccess: async () => { toast.success(commonT('saved')); await client.invalidateQueries({ queryKey: ['admin-settings', '/api/admin/auto_cleanup'] }) },
+    onError: (error) => toast.error(stringifyError(error)),
+  })
   const cleanup = async () => { const type = await promptAction({ title: t('cleanupType'), description: t('cleanupTypeDescription'), defaultValue: 'mails' }); if (!type) return; const daysValue = await promptAction({ title: t('retentionPeriod'), description: t('retentionDescription'), defaultValue: '30', inputType: 'number' }); if (daysValue == null) return; const days = Number(daysValue); if (Number.isFinite(days)) await run(() => api.fetch('/api/admin/cleanup', { method: 'POST', body: { cleanType: type, cleanDays: days } }), t('cleanupCompleted')) }
-  return <ObjectSettings endpoint="/api/admin/auto_cleanup" title={t('automaticCleanup')} description={t('automaticCleanupDescription')} extraActions={<Button variant="secondary" onClick={cleanup}><Trash2 />{t('cleanupNow')}</Button>} />
+  const policies: Array<{ enabled: keyof CleanupModel; days: keyof CleanupModel; label: string }> = [
+    { enabled: 'enableMailsAutoCleanup', days: 'cleanMailsDays', label: maintenanceT('mailBoxLabel') },
+    { enabled: 'enableUnknowMailsAutoCleanup', days: 'cleanUnknowMailsDays', label: maintenanceT('mailUnknowLabel') },
+    { enabled: 'enableSendBoxAutoCleanup', days: 'cleanSendBoxDays', label: maintenanceT('sendBoxLabel') },
+    { enabled: 'enableAddressAutoCleanup', days: 'cleanAddressDays', label: maintenanceT('addressCreateLabel') },
+    { enabled: 'enableInactiveAddressAutoCleanup', days: 'cleanInactiveAddressDays', label: maintenanceT('inactiveAddressLabel') },
+    { enabled: 'enableUnboundAddressAutoCleanup', days: 'cleanUnboundAddressDays', label: maintenanceT('unboundAddressLabel') },
+    { enabled: 'enableEmptyAddressAutoCleanup', days: 'cleanEmptyAddressDays', label: maintenanceT('emptyAddressLabel') },
+  ]
+  const updateSql = (id: string, patch: Partial<CleanupModel['customSqlCleanupList'][number]>) => setModel((current) => ({ ...current, customSqlCleanupList: current.customSqlCleanupList.map((item) => item.id === id ? { ...item, ...patch } : item) }))
+  const addSql = () => setModel((current) => ({ ...current, customSqlCleanupList: [...current.customSqlCleanupList, { id: crypto.randomUUID(), name: '', sql: '', enabled: false }] }))
+  return <SettingsLayout title={t('automaticCleanup')} description={maintenanceT('cronTip')} className="max-w-4xl" action={<div className="flex shrink-0 gap-2"><Button variant="secondary" onClick={cleanup}><Trash2 />{t('cleanupNow')}</Button><Button size="icon" variant="secondary" title={commonT('refresh')} onClick={() => query.refetch()}><RefreshCw className={query.isFetching ? 'animate-spin' : ''} /></Button><Button disabled={save.isPending || query.isLoading} onClick={() => save.mutate()}><Save />{commonT('save')}</Button></div>}>
+    {query.isLoading ? <p className="py-8 text-sm text-muted-foreground">{commonT('loading')}</p> : <div className="divide-y divide-border">{policies.map((policy) => {
+      const [before, after = ''] = policy.label.split('n')
+      return <div key={String(policy.enabled)} className="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="flex flex-wrap items-center gap-2 text-sm font-medium"><span>{before.trim()}</span><Input className="h-10 w-24" type="number" min={0} value={Number(model[policy.days])} onChange={(event) => setModel((current) => ({ ...current, [policy.days]: Number(event.target.value) }))} /><span>{after.trim()}</span></div><label className="flex min-w-28 items-center justify-between gap-4 text-sm"><span>{maintenanceT('enable')}</span><Switch checked={Boolean(model[policy.enabled])} onCheckedChange={(value) => setModel((current) => ({ ...current, [policy.enabled]: value }))} /></label></div>
+    })}</div>}
+    <section className="border-t border-border pt-5"><div className="flex items-start justify-between gap-4"><div><h2 className="text-sm font-semibold">{maintenanceT('customSqlCleanup')}</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">{maintenanceT('customSqlTip')}</p></div><Button className="shrink-0" variant="secondary" onClick={addSql}><Plus />{maintenanceT('addCustomSql')}</Button></div><div className="mt-4 grid gap-5">{model.customSqlCleanupList.length === 0 && <p className="py-4 text-center text-sm text-muted-foreground">{commonT('noData')}</p>}{model.customSqlCleanupList.map((item) => <div key={item.id} className="grid gap-4 border-b border-border pb-5 last:border-0"><div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><Field label={maintenanceT('sqlName')}><Input placeholder={maintenanceT('sqlNamePlaceholder')} value={item.name} onChange={(event) => updateSql(item.id, { name: event.target.value })} /></Field><label className="flex min-w-28 items-center justify-between gap-4 pb-2 text-sm"><span>{maintenanceT('enable')}</span><Switch checked={item.enabled} onCheckedChange={(enabled) => updateSql(item.id, { enabled })} /></label></div><Field label={maintenanceT('sqlStatement')}><Textarea className="min-h-28 font-mono text-xs" placeholder={maintenanceT('sqlPlaceholder')} value={item.sql} onChange={(event) => updateSql(item.id, { sql: event.target.value })} /></Field><Button className="justify-self-start text-destructive" variant="ghost" onClick={() => setModel((current) => ({ ...current, customSqlCleanupList: current.customSqlCleanupList.filter((entry) => entry.id !== item.id) }))}><Trash2 />{maintenanceT('deleteCustomSql')}</Button></div>)}</div></section>
+  </SettingsLayout>
 }
 
 export function RoleAddressConfigPage() {

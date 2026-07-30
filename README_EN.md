@@ -2,7 +2,7 @@
 
 A temporary email service built on Cloudflare Workers, Email Routing, and D1. It includes a responsive web client, user accounts, address-credential login, an administration console, outbound mail, webhooks, OAuth2, passkeys, and multiple languages.
 
-[中文](README.md) | [English](README_EN.md) | [日本語](README_JA.md) | [Changelog](CHANGELOG_EN.md)
+[中文](README.md) | [English](README_EN.md) | [Changelog](CHANGELOG_EN.md)
 
 > This project is intended for learning and personal use. The operator is responsible for complying with domain, email-provider, and local legal requirements.
 
@@ -15,7 +15,7 @@ A temporary email service built on Cloudflare Workers, Email Routing, and D1. It
 - OAuth2 federation, roles, per-role domains, and sending-balance controls
 - Global and per-address webhooks, auto replies, forwarding, and junk-mail checks
 - Optional Workers AI extraction, S3/R2 attachment storage, Telegram, and SMTP/IMAP proxy integration
-- Chinese, English, Japanese, German, Spanish, and Portuguese interfaces
+- Chinese and English interfaces
 - Administration at `/dashboard`; all backend endpoints are under `/api/`
 - Explicit routes for authentication, mailbox, settings, and administration subpages, allowing direct bookmarks and refresh-safe deep links
 

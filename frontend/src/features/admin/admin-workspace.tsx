@@ -8,7 +8,7 @@ import { api } from '@/lib/api'
 import { appStore, useAppStore } from '@/lib/store'
 import { useI18n, useScopedI18n } from '@/i18n/react'
 import { getPathWithLocale } from '@/i18n/utils'
-import { ADMIN_LOGIN_ROUTE, ADMIN_PAGE_ROUTES, ADMIN_SECTION_DEFAULTS, getAdminSection, type AdminPageKey, type AdminSectionKey } from '@/app/routes'
+import { ADMIN_PAGE_ROUTES, ADMIN_SECTION_DEFAULTS, getAdminSection, type AdminPageKey, type AdminSectionKey } from '@/app/routes'
 import {
   AccountTable, AdminInbox, AdminMailWebhook, AdminSendMail, AdminSentBox, CreateAddressPage,
   DatabasePage, MaintenancePage, RoleAddressConfigPage, SenderAccessPage, StatisticsPage,
@@ -57,7 +57,7 @@ function AdminAccountPage() {
   const sessionT = useScopedI18n('ui.admin').t
   const state = useAppStore((value) => value)
   const method = state.adminAuth ? t('loginViaPassword') : state.userSettings.is_admin ? t('loginViaUserAdmin') : t('loginViaDisabledCheck')
-  const logout = () => { appStore.setState({ adminAuth: '', showAdminAuth: false }); navigate(getPathWithLocale(ADMIN_LOGIN_ROUTE, locale)) }
+  const logout = () => { appStore.setState({ adminAuth: '', showAdminAuth: false }); navigate(getPathWithLocale('/', locale)) }
   return <div className="h-full overflow-auto"><div className="mx-auto max-w-2xl p-5"><div className="flex items-center justify-between border-b border-border py-4"><div><p className="font-medium">{t('loginMethod')}</p><p className="mt-1 text-sm text-muted-foreground">{method}</p></div><ShieldCheck className="size-5 text-primary" /></div>{state.adminAuth && <div className="flex items-center justify-between py-4"><div><p className="font-medium">{sessionT('administratorSession')}</p><p className="mt-1 text-sm text-muted-foreground">{sessionT('administratorSessionDescription')}</p></div><Button variant="secondary" onClick={logout}><LogOut />{sessionT('signOut')}</Button></div>}</div></div>
 }
 

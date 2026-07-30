@@ -201,3 +201,5 @@ export const useAppStore = <T,>(selector: (value: AppState) => T = ((value) => v
 }
 
 export const canShowAdmin = (value = state) => Boolean(value.adminAuth || value.userSettings.is_admin || value.openSettings.disableAdminPasswordCheck)
+export const hasAccountSession = (value: AppState) => Boolean(value.userJwt && value.userSettings.user_email)
+export const isCredentialOnlySession = (value: AppState) => value.mailboxAccessMode === 'credential' && !hasAccountSession(value)

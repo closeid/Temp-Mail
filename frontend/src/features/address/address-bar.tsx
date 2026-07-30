@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { api } from '@/lib/api'
-import { appStore, useAppStore } from '@/lib/store'
+import { appStore, hasAccountSession, isCredentialOnlySession, useAppStore } from '@/lib/store'
 import { copyText, stringifyError } from '@/lib/utils'
 import { useScopedI18n } from '@/i18n/react'
 import { AddressLogin } from '@/features/auth/address-login'
@@ -30,7 +30,8 @@ export function AddressBar({ manageContent, onManage }: { manageContent?: React.
   const addressT = useScopedI18n('components.AddressSelect').t
   const commonT = useScopedI18n('ui.common').t
   const state = useAppStore((value) => value)
-  const credentialOnly = state.mailboxAccessMode === 'credential'
+  const accountSession = hasAccountSession(state)
+  const credentialOnly = isCredentialOnlySession(state)
   const [manage, setManage] = useState(false)
   const [cacheRevision, setCacheRevision] = useState(0)
   useEffect(() => {
@@ -38,25 +39,27 @@ export function AddressBar({ manageContent, onManage }: { manageContent?: React.
     const cache = readCache()
     if (!cache.includes(state.jwt)) { cache.push(state.jwt); writeCache(cache); setCacheRevision((value) => value + 1) }
   }, [state.jwt])
-  const userAddresses = useBoundAddresses(!credentialOnly)
+  const userAddresses = useBoundAddresses(accountSession)
   const telegramAddresses = useQuery({ queryKey: ['telegram-bound-addresses', state.telegramInitData], enabled: !credentialOnly && state.isTelegram, queryFn: () => api.fetch<any[]>('/api/telegram/get_bind_address', { method: 'POST', body: { initData: state.telegramInitData } }) })
   const localOptions = useMemo<AddressOption[]>(() => readCache().map((jwt): AddressOption => ({ key: `local:${jwt}`, scope: 'local', payload: jwt, address: parseJwtAddress(jwt), label: parseJwtAddress(jwt) })).filter((item) => item.address), [cacheRevision, state.jwt])
   const userOptions = useMemo<AddressOption[]>(() => (userAddresses.data?.results || []).map((item): AddressOption => ({ key: `user:${item.id}`, scope: 'user', payload: String(item.id), address: item.address || item.name, label: item.address || item.name })), [userAddresses.data?.results])
   const telegramOptions = useMemo<AddressOption[]>(() => (telegramAddresses.data || []).map((item): AddressOption => ({ key: `tg:${item.address}`, scope: 'tg', payload: item.jwt, address: item.address, label: item.address })), [telegramAddresses.data])
   const remoteOptions = [...userOptions, ...telegramOptions.filter((item) => !userOptions.some((userItem) => userItem.address === item.address))]
-  const options = credentialOnly
-    ? [...localOptions]
-    : state.userJwt ? remoteOptions : [...remoteOptions, ...localOptions.filter((localItem) => !remoteOptions.some((item) => item.address === localItem.address))]
-  if ((credentialOnly || !state.userJwt) && state.settings.address && !options.some((item) => item.address === state.settings.address)) {
-    options.unshift({ key: `local:current:${state.settings.address}`, scope: 'local', payload: state.jwt, address: state.settings.address, label: state.settings.address })
-  }
+  const currentOption: AddressOption | null = state.settings.address
+    ? { key: `local:current:${state.settings.address}`, scope: 'local', payload: state.jwt, address: state.settings.address, label: state.settings.address }
+    : null
+  let options: AddressOption[]
+  if (credentialOnly) options = currentOption ? [currentOption] : []
+  else if (accountSession) options = [...remoteOptions]
+  else options = [...remoteOptions, ...localOptions.filter((localItem) => !remoteOptions.some((item) => item.address === localItem.address))]
+  if (currentOption && !options.some((item) => item.address === currentOption.address)) options.unshift(currentOption)
   const current = options.find((item) => item.address === state.settings.address)?.key
   const localDisplayOptions = options.filter((item) => item.scope === 'local')
   const change = async (key: string) => {
     const item = options.find((option) => option.key === key)
     if (!item) return
     try {
-      if (item.scope === 'user') { const result = await api.fetch<{ jwt: string }>(`/api/user/bind_address_jwt/${item.payload}`); appStore.setState({ jwt: result.jwt }) }
+      if (item.scope === 'user') { const result = await api.fetch<{ jwt: string }>(`/api/user/bind_address_jwt/${item.payload}`); appStore.setState({ jwt: result.jwt, mailboxAccessMode: 'standard' }) }
       else appStore.setState({ jwt: item.payload })
       await api.getSettings()
     } catch (error) { toast.error(stringifyError(error)) }

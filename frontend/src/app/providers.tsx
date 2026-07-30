@@ -10,8 +10,11 @@ function RuntimeEffects() {
   const isDark = useAppStore((state) => state.isDark)
   const jwt = useAppStore((state) => state.jwt)
   const userJwt = useAppStore((state) => state.userJwt)
+  const address = useAppStore((state) => state.settings.address)
+  const siteTitle = useAppStore((state) => state.openSettings.title)
 
   useEffect(() => { document.documentElement.classList.toggle('dark', isDark) }, [isDark])
+  useEffect(() => { document.title = address || siteTitle || 'Get an Email' }, [address, siteTitle])
   useQuery({ queryKey: ['open-settings'], queryFn: fetchOpenSettings, staleTime: 5 * 60_000, retry: 1 })
   useQuery({ queryKey: ['user-open-settings'], queryFn: fetchUserOpenSettings, staleTime: 5 * 60_000, retry: 1 })
   useQuery({ queryKey: ['address-settings', jwt], queryFn: fetchAddressSettings, retry: false })

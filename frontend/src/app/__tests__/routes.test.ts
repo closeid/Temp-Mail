@@ -34,7 +34,7 @@ describe('explicit application routes', () => {
 
   it('preserves the explicit page when adding or removing a locale prefix', () => {
     expect(getPathWithLocale(MAIL_ROUTES.auto_reply, 'en')).toBe('/en/settings/auto-reply')
-    expect(getPathWithLocale(ADMIN_PAGE_ROUTES.roleAddressConfig, 'de')).toBe('/de/dashboard/users/role-addresses')
+    expect(getPathWithLocale(ADMIN_PAGE_ROUTES.roleAddressConfig, 'en')).toBe('/en/dashboard/users/role-addresses')
     expect(getPathWithLocale(ADMIN_PAGE_ROUTES.userOauth2Settings, 'zh')).toBe('/dashboard/users/oauth2')
   })
 })

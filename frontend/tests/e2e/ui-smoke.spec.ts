@@ -182,7 +182,9 @@ test('dashboard uses two-level workspace navigation', async ({ page }, testInfo)
 
 test('dashboard administration settings stay available and aligned', async ({ page }, testInfo) => {
   await mockCommon(page, { disableAdminPasswordCheck: true, enableWebhook: false })
+  await page.route('**/api/admin/address?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
   await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
+  await page.route('**/api/admin/user_roles', (route) => route.fulfill({ json: [] }))
   await page.route('**/api/admin/user_oauth2_settings', (route) => route.fulfill({ json: [] }))
   await page.route('**/api/admin/worker/configs', (route) => route.fulfill({ json: { SEND_MAIL_CONFIG: { cloudflareBinding: true, resendGlobal: false, resendDomains: ['getanemail.net'], smtpDomains: [], defaultSendBalance: 5 } } }))
   await page.route('**/api/admin/mail_webhook/settings', (route) => route.fulfill({ json: { enabled: false, url: '', method: 'POST', headers: '{}', body: '{}' } }))
@@ -212,6 +214,8 @@ test('dashboard administration settings stay available and aligned', async ({ pa
 test('dashboard navigation groups related settings', async ({ page }) => {
   await mockCommon(page, { disableAdminPasswordCheck: true })
   await page.route('**/api/admin/address?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
+  await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
+  await page.route('**/api/admin/user_roles', (route) => route.fulfill({ json: [] }))
   await page.route('**/api/admin/user_settings', (route) => route.fulfill({ json: { enable: true, enableMailVerify: false, enableMailAllowList: false, mailAllowList: [], maxAddressCount: 5, enableEmailCheckRegex: false, emailCheckRegex: '' } }))
   await page.goto('/en/dashboard')
 
@@ -219,19 +223,94 @@ test('dashboard navigation groups related settings', async ({ page }) => {
   await expect(primaryNav.getByRole('button')).toHaveText(['Addresses', 'User', 'Emails', 'Configuration'])
 
   const secondaryLabels = async () => page.locator('main nav').getByRole('button').allTextContents()
-  expect(await secondaryLabels()).toEqual(['Addresses', 'Create Address', 'Address Rules', 'Sender Access Control'])
+  expect(await secondaryLabels()).toEqual(['All addresses', 'Create Address', 'Address Rules', 'Sender Access Control'])
 
   await primaryNav.getByRole('button', { name: 'User', exact: true }).click()
-  expect(await secondaryLabels()).toEqual(['User Management', 'User Settings', 'Role Address Config', 'Oauth2 Settings', 'Admin'])
+  await expect(page.locator('main nav').getByRole('button')).toHaveText(['User Management', 'User Settings', 'Role Address Config', 'Oauth2 Settings', 'Admin'])
   await page.locator('main nav').getByRole('button', { name: 'User Settings', exact: true }).click()
   await expect(page.getByText('Allow new user registration', { exact: true })).toBeVisible()
 
   await primaryNav.getByRole('button', { name: 'Emails', exact: true }).click()
-  expect(await secondaryLabels()).toEqual(['Emails', 'Mails with unknow receiver', 'Send Box', 'Send Mail', 'Sending configuration', 'AI Extract Settings', 'Mail Webhook', 'Webhook Settings', 'Telegram Bot'])
+  await expect(page.locator('main nav').getByRole('button')).toHaveText(['Emails', 'Mails with unknow receiver', 'Send Box', 'Send Mail', 'Sending configuration', 'AI Extract Settings', 'Mail Webhook', 'Webhook Settings', 'Telegram Bot'])
 
   await primaryNav.getByRole('button', { name: 'Configuration', exact: true }).click()
-  expect(await secondaryLabels()).toEqual(['Worker Config', 'IP Blacklist', 'Database', 'Maintenance', 'Statistics', 'Appearance', 'API documentation'])
+  await expect(page.locator('main nav').getByRole('button')).toHaveText(['Worker Config', 'IP Blacklist', 'Database', 'Maintenance', 'Statistics', 'Appearance', 'API documentation'])
   await page.locator('main nav').getByRole('button', { name: 'API documentation', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'API documentation' })).toBeVisible()
   await expect(page.getByText(/legacy paths|old paths/i)).toHaveCount(0)
+})
+
+test('standalone mailbox JWT is restricted to the current mailbox', async ({ page }) => {
+  await page.addInitScript(() => {
+    const token = (address: string) => `header.${btoa(JSON.stringify({ address })).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '')}.signature`
+    const current = token('single@getanemail.net')
+    localStorage.setItem('jwt', current)
+    localStorage.setItem('mailboxAccessMode', 'credential')
+    localStorage.setItem('LocalAddressCache', JSON.stringify([current, token('cached@getanemail.net')]))
+  })
+  await mockCommon(page)
+  await page.route('**/api/settings', (route) => route.fulfill({ json: { address: 'single@getanemail.net', send_balance: 0, auto_reply: {} } }))
+  await page.route('**/api/mails?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
+  await page.goto('/en/mailbox')
+
+  await expect(page).toHaveTitle('single@getanemail.net')
+  await expect(page.getByRole('button', { name: /Address Management|地址管理/ })).toHaveCount(0)
+  await page.getByRole('combobox').filter({ hasText: 'single@getanemail.net' }).click()
+  await expect(page.getByRole('option')).toHaveCount(1)
+  await expect(page.getByRole('option')).toHaveText('single@getanemail.net')
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: /Account Settings|账户/ }).click()
+  await expect(page.getByRole('button', { name: /User Settings|用户设置/ })).toHaveCount(0)
+})
+
+test('account session keeps mailbox switching and can bind the current JWT mailbox', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('userJwt', 'account.session.jwt'))
+  await mockCommon(page)
+  let currentBound = false
+  await page.route('**/api/user/settings', (route) => route.fulfill({ json: { user_email: 'owner@example.com', user_id: 8, user_role: 'member', is_admin: false } }))
+  await page.route('**/api/user/bind_address', (route) => {
+    if (route.request().method() === 'POST') { currentBound = true; return route.fulfill({ json: {} }) }
+    return route.fulfill({ json: { results: [
+      ...(currentBound ? [{ id: 10, name: 'current@getanemail.net', address: 'current@getanemail.net' }] : []),
+      { id: 11, name: 'other@getanemail.net', address: 'other@getanemail.net' },
+    ] } })
+  })
+  await page.route('**/api/settings', (route) => route.fulfill({ json: { address: 'current@getanemail.net', send_balance: 0, auto_reply: {} } }))
+  await page.route('**/api/mails?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
+  await page.goto('/en/?jwt=current.mailbox.jwt')
+
+  await expect(page).toHaveTitle('current@getanemail.net')
+  await expect(page.getByRole('button', { name: /Address Management|地址管理/ })).toBeVisible()
+  await page.getByRole('combobox').filter({ hasText: 'current@getanemail.net' }).click()
+  await expect(page.getByRole('option', { name: 'current@getanemail.net' })).toBeVisible()
+  await expect(page.getByRole('option', { name: 'other@getanemail.net' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: /Address Management|地址管理/ }).click()
+  await page.getByRole('button', { name: /Bind current mailbox|绑定当前邮箱/ }).click()
+  await expect.poll(() => currentBound).toBe(true)
+})
+
+test('maintenance exposes retention fields, right-aligned switches, and a SQL example', async ({ page }, testInfo) => {
+  await mockCommon(page, { disableAdminPasswordCheck: true })
+  await page.route('**/api/admin/auto_cleanup', (route) => route.fulfill({ json: {
+    enableMailsAutoCleanup: true, cleanMailsDays: 30,
+    enableUnknowMailsAutoCleanup: false, cleanUnknowMailsDays: 30,
+    enableSendBoxAutoCleanup: false, cleanSendBoxDays: 30,
+    enableAddressAutoCleanup: false, cleanAddressDays: 30,
+    enableInactiveAddressAutoCleanup: false, cleanInactiveAddressDays: 30,
+    enableUnboundAddressAutoCleanup: false, cleanUnboundAddressDays: 30,
+    enableEmptyAddressAutoCleanup: false, cleanEmptyAddressDays: 30,
+    customSqlCleanupList: [{ id: 'sample', name: '', sql: '', enabled: false }],
+  } }))
+  await page.goto('/en/dashboard/configuration/cleanup')
+
+  const days = page.locator('input[type="number"]')
+  await expect(days).toHaveCount(7)
+  await expect(page.getByRole('switch')).toHaveCount(8)
+  await expect(page.locator('textarea').first()).toHaveAttribute('placeholder', /DELETE FROM raw_mails/)
+  if (testInfo.project.name === 'desktop') {
+    const [inputBox, switchBox] = await Promise.all([days.first().boundingBox(), page.getByRole('switch').first().boundingBox()])
+    expect(switchBox?.x).toBeGreaterThan(inputBox?.x || 0)
+  }
+  await expectNoHorizontalOverflow(page)
 })
