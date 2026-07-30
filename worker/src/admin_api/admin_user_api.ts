@@ -168,6 +168,28 @@ export default {
         ).bind(address).first<number | undefined | null>("id");
         return await UserBindAddressModule.bindByID(c, db_user_id, db_address_id);
     },
+    unbindAddress: async (c: Context<HonoCustomType>) => {
+        const msgs = i18n.getMessagesbyContext(c);
+        const addressId = Number(c.req.param('address_id'));
+        const userId = Number(c.req.query('user_id'));
+        if (!Number.isInteger(addressId) || addressId <= 0 || !Number.isInteger(userId) || userId <= 0) {
+            return c.text(msgs.InvalidAddressOrUserTokenMsg, 400);
+        }
+        try {
+            const result = await c.env.DB.prepare(
+                `DELETE FROM users_address WHERE address_id = ? AND user_id = ?`
+            ).bind(addressId, userId).run();
+            if (!result.success) {
+                return c.text(msgs.OperationFailedMsg, 500);
+            }
+            if (!result.meta.changes) {
+                return c.text(msgs.OperationFailedMsg, 409);
+            }
+        } catch (_) {
+            return c.text(msgs.OperationFailedMsg, 500);
+        }
+        return c.json({ success: true });
+    },
     getBindedAddresses: async (c: Context<HonoCustomType>) => {
         const { user_id } = c.req.param();
         const results = await UserBindAddressModule.getBindedAddressesById(c, user_id);

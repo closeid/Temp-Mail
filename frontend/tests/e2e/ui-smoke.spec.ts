@@ -262,6 +262,43 @@ test('dashboard assigns an unowned address to a searched user', async ({ page })
   await expect(dialog).toHaveCount(0)
 })
 
+test('dashboard unbinds owned addresses from address and user management', async ({ page }) => {
+  await mockCommon(page, { disableAdminPasswordCheck: true })
+  const unbindRequests: Array<{ addressId: string; userId: string | null }> = []
+  const address = { id: 7, name: 'owned@getanemail.net', created_at: '2026-07-27', updated_at: '2026-07-27', source_meta: '127.0.0.1', owner_email: 'owner@example.com', owner_user_id: 3, mail_count: 0, send_count: 0 }
+  await page.route('**/api/admin/address?**', (route) => route.fulfill({ json: { count: 1, results: [address] } }))
+  await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 3, user_email: 'owner@example.com', role_text: 'member', address_count: 1, created_at: '2026-07-27' }] } }))
+  await page.route('**/api/admin/user_roles', (route) => route.fulfill({ json: [{ role: 'member' }] }))
+  await page.route('**/api/admin/users/bind_address/3', (route) => route.fulfill({ json: { results: [address] } }))
+  await page.route('**/api/admin/users/bind_address/7*', async (route) => {
+    const url = new URL(route.request().url())
+    unbindRequests.push({ addressId: url.pathname.split('/').pop() || '', userId: url.searchParams.get('user_id') })
+    await route.fulfill({ json: { success: true } })
+  })
+
+  await page.goto('/en/dashboard/addresses/list')
+  await page.getByTitle('Actions').click()
+  const addressMenuItem = page.getByRole('menuitem', { name: 'Unbind address' })
+  await expect(addressMenuItem.locator('svg')).toHaveCount(0)
+  await addressMenuItem.click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
+  await expect.poll(() => unbindRequests).toEqual([{ addressId: '7', userId: '3' }])
+
+  await page.getByRole('button', { name: 'User', exact: true }).click()
+  await expect(page).toHaveURL(/\/dashboard\/users\/list$/)
+  const userRow = page.getByRole('row').filter({ hasText: 'owner@example.com' }).filter({ hasText: 'member' })
+  await expect(userRow).toBeVisible()
+  await userRow.getByTitle('Actions').click()
+  await page.getByRole('menuitem', { name: 'Manage addresses' }).click()
+  const dialog = page.getByRole('dialog')
+  const userAddressButton = dialog.getByRole('button', { name: 'Unbind address' })
+  await expect(userAddressButton.locator('svg')).toHaveCount(0)
+  await userAddressButton.click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
+  await expect.poll(() => unbindRequests).toHaveLength(2)
+  expect(unbindRequests[1]).toEqual({ addressId: '7', userId: '3' })
+})
+
 test('dashboard administration settings stay available and aligned', async ({ page }, testInfo) => {
   await mockCommon(page, { disableAdminPasswordCheck: true, enableWebhook: false })
   await page.route('**/api/admin/statistics', (route) => route.fulfill({ json: { mailCount: 0, addressCount: 0 } }))

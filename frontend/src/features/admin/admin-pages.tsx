@@ -37,6 +37,11 @@ function Actions({ children }: { children: React.ReactNode }) {
 
 type AdminUserOption = { id: number; user_email: string }
 
+const unbindAdminAddress = (addressId: number, userId: number) => api.fetch(
+  `/api/admin/users/bind_address/${addressId}?user_id=${userId}`,
+  { method: 'DELETE' },
+)
+
 function AdminUserLookup({ value, onValueChange, onSelect }: {
   value: string
   onValueChange: (value: string) => void
@@ -108,6 +113,15 @@ export function AccountTable() {
     <DropdownMenuItem onSelect={() => navigate(`${getPathWithLocale(ADMIN_PAGE_ROUTES.mails, locale)}?address=${encodeURIComponent(row.name)}`)}>{t('viewMails')}</DropdownMenuItem>
     <DropdownMenuItem onSelect={() => navigate(`${getPathWithLocale(ADMIN_PAGE_ROUTES.sendBox, locale)}?address=${encodeURIComponent(row.name)}`)}>{t('viewSendBox')}</DropdownMenuItem>
     {!row.owner_email && <DropdownMenuItem onSelect={() => { setBindEmail(''); setBindUser(null); setBinding({ row, refetch }) }}>{adminT('assignToRegisteredUser')}</DropdownMenuItem>}
+    {row.owner_user_id != null && <DropdownMenuItem className="text-destructive" onSelect={async () => {
+      if (await confirmAction({ title: commonT('unbindAddress'), description: row.name, destructive: true }) && await run(() => unbindAdminAddress(row.id, row.owner_user_id), commonT('addressUnbound'))) {
+        await Promise.all([
+          refetch(),
+          client.invalidateQueries({ queryKey: ['admin-table', '/api/admin/users'] }),
+          client.invalidateQueries({ queryKey: ['admin-user-addresses'] }),
+        ])
+      }
+    }}>{commonT('unbindAddress')}</DropdownMenuItem>}
     <DropdownMenuSeparator />
     <DropdownMenuItem disabled={!row.mail_count} onSelect={async () => { if (await confirmAction({ title: t('clearInbox'), description: row.name, destructive: true }) && await run(() => api.fetch(`/api/admin/clear_inbox/${row.id}`, { method: 'DELETE' }))) await refetch() }}>{t('clearInbox')}</DropdownMenuItem>
     <DropdownMenuItem disabled={!row.send_count} onSelect={async () => { if (await confirmAction({ title: t('clearSentItems'), description: row.name, destructive: true }) && await run(() => api.fetch(`/api/admin/clear_sent_items/${row.id}`, { method: 'DELETE' }))) await refetch() }}>{t('clearSentItems')}</DropdownMenuItem>
@@ -163,13 +177,28 @@ export function UserTable() {
   const [roleEditor, setRoleEditor] = useState<{ row: Record<string, any>; refetch: () => Promise<any> } | null>(null)
   const [roleValue, setRoleValue] = useState('__default__')
   const addresses = useQuery({ queryKey: ['admin-user-addresses', addressesFor], queryFn: () => api.fetch<{ results?: any[] }>(`/api/admin/users/bind_address/${addressesFor}`), enabled: addressesFor != null })
+  const unbindAddress = useMutation({
+    mutationFn: ({ addressId, userId }: { addressId: number; userId: number }) => unbindAdminAddress(addressId, userId),
+    onSuccess: async () => {
+      await Promise.all([
+        addresses.refetch(),
+        client.invalidateQueries({ queryKey: ['admin-table', '/api/admin/address'] }),
+        client.invalidateQueries({ queryKey: ['admin-table', '/api/admin/users'] }),
+      ])
+      toast.success(commonT('addressUnbound'))
+    },
+    onError: (error) => toast.error(stringifyError(error)),
+  })
   const roles = useQuery({ queryKey: ['admin-user-roles'], queryFn: () => api.fetch<Array<{ role: string }>>('/api/admin/user_roles') })
   const roleIsConfigured = roleValue === '__default__' || Boolean(roles.data?.some((role) => role.role === roleValue))
   const create = async () => { if (!email || !password) return; const hashed = await hashPassword(password); if (await run(() => api.fetch('/api/admin/users', { method: 'POST', body: { email, password: hashed } }), t('userCreated'))) { setCreateOpen(false); setEmail(''); setPassword(''); await client.invalidateQueries({ queryKey: ['admin-table', '/api/admin/users'] }) } }
   const columns = [{ key: 'id', label: 'ID', className: 'numeric w-16' }, { key: 'user_email', label: t('email'), className: 'font-medium' }, { key: 'role_text', label: t('role') }, { key: 'address_count', label: t('boundAddressCount'), className: 'numeric text-right' }, { key: 'created_at', label: t('created'), className: 'numeric text-xs text-muted-foreground' }]
   return <><DataTablePage endpoint="/api/admin/users" columns={columns} leading={<Button onClick={() => setCreateOpen(true)}><Plus />{t('createUser')}</Button>} actions={(row, refetch) => <Actions><DropdownMenuItem disabled={!row.address_count} onSelect={() => setAddressesFor(row.id)}>{t('manageAddresses')}</DropdownMenuItem><DropdownMenuItem onSelect={() => { setRoleValue(row.role_text || '__default__'); setRoleEditor({ row, refetch }) }}>{t('changeRole')}</DropdownMenuItem><DropdownMenuItem onSelect={async () => { const value = await promptAction({ title: t('resetPassword'), description: row.user_email, inputType: 'password' }); if (value) { const hashed = await hashPassword(value); await run(() => api.fetch(`/api/admin/users/${row.id}/reset_password`, { method: 'POST', body: { password: hashed } })) } }}>{t('resetPassword')}</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem className="text-destructive" onSelect={async () => { if (await confirmAction({ title: t('deleteUser'), description: row.user_email, destructive: true }) && await run(() => api.fetch(`/api/admin/users/${row.id}`, { method: 'DELETE' }))) await refetch() }}><Trash2 />{t('delete')}</DropdownMenuItem></Actions>} />
   <Dialog open={createOpen} onOpenChange={setCreateOpen}><DialogContent><DialogHeader><DialogTitle>{t('createUser')}</DialogTitle></DialogHeader><Field label={t('email')}><Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field><Field label={t('password')}><Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field><DialogFooter><Button onClick={create}>{t('createUser')}</Button></DialogFooter></DialogContent></Dialog>
-  <Dialog open={addressesFor != null} onOpenChange={(value) => !value && setAddressesFor(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{t('boundAddresses')}</DialogTitle></DialogHeader><div className="max-h-[60dvh] overflow-auto"><Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>{t('address')}</TableHead><TableHead>{t('created')}</TableHead></TableRow></TableHeader><TableBody>{(addresses.data?.results || []).map((row) => <TableRow key={row.id}><TableCell>{row.id}</TableCell><TableCell>{row.name || row.address}</TableCell><TableCell>{row.created_at}</TableCell></TableRow>)}</TableBody></Table></div></DialogContent></Dialog>
+  <Dialog open={addressesFor != null} onOpenChange={(value) => !value && !unbindAddress.isPending && setAddressesFor(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>{t('boundAddresses')}</DialogTitle></DialogHeader><div className="max-h-[60dvh] overflow-auto"><Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>{t('address')}</TableHead><TableHead>{t('created')}</TableHead><TableHead className="text-right">{commonT('actions')}</TableHead></TableRow></TableHeader><TableBody>{(addresses.data?.results || []).map((row) => <TableRow key={row.id}><TableCell>{row.id}</TableCell><TableCell>{row.name || row.address}</TableCell><TableCell>{row.created_at}</TableCell><TableCell className="text-right"><Button className="text-destructive" variant="ghost" size="sm" disabled={unbindAddress.isPending} onClick={async () => {
+    if (addressesFor == null) return
+    if (await confirmAction({ title: commonT('unbindAddress'), description: row.name || row.address, destructive: true })) unbindAddress.mutate({ addressId: row.id, userId: addressesFor })
+  }}>{commonT('unbindAddress')}</Button></TableCell></TableRow>)}{!addresses.isLoading && !(addresses.data?.results || []).length && <TableRow><TableCell colSpan={4} className="h-24 text-center text-muted-foreground">{commonT('noData')}</TableCell></TableRow>}</TableBody></Table></div></DialogContent></Dialog>
   <Dialog open={Boolean(roleEditor)} onOpenChange={(value) => !value && setRoleEditor(null)}><DialogContent><DialogHeader><DialogTitle>{t('changeRole')}</DialogTitle><DialogDescription>{roleEditor?.row.user_email}</DialogDescription></DialogHeader><Field label={t('role')}><Select value={roleValue} onValueChange={setRoleValue}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="__default__">{t('defaultRole')}</SelectItem>{roleValue !== '__default__' && !roleIsConfigured && <SelectItem value={roleValue} disabled>{roleValue}</SelectItem>}{(roles.data || []).map((role) => <SelectItem key={role.role} value={role.role}>{role.role}</SelectItem>)}</SelectContent></Select></Field><DialogFooter><Button disabled={roles.isLoading || !roleIsConfigured} onClick={async () => { if (!roleEditor) return; if (await run(() => api.fetch('/api/admin/user_roles', { method: 'POST', body: { user_id: roleEditor.row.id, role_text: roleValue === '__default__' ? '' : roleValue } }), commonT('saved'))) { await roleEditor.refetch(); setRoleEditor(null) } }}><Save />{commonT('save')}</Button></DialogFooter></DialogContent></Dialog>
   </>
 }

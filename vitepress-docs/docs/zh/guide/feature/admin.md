@@ -36,6 +36,17 @@ curl "https://mail.example.com/api/admin/statistics" \
 
 访问令牌提供后台管理权限，但不会伪造某个邮箱或普通用户身份；需要邮箱 JWT 或用户 JWT 上下文的接口仍使用各自的认证方式。
 
+## 解除邮箱地址归属
+
+管理员可以从 **地址 -> 全部地址** 的操作菜单，或 **用户 -> 用户管理** 的已绑定地址列表中解除邮箱与用户的归属关系。解除绑定只删除归属关系，不会删除邮箱地址、地址凭据、收件箱或发件记录。
+
+管理 API 需要同时传入邮箱地址 ID 与当前归属用户 ID，避免邮箱在并发改绑后被错误解除：
+
+```bash
+curl -X DELETE "https://mail.example.com/api/admin/users/bind_address/123?user_id=45" \
+  -H "x-admin-token: gae_admin_your_token"
+```
+
 ![admin](/feature/admin.png)
 
 ## 账号列表排序

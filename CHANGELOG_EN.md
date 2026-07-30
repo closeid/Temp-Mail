@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Administration/API| Add text-only unbind actions to All Addresses and each user's bound-address list; administrators can remove only the mailbox ownership relationship through an API that validates both address and user IDs to prevent concurrent mis-unbinding
 - feat: |Administration security| Add User -> Access Tokens to create, name, expire, and revoke full administration API tokens whose plaintext is shown once and whose database representation is hash-only
 - feat: |Authentication UI| Confirm that configured OAuth2 providers automatically appear as sign-in actions and add desktop/mobile visual regression screenshots
 - feat: |Administration| Let administrators assign an unowned mailbox from the All Addresses action menu by searching and selecting a registered user email, then refresh address ownership and user address counts after binding

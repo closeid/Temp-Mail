@@ -73,6 +73,7 @@ api.get('/api/admin/role_address_config', admin_user_api.getRoleAddressConfig)
 api.post('/api/admin/role_address_config', admin_user_api.saveRoleAddressConfig)
 api.get('/api/admin/users/bind_address/:user_id', admin_user_api.getBindedAddresses)
 api.post('/api/admin/users/bind_address', admin_user_api.bindAddress)
+api.delete('/api/admin/users/bind_address/:address_id', admin_user_api.unbindAddress)
 
 // user oauth2 settings
 api.get('/api/admin/user_oauth2_settings', oauth2_settings.getUserOauth2Settings)

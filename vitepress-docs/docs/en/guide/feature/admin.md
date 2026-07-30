@@ -41,6 +41,17 @@ curl "https://mail.example.com/api/admin/statistics" \
 
 An access token grants administration privileges but does not impersonate a mailbox or regular user. Endpoints that need mailbox-JWT or user-JWT context keep their own authentication requirements.
 
+## Removing mailbox ownership
+
+Administrators can remove the relationship between a mailbox and a user from either **Addresses -> All Addresses** or the bound-address list under **User -> User Management**. Unbinding removes only the ownership relationship; it does not delete the mailbox, its credentials, inbox messages, or sent messages.
+
+The administration API requires both the mailbox address ID and its current owner user ID, preventing an ownership change made concurrently from being removed by mistake:
+
+```bash
+curl -X DELETE "https://mail.example.com/api/admin/users/bind_address/123?user_id=45" \
+  -H "x-admin-token: gae_admin_your_token"
+```
+
 ![admin](/feature/admin.png)
 
 ## Account List Sorting
