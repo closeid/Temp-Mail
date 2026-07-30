@@ -70,8 +70,10 @@ function EntryRedirect() {
 }
 
 function AuthRoute({ view }: { view: AuthRouteKey }) {
+  const locale = useRouteLocale()
   const state = useAppStore((value) => value)
   if (!state.openSettings.fetched || !state.userOpenSettings.fetched) return <PageLoading />
+  if (view === 'register' && !state.userOpenSettings.enable) return <Navigate to={getPathWithLocale(AUTH_ROUTES.login, locale)} replace />
   return <AuthPage view={view} />
 }
 

@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Administration| Let administrators assign an unowned mailbox from the All Addresses action menu by searching and selecting a registered user email, then refresh address ownership and user address counts after binding
 - feat: |Session permissions| Preserve multi-mailbox switching when an authenticated account opens any mailbox JWT, and allow the current unowned mailbox to be bound to that account; standalone mailbox JWT sessions are restricted to the current mailbox, with no address management, user settings, or mailbox creation
 - feat: |Administration/API| Allow a newly created mailbox address to remain unowned or be assigned by searching a registered user email; `POST /api/admin/new_address` now accepts optional `ownerUserEmail` / `ownerUserId`, rolls back the new address if binding fails, and respects user role address limits
 - feat: |Mailbox credential sign-in| Add a persistent restricted credential session that hides address management, limits the top selector to local addresses, and prevents mailbox creation or access to any other mailboxes owned by the same user unless the user signs in with their account password
@@ -17,6 +18,8 @@
 - feat: |Frontend| Add "Body Preview Lines" in Appearance settings for the full-width mailbox list view, allowing runtime control over the body-preview clamp. It defaults to 2 lines, and 0 disables previews
 
 ### Bug Fixes
+
+- fix: |Authentication| Show only the sign-in tab and form when administrators disable new user registration, and redirect direct registration-route visits back to sign-in
 
 - fix: |Frontend| Display address credentials and connection methods directly in mailbox settings; remove the sign-out action from User Settings, send all remaining sign-out actions to the root route, and use the current mailbox address as the document title
 - fix: |Administration| Rebuild automatic cleanup as explicit retention-day fields with right-aligned enable switches; render custom SQL as separate name, SQL, and enabled controls with a usable DELETE example

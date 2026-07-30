@@ -27,9 +27,9 @@ const openSettings = {
   enableGlobalTurnstileCheck: false,
 }
 
-async function mockCommon(page: Page, overrides: Record<string, unknown> = {}) {
+async function mockCommon(page: Page, overrides: Record<string, unknown> = {}, userOverrides: Record<string, unknown> = {}) {
   await page.route('**/api/open/settings', (route) => route.fulfill({ json: { ...openSettings, ...overrides } }))
-  await page.route('**/api/user/open_settings', (route) => route.fulfill({ json: { enable: true, enableMailVerify: true, oauth2ClientIDs: [] } }))
+  await page.route('**/api/user/open_settings', (route) => route.fulfill({ json: { enable: true, enableMailVerify: true, oauth2ClientIDs: [], ...userOverrides } }))
 }
 
 async function expectNoHorizontalOverflow(page: Page) {
@@ -48,6 +48,19 @@ test('unified login and registration surface', async ({ page }, testInfo) => {
   await expect(page.getByRole('button', { name: /passkey/i })).toBeVisible()
   await expectNoHorizontalOverflow(page)
   await page.screenshot({ path: `test-results/auth-${testInfo.project.name}.png`, fullPage: true })
+})
+
+test('disabled registration leaves only the login entry', async ({ page }) => {
+  await mockCommon(page, {}, { enable: false })
+  await page.goto('/en/login')
+
+  await expect(page.getByRole('tab', { name: 'Login' })).toBeVisible()
+  await expect(page.getByRole('tab', { name: 'Register' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Register' })).toHaveCount(0)
+
+  await page.goto('/en/register')
+  await expect(page).toHaveURL(/\/en\/login$/)
+  await expect(page.getByRole('tab', { name: 'Register' })).toHaveCount(0)
 })
 
 test('dark theme preserves form contrast', async ({ page }, testInfo) => {
@@ -178,6 +191,31 @@ test('dashboard uses two-level workspace navigation', async ({ page }, testInfo)
   await page.getByRole('menuitem', { name: 'Delete' }).click()
   await expect(page.getByRole('alertdialog')).toContainText('Delete Account')
   await page.getByRole('button', { name: 'Cancel' }).click()
+})
+
+test('dashboard assigns an unowned address to a searched user', async ({ page }) => {
+  await mockCommon(page, { disableAdminPasswordCheck: true })
+  let requestBody: Record<string, unknown> | undefined
+  await page.route('**/api/admin/address?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 7, name: 'unowned@getanemail.net', created_at: '2026-07-27', updated_at: '2026-07-27', source_meta: '127.0.0.1', owner_email: null, mail_count: 0, send_count: 0 }] } }))
+  await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 3, user_email: 'owner@example.com' }] } }))
+  await page.route('**/api/admin/users/bind_address', async (route) => {
+    requestBody = route.request().postDataJSON()
+    await route.fulfill({ json: { success: true } })
+  })
+
+  await page.goto('/en/dashboard/addresses/list')
+  await page.getByTitle('Actions').click()
+  await page.getByRole('menuitem', { name: 'Assign to a registered user' }).click()
+
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toContainText('unowned@getanemail.net')
+  await dialog.getByPlaceholder('Search registered users').fill('owner')
+  await dialog.getByRole('option', { name: 'owner@example.com' }).click()
+  await dialog.getByRole('button', { name: 'Assign to a registered user' }).click()
+
+  await expect.poll(() => requestBody).toEqual({ address_id: 7, user_email: 'owner@example.com' })
+  await expect(page.getByText('Address assigned to user')).toBeVisible()
+  await expect(dialog).toHaveCount(0)
 })
 
 test('dashboard administration settings stay available and aligned', async ({ page }, testInfo) => {

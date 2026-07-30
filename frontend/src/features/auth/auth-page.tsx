@@ -24,7 +24,8 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
   const navigate = useNavigate()
   const { t, locale } = useScopedI18n('views.user.UserLogin')
   const { userOpenSettings, openSettings } = useAppStore((state) => ({ userOpenSettings: state.userOpenSettings, openSettings: state.openSettings }))
-  const tab = view === 'register' ? 'signup' : 'signin'
+  const registrationEnabled = userOpenSettings.enable
+  const tab = view === 'register' && registrationEnabled ? 'signup' : 'signin'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [code, setCode] = useState('')
@@ -111,9 +112,9 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
         <div className="min-w-0"><p className="text-lg font-semibold text-foreground">{tab === 'signin' ? t('login') : t('register')}</p><p className="truncate text-xs text-muted-foreground">Get an Email</p></div>
       </div>
       <Tabs value={tab} onValueChange={(value) => go(value === 'signup' ? AUTH_ROUTES.register : AUTH_ROUTES.login)}>
-        <TabsList className="mb-5 grid w-full grid-cols-2 rounded-md bg-muted p-1">
+        <TabsList className={`mb-5 grid w-full ${registrationEnabled ? 'grid-cols-2' : 'grid-cols-1'} rounded-md bg-muted p-1`}>
           <TabsTrigger className="h-9 bg-transparent text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm" value="signin">{t('login')}</TabsTrigger>
-          <TabsTrigger className="h-9 bg-transparent text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm" value="signup">{t('register')}</TabsTrigger>
+          {registrationEnabled && <TabsTrigger className="h-9 bg-transparent text-muted-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm" value="signup">{t('register')}</TabsTrigger>}
         </TabsList>
         <TabsContent value="signin" className="grid gap-4">
           <Field label={t('email')}><Input className="h-11 bg-muted/35" autoCapitalize="none" autoComplete="email" inputMode="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
@@ -129,15 +130,15 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
             {t('loginWith', { provider: provider.name })}
           </Button>)}
         </TabsContent>
-        <TabsContent value="signup" className="grid gap-4">
-          {!userOpenSettings.enable ? <div className="rounded-md border border-border bg-muted/60 p-3 text-sm text-muted-foreground">{t('registrationUnavailable')}</div> : <>
+        {registrationEnabled && <TabsContent value="signup" className="grid gap-4">
+          <>
             <Field label={t('email')}><Input className="h-11 bg-muted/35" autoCapitalize="none" autoComplete="email" inputMode="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
             <Field label={t('password')}><Input className="h-11 bg-muted/35" autoComplete="new-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
             {userOpenSettings.enableMailVerify && <><Turnstile value={signupToken} onChange={setSignupToken} /><Field label={t('verifyCode')}><div className="flex"><Input className="h-11 rounded-r-none bg-muted/35" value={code} onChange={(event) => setCode(event.target.value)} /><Button className="h-11 rounded-l-none" variant="outline" disabled={seconds > 0} onClick={() => sendCode(false)}><Send />{seconds ? t('waitforVerifyCode', { timeout: seconds }) : t('sendVerificationCode')}</Button></div></Field></>}
             {!userOpenSettings.enableMailVerify && <Turnstile value={signupToken} onChange={setSignupToken} />}
             <Button className="h-11 w-full shadow-[0_8px_20px_rgba(21,183,126,0.18)]" onClick={() => register(false)}><UserPlus />{t('register')}</Button>
-          </>}
-        </TabsContent>
+          </>
+        </TabsContent>}
       </Tabs>
     </section>
 

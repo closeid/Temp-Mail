@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Copy, Database, MoreHorizontal, Plus, RefreshCw, Save, Trash2, Wrench } from 'lucide-react'
+import { Copy, Database, MoreHorizontal, Plus, RefreshCw, Save, Trash2, UserRoundPlus, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { confirmAction, promptAction } from '@/components/action-dialogs'
@@ -35,6 +35,37 @@ function Actions({ children }: { children: React.ReactNode }) {
   return <DropdownMenu><DropdownMenuTrigger asChild><Button size="icon" variant="ghost" title={t('actions')}><MoreHorizontal /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">{children}</DropdownMenuContent></DropdownMenu>
 }
 
+type AdminUserOption = { id: number; user_email: string }
+
+function AdminUserLookup({ value, onValueChange, onSelect }: {
+  value: string
+  onValueChange: (value: string) => void
+  onSelect?: (user: AdminUserOption) => void
+}) {
+  const { t } = useScopedI18n('ui.admin')
+  const commonT = useScopedI18n('ui.common').t
+  const [search, setSearch] = useState('')
+  const [resultsOpen, setResultsOpen] = useState(false)
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSearch(value.trim()), 250)
+    return () => window.clearTimeout(timer)
+  }, [value])
+  const users = useQuery({
+    queryKey: ['admin-owner-user-search', search],
+    enabled: resultsOpen && search.length >= 2,
+    queryFn: () => api.fetch<{ results?: AdminUserOption[] }>(`/api/admin/users?limit=8&offset=0&query=${encodeURIComponent(search)}`),
+  })
+  const results = users.data?.results || []
+  return <div className="relative" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setResultsOpen(false) }}>
+    <Input className="h-10" type="email" autoComplete="off" role="combobox" aria-autocomplete="list" aria-expanded={resultsOpen && search.length >= 2} value={value} placeholder={t('searchRegisteredUser')} onFocus={() => setResultsOpen(true)} onChange={(event) => { onValueChange(event.target.value); setResultsOpen(true) }} />
+    {resultsOpen && search.length >= 2 && <div role="listbox" className="absolute inset-x-0 top-[calc(100%+4px)] z-20 max-h-52 overflow-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md">
+      {users.isFetching ? <p className="px-2 py-2 text-xs text-muted-foreground">{commonT('loading')}</p>
+        : results.length ? results.map((user) => <button key={user.id} type="button" role="option" aria-selected={value === user.user_email} className="flex h-9 w-full items-center rounded-sm px-2 text-left text-sm hover:bg-accent hover:text-accent-foreground" onMouseDown={(event) => event.preventDefault()} onClick={() => { onValueChange(user.user_email); onSelect?.(user); setResultsOpen(false) }}>{user.user_email}</button>)
+          : <p className="px-2 py-2 text-xs text-muted-foreground">{t('noMatchingUsers')}</p>}
+    </div>}
+  </div>
+}
+
 export function AccountTable() {
   const { t } = useScopedI18n('views.admin.Account')
   const { locale } = useI18n()
@@ -42,7 +73,26 @@ export function AccountTable() {
   const commonT = useScopedI18n('ui.common').t
   const adminT = useScopedI18n('ui.admin').t
   const open = useAppStore((state) => state.openSettings)
+  const client = useQueryClient()
   const [credential, setCredential] = useState<{ address: string; jwt: string } | null>(null)
+  const [binding, setBinding] = useState<{ row: Record<string, any>; refetch: () => Promise<any> } | null>(null)
+  const [bindEmail, setBindEmail] = useState('')
+  const [bindUser, setBindUser] = useState<AdminUserOption | null>(null)
+  const bindAddress = useMutation({
+    mutationFn: () => api.fetch('/api/admin/users/bind_address', { method: 'POST', body: { address_id: binding?.row.id, user_email: bindUser?.user_email } }),
+    onSuccess: async () => {
+      await Promise.all([
+        binding?.refetch(),
+        client.invalidateQueries({ queryKey: ['admin-table', '/api/admin/users'] }),
+        client.invalidateQueries({ queryKey: ['admin-user-addresses'] }),
+      ])
+      toast.success(adminT('addressAssignedToUser'))
+      setBinding(null)
+      setBindEmail('')
+      setBindUser(null)
+    },
+    onError: (error) => toast.error(stringifyError(error)),
+  })
   const columns = [
     { key: 'id', label: 'ID', className: 'numeric w-16' },
     { key: 'name', label: t('name'), className: 'font-medium' },
@@ -57,6 +107,7 @@ export function AccountTable() {
     <DropdownMenuItem onSelect={async () => { const jwt = await api.adminShowAddressCredential(row.id); setCredential({ address: row.name, jwt }) }}>{t('showCredential')}</DropdownMenuItem>
     <DropdownMenuItem onSelect={() => navigate(`${getPathWithLocale(ADMIN_PAGE_ROUTES.mails, locale)}?address=${encodeURIComponent(row.name)}`)}>{t('viewMails')}</DropdownMenuItem>
     <DropdownMenuItem onSelect={() => navigate(`${getPathWithLocale(ADMIN_PAGE_ROUTES.sendBox, locale)}?address=${encodeURIComponent(row.name)}`)}>{t('viewSendBox')}</DropdownMenuItem>
+    {!row.owner_email && <DropdownMenuItem onSelect={() => { setBindEmail(''); setBindUser(null); setBinding({ row, refetch }) }}><UserRoundPlus />{adminT('assignToRegisteredUser')}</DropdownMenuItem>}
     <DropdownMenuSeparator />
     <DropdownMenuItem disabled={!row.mail_count} onSelect={async () => { if (await confirmAction({ title: t('clearInbox'), description: row.name, destructive: true }) && await run(() => api.fetch(`/api/admin/clear_inbox/${row.id}`, { method: 'DELETE' }))) await refetch() }}>{t('clearInbox')}</DropdownMenuItem>
     <DropdownMenuItem disabled={!row.send_count} onSelect={async () => { if (await confirmAction({ title: t('clearSentItems'), description: row.name, destructive: true }) && await run(() => api.fetch(`/api/admin/clear_sent_items/${row.id}`, { method: 'DELETE' }))) await refetch() }}>{t('clearSentItems')}</DropdownMenuItem>
@@ -64,6 +115,7 @@ export function AccountTable() {
     <DropdownMenuSeparator /><DropdownMenuItem className="text-destructive" onSelect={async () => { if (await confirmAction({ title: t('deleteAccount'), description: row.name, destructive: true }) && await run(() => api.adminDeleteAddress(row.id))) await refetch() }}><Trash2 />{t('delete')}</DropdownMenuItem>
   </Actions>} />
   <Dialog open={Boolean(credential)} onOpenChange={(value) => !value && setCredential(null)}><DialogContent><DialogHeader><DialogTitle>{t('addressCredential')}</DialogTitle><DialogDescription>{credential?.address}</DialogDescription></DialogHeader><code className="max-h-64 overflow-auto break-all rounded-md bg-muted p-3 text-xs">{credential?.jwt}</code><DialogFooter><Button variant="secondary" onClick={() => credential && copyText(credential.jwt).then(() => toast.success(commonT('copied')))}><Copy />{commonT('copy')}</Button></DialogFooter></DialogContent></Dialog>
+  <Dialog open={Boolean(binding)} onOpenChange={(value) => { if (!value && !bindAddress.isPending) { setBinding(null); setBindEmail(''); setBindUser(null) } }}><DialogContent><DialogHeader><DialogTitle>{adminT('assignToRegisteredUser')}</DialogTitle><DialogDescription>{adminT('bindAddressToUserDescription', { address: binding?.row.name || '' })}</DialogDescription></DialogHeader><Field label={adminT('ownerUserEmail')} description={adminT('ownerUserSearchHint')}><AdminUserLookup value={bindEmail} onValueChange={(value) => { setBindEmail(value); setBindUser(null) }} onSelect={setBindUser} /></Field><DialogFooter><Button disabled={!bindUser || bindAddress.isPending} onClick={() => bindAddress.mutate()}><UserRoundPlus />{adminT('assignToRegisteredUser')}</Button></DialogFooter></DialogContent></Dialog>
   </>
 }
 
@@ -78,19 +130,8 @@ export function CreateAddressPage() {
   const [random, setRandom] = useState(false)
   const [ownership, setOwnership] = useState<'unowned' | 'user'>('unowned')
   const [ownerEmail, setOwnerEmail] = useState('')
-  const [ownerSearch, setOwnerSearch] = useState('')
-  const [ownerResultsOpen, setOwnerResultsOpen] = useState(false)
   const [result, setResult] = useState<Record<string, any> | null>(null)
   useEffect(() => { if (!domain && settings.domains[0]) setDomain(settings.domains[0].value) }, [domain, settings.domains])
-  useEffect(() => {
-    const timer = window.setTimeout(() => setOwnerSearch(ownerEmail.trim()), 250)
-    return () => window.clearTimeout(timer)
-  }, [ownerEmail])
-  const users = useQuery({
-    queryKey: ['admin-owner-user-search', ownerSearch],
-    enabled: ownership === 'user' && ownerSearch.length >= 2,
-    queryFn: () => api.fetch<{ results?: Array<{ id: number; user_email: string }> }>(`/api/admin/users?limit=8&offset=0&query=${encodeURIComponent(ownerSearch)}`),
-  })
   const create = async () => {
     if (!name || !domain || (ownership === 'user' && !ownerEmail.trim())) return toast.error(t('completeAllFields'))
     try {
@@ -102,14 +143,8 @@ export function CreateAddressPage() {
   }
   return <div className="h-full overflow-auto"><div className="mx-auto grid max-w-2xl gap-5 p-5">
     <Field label={t('address')}><div className="flex"><Input className="h-10 rounded-r-none" value={name} onChange={(event) => setName(event.target.value)} /><span className="grid h-10 place-items-center border-y border-border bg-muted px-2">@</span><Select value={domain} onValueChange={setDomain}><SelectTrigger className="h-10 w-[220px] rounded-l-none"><SelectValue /></SelectTrigger><SelectContent>{settings.domains.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}</SelectContent></Select></div></Field>
-    <Field label={t('addressOwnership')}><Select value={ownership} onValueChange={(value) => { setOwnership(value as 'unowned' | 'user'); setOwnerResultsOpen(false) }}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unowned">{t('createUnownedAddress')}</SelectItem><SelectItem value="user">{t('assignToRegisteredUser')}</SelectItem></SelectContent></Select></Field>
-    {ownership === 'user' && <Field label={t('ownerUserEmail')} description={t('ownerUserSearchHint')}><div className="relative" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOwnerResultsOpen(false) }}><Input className="h-10" type="email" autoComplete="off" value={ownerEmail} placeholder={t('searchRegisteredUser')} onFocus={() => setOwnerResultsOpen(true)} onChange={(event) => { setOwnerEmail(event.target.value); setOwnerResultsOpen(true) }} />
-      {ownerResultsOpen && ownerSearch.length >= 2 && <div className="absolute inset-x-0 top-[calc(100%+4px)] z-20 max-h-52 overflow-auto rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md">
-        {users.isFetching ? <p className="px-2 py-2 text-xs text-muted-foreground">{commonT('loading')}</p>
-          : (users.data?.results || []).length ? (users.data?.results || []).map((user) => <button key={user.id} type="button" className="flex h-9 w-full items-center rounded-sm px-2 text-left text-sm hover:bg-accent hover:text-accent-foreground" onMouseDown={(event) => event.preventDefault()} onClick={() => { setOwnerEmail(user.user_email); setOwnerResultsOpen(false) }}>{user.user_email}</button>)
-            : <p className="px-2 py-2 text-xs text-muted-foreground">{t('noMatchingUsers')}</p>}
-      </div>}
-    </div></Field>}
+    <Field label={t('addressOwnership')}><Select value={ownership} onValueChange={(value) => setOwnership(value as 'unowned' | 'user')}><SelectTrigger className="h-10"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unowned">{t('createUnownedAddress')}</SelectItem><SelectItem value="user">{t('assignToRegisteredUser')}</SelectItem></SelectContent></Select></Field>
+    {ownership === 'user' && <Field label={t('ownerUserEmail')} description={t('ownerUserSearchHint')}><AdminUserLookup value={ownerEmail} onValueChange={setOwnerEmail} /></Field>}
     {settings.prefix && <label className="flex items-center justify-between border-b border-border pb-3 text-sm font-medium"><span>{t('useConfiguredPrefix', { prefix: settings.prefix })}</span><Switch checked={prefix} onCheckedChange={setPrefix} /></label>}
     {settings.randomSubdomainDomains.includes(domain) && <label className="flex items-center justify-between border-b border-border pb-3 text-sm font-medium"><span>{t('useRandomSubdomain')}</span><Switch checked={random} onCheckedChange={setRandom} /></label>}
     <Button onClick={create}><Plus />{t('createAddress')}</Button>
