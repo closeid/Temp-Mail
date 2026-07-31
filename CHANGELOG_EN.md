@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |Administration| Merge Mail Webhook and Webhook Settings into `/dashboard/mail/webhook` under the Webhook title, with separate controls for global mail delivery and the mailbox Webhook allowlist
 - feat: |Account security/Administration API| Add Settings -> Security for changing an account password after verifying the current password; extract the Passkey list into a shared component that retains deletion, add administrator actions and APIs to inspect or delete a user's Passkeys, and remove Passkeys and roles when deleting a user
 - feat: |Mailbox navigation| Rename the primary Account menu to Account Settings and its secondary entries to Credentials and Security, moving them to explicit `/settings/credentials` and `/settings/security` routes
 - feat: |Administration/API| Add text-only unbind actions to All Addresses and each user's bound-address list; administrators can remove only the mailbox ownership relationship through an API that validates both address and user IDs to prevent concurrent mis-unbinding

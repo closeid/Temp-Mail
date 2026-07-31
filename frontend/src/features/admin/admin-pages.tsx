@@ -365,15 +365,27 @@ export function AdminSentBox() {
   return <SentBox queryKey={['admin-sent', address]} fetchMailData={(limit, offset) => api.fetch(`/api/admin/sendbox?limit=${limit}&offset=${offset}${address ? `&address=${encodeURIComponent(address)}` : ''}`)} deleteMail={(id) => api.fetch(`/api/admin/sendbox/${id}`, { method: 'DELETE' })} canDelete showEmailFrom />
 }
 
-export function AdminMailWebhook() {
+export function AdminWebhookPage() {
   const enabled = useAppStore((state) => state.openSettings.enableWebhook)
-  const { t } = useScopedI18n('ui.admin')
-  return <WebhookSettings
-    fetchData={() => api.fetch('/api/admin/mail_webhook/settings')}
-    saveSettings={(model) => api.fetch('/api/admin/mail_webhook/settings', { method: 'POST', body: model })}
-    testSettings={(model) => api.fetch('/api/admin/mail_webhook/test', { method: 'POST', body: model })}
-    notice={!enabled ? t('webhookDeliveryDisabled') : undefined}
-    unavailableTitle={t('webhookConfigurationUnavailable')}
-  />
+  const { t } = useScopedI18n('views.Admin')
+  const adminT = useScopedI18n('ui.admin').t
+  const commonT = useScopedI18n('ui.common').t
+  const webhookT = useScopedI18n('views.admin.Webhook').t
+  const access = useQuery({ queryKey: ['admin-webhook-access'], queryFn: () => api.fetch<{ enableAllowList?: boolean; allowList?: string[] }>('/api/admin/webhook/settings') })
+  const [accessModel, setAccessModel] = useState({ enableAllowList: false, allowList: [] as string[] })
+  useEffect(() => { if (access.data) setAccessModel({ enableAllowList: Boolean(access.data.enableAllowList), allowList: access.data.allowList || [] }) }, [access.data])
+  const saveAccess = useMutation({
+    mutationFn: () => api.fetch('/api/admin/webhook/settings', { method: 'POST', body: accessModel }),
+    onSuccess: async () => { toast.success(commonT('saved')); await access.refetch() },
+    onError: (error) => toast.error(stringifyError(error)),
+  })
+  return <section className="h-full overflow-auto"><div className="mx-auto grid w-full max-w-[820px] gap-8 px-4 py-5 sm:px-6">
+    <header><h1 className="text-lg font-semibold">{t('webhookSettings')}</h1></header>
+    <section className="grid gap-5 border-b border-border pb-7"><WebhookSettings embedded title={t('mailWebhook')} description={adminT('mailWebhookDescription')} fetchData={() => api.fetch('/api/admin/mail_webhook/settings')} saveSettings={(model) => api.fetch('/api/admin/mail_webhook/settings', { method: 'POST', body: model })} testSettings={(model) => api.fetch('/api/admin/mail_webhook/test', { method: 'POST', body: model })} notice={!enabled ? adminT('webhookDeliveryDisabled') : undefined} unavailableTitle={adminT('webhookConfigurationUnavailable')} /></section>
+    <section className="grid gap-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><h2 className="text-sm font-semibold">{adminT('mailboxWebhookAccess')}</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">{adminT('webhookAccessDescription')}</p></div><div className="flex shrink-0 gap-2"><Button size="icon" variant="secondary" title={commonT('refresh')} onClick={() => access.refetch()}><RefreshCw className={access.isFetching ? 'animate-spin' : ''} /></Button><Button disabled={saveAccess.isPending || access.isLoading || access.isError} onClick={() => saveAccess.mutate()}><Save />{commonT('save')}</Button></div></div>
+      {access.isLoading ? <p className="text-sm text-muted-foreground">{commonT('loading')}</p> : access.isError ? <p className="text-sm text-destructive">{stringifyError(access.error)}</p> : <><label className="flex items-center justify-between border-b border-border pb-4 text-sm font-medium"><span>{webhookT('enableAllowList')}</span><Switch checked={accessModel.enableAllowList} onCheckedChange={(value) => setAccessModel((model) => ({ ...model, enableAllowList: value }))} /></label>
+      {accessModel.enableAllowList && <Field label={webhookT('webhookAllowList')}><Textarea className="min-h-28 font-mono text-xs" value={accessModel.allowList.join('\n')} onChange={(event) => setAccessModel((model) => ({ ...model, allowList: event.target.value.split('\n').map((value) => value.trim()).filter(Boolean) }))} /></Field>}</>}
+    </section>
+  </div></section>
 }
 export function AdminSendMail() { return <SendMailPage admin /> }

@@ -40,8 +40,7 @@ export const ADMIN_PAGE_ROUTES = {
   sendMail: '/dashboard/mail/compose',
   sendConfiguration: '/dashboard/mail/providers',
   aiExtractSettings: '/dashboard/mail/ai-extraction',
-  mailWebhook: '/dashboard/mail/delivery-webhook',
-  webhook: '/dashboard/mail/user-webhook',
+  webhook: '/dashboard/mail/webhook',
   telegram: '/dashboard/mail/telegram',
   workerconfig: '/dashboard/configuration/worker',
   ipBlacklistSettings: '/dashboard/configuration/ip-access',
@@ -58,7 +57,7 @@ export const ADMIN_SECTION_PAGES: Record<AdminSectionKey, readonly AdminPageKey[
   home: ['statistics'],
   account: ['account', 'account_create', 'account_settings', 'senderAccess'],
   user: ['user_management', 'user_settings', 'roleAddressConfig', 'userOauth2Settings', 'accessTokens'],
-  mails: ['mails', 'unknow', 'sendBox', 'sendMail', 'sendConfiguration', 'aiExtractSettings', 'mailWebhook', 'webhook', 'telegram'],
+  mails: ['mails', 'unknow', 'sendBox', 'sendMail', 'sendConfiguration', 'aiExtractSettings', 'webhook', 'telegram'],
   maintenance: ['workerconfig', 'ipBlacklistSettings', 'database', 'maintenance', 'appearance', 'apiDocs'],
 }
 

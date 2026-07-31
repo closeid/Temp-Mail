@@ -388,7 +388,7 @@ export const MESSAGE_REGISTRY = {
     },
     "smtpImapTip": {
       "en": "Use these values in mail clients after the administrator configures the SMTP/IMAP proxy. The password can be the Address JWT shown here, or the address password when you have it.",
-      "zh": "管理员配置 SMTP/IMAP 代理后，可在邮件客户端中使用这些信息。密码可使用这里展示的 Address JWT，也可使用你持有的地址密码。"
+      "zh": "管理员配置 SMTP/IMAP 代理后，可在邮件客户端中使用这些信息。密码可使用这里展示的邮箱地址 JWT，也可使用你持有的地址密码。"
     },
     "smtpPort": {
       "en": "SMTP port",
@@ -628,7 +628,7 @@ export const MESSAGE_REGISTRY = {
     },
     "aiExtractSettings": {
       "en": "AI Extract Settings",
-      "zh": "AI 提取设置"
+      "zh": "提取设置"
     },
     "appearance": {
       "en": "Appearance",
@@ -728,7 +728,7 @@ export const MESSAGE_REGISTRY = {
     },
     "userOauth2Settings": {
       "en": "Oauth2 Settings",
-      "zh": "Oauth2 设置"
+      "zh": "登录设置"
     },
     "user_management": {
       "en": "User Management",
@@ -739,8 +739,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "用户设置"
     },
     "webhookSettings": {
-      "en": "Webhook Settings",
-      "zh": "Webhook 设置"
+      "en": "Webhook",
+      "zh": "Webhook"
     },
     "workerconfig": {
       "en": "Worker Config",

@@ -9,7 +9,7 @@ import { useI18n, useScopedI18n } from '@/i18n/react'
 import { getPathWithLocale } from '@/i18n/utils'
 import { ADMIN_PAGE_ROUTES, ADMIN_SECTION_DEFAULTS, getAdminSection, type AdminPageKey, type AdminSectionKey } from '@/app/routes'
 import {
-  AccountTable, AdminInbox, AdminMailWebhook, AdminSendMail, AdminSentBox, CreateAddressPage,
+  AccountTable, AdminInbox, AdminSendMail, AdminSentBox, AdminWebhookPage, CreateAddressPage,
   DatabasePage, MaintenancePage, RoleAddressConfigPage, SenderAccessPage, StatisticsPage,
   TelegramAdminPage, UserTable, WorkerConfigPage,
 } from './admin-pages'
@@ -94,8 +94,7 @@ export function AdminWorkspace({ page }: { page: AdminPageKey }) {
       { key: 'sendMail', label: t('sendMail'), content: <AdminSendMail /> },
       { key: 'sendConfiguration', label: sessionT('sendConfiguration'), content: <SendProviderSettingsPage /> },
       { key: 'aiExtractSettings', label: t('aiExtractSettings'), content: <ObjectSettings endpoint="/api/admin/ai_extract/settings" title={t('aiExtractSettings')} /> },
-      { key: 'mailWebhook', label: t('mailWebhook'), content: <AdminMailWebhook /> },
-      { key: 'webhook', label: t('webhookSettings'), content: <ObjectSettings endpoint="/api/admin/webhook/settings" title={t('webhookSettings')} description={sessionT('webhookAccessDescription')} /> },
+      { key: 'webhook', label: t('webhookSettings'), content: <AdminWebhookPage /> },
       { key: 'telegram', label: t('telegram'), content: <TelegramAdminPage /> },
     ],
     maintenance: [

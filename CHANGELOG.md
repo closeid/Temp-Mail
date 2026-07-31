@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |后台管理| 将“邮件 Webhook”和“Webhook 设置”合并为标题为“Webhook”的 `/dashboard/mail/webhook` 页面，在同一界面分别配置全局邮件投递和邮箱 Webhook 访问白名单
 - feat: |账号安全/后台管理 API| 前台“账号设置”下新增“安全”页，可在校验当前密码后修改用户密码；Passkey 列表抽为共享组件并保留删除操作，后台“用户管理”新增查看和删除指定用户 Passkey 的操作与 API，删除用户时同步清理其 Passkey 和角色记录
 - feat: |前台导航| 一级菜单“账户”调整为“账号设置”，二级菜单调整为“凭证”和“安全”，并将邮箱凭证与安全页迁移到显性路由 `/settings/credentials`、`/settings/security`
 - feat: |后台管理/API| “全部地址”和用户的已绑定地址列表新增纯文字解除绑定操作；管理员可只删除邮箱与用户的归属关系，并通过需同时校验地址 ID 与用户 ID 的 API 防止并发误解绑

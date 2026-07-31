@@ -45,5 +45,6 @@ describe('explicit application routes', () => {
     expect(getPathWithLocale(ADMIN_PAGE_ROUTES.roleAddressConfig, 'en')).toBe('/en/dashboard/users/role-addresses')
     expect(getPathWithLocale(ADMIN_PAGE_ROUTES.userOauth2Settings, 'zh')).toBe('/dashboard/users/oauth2')
     expect(getPathWithLocale(ADMIN_PAGE_ROUTES.accessTokens, 'en')).toBe('/en/dashboard/users/access-tokens')
+    expect(getPathWithLocale(ADMIN_PAGE_ROUTES.webhook, 'en')).toBe('/en/dashboard/mail/webhook')
   })
 })

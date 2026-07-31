@@ -365,6 +365,7 @@ test('dashboard administration settings stay available and aligned', async ({ pa
   await page.route('**/api/admin/user_oauth2_settings', (route) => route.fulfill({ json: [] }))
   await page.route('**/api/admin/worker/configs', (route) => route.fulfill({ json: { SEND_MAIL_CONFIG: { cloudflareBinding: true, resendGlobal: false, resendDomains: ['getanemail.net'], smtpDomains: [], defaultSendBalance: 5 } } }))
   await page.route('**/api/admin/mail_webhook/settings', (route) => route.fulfill({ json: { enabled: false, url: '', method: 'POST', headers: '{}', body: '{}' } }))
+  await page.route('**/api/admin/webhook/settings', (route) => route.fulfill({ json: { enableAllowList: false, allowList: [] } }))
   await page.goto('/en/dashboard')
 
   await page.getByRole('button', { name: 'User', exact: true }).click()
@@ -381,8 +382,9 @@ test('dashboard administration settings stay available and aligned', async ({ pa
   await expect(page.getByText('RESEND_TOKEN / RESEND_TOKEN_<DOMAIN>')).toBeVisible()
   await expect(page.getByText('getanemail.net')).toBeVisible()
 
-  await page.getByRole('button', { name: 'Mail Webhook' }).click()
+  await page.getByRole('button', { name: 'Webhook', exact: true }).click()
   await expect(page.getByText(/ENABLE_WEBHOOK is disabled/)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Mailbox webhook access' })).toBeVisible()
   await expect(page.getByText(/contact.*administrator/i)).toHaveCount(0)
   await expectNoHorizontalOverflow(page)
   await page.screenshot({ path: `test-results/dashboard-settings-${testInfo.project.name}.png`, fullPage: true })
@@ -412,7 +414,11 @@ test('dashboard navigation groups related settings', async ({ page }) => {
   await expect(page.getByText('Allow new user registration', { exact: true })).toBeVisible()
 
   await primaryNav.getByRole('button', { name: 'Emails', exact: true }).click()
-  await expect(page.locator('main nav').getByRole('button')).toHaveText(['Emails', 'Mails with unknow receiver', 'Send Box', 'Send Mail', 'Sending configuration', 'AI Extract Settings', 'Mail Webhook', 'Webhook Settings', 'Telegram Bot'])
+  await expect(page.locator('main nav').getByRole('button')).toHaveText(['Emails', 'Mails with unknow receiver', 'Send Box', 'Send Mail', 'Sending configuration', 'AI Extract Settings', 'Webhook', 'Telegram Bot'])
+  await page.locator('main nav').getByRole('button', { name: 'Webhook', exact: true }).click()
+  await expect(page).toHaveURL(/\/dashboard\/mail\/webhook$/)
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Webhook', exact: true })).toBeVisible()
 
   await primaryNav.getByRole('button', { name: 'Configuration', exact: true }).click()
   await expect(page.locator('main nav').getByRole('button')).toHaveText(['Worker Config', 'IP Blacklist', 'Database', 'Maintenance', 'Appearance', 'API documentation'])
