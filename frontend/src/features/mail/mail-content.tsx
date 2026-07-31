@@ -56,7 +56,7 @@ export function MailContent({ mail, showEmailTo = true, canDelete, showReply, sh
   const recipient = mail.address || '-'
   return <div className="flex min-h-0 flex-col">
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-3">
-      <div className="min-w-0 text-xs text-muted-foreground"><strong className="mr-2 block truncate text-sm text-foreground sm:inline">{sender}</strong>{showEmailTo && <span className="mr-2">{t('recipient')}: {recipient}</span>}<time className="numeric mr-2">{formatDate(mail.created_at, useUTCDate)}</time><span className="numeric">#{mail.id}</span></div>
+      <div className="min-w-0 text-xs text-muted-foreground"><strong className="mr-2 block truncate text-sm text-foreground sm:inline">{sender}</strong>{showEmailTo && <span className="mr-2">{t('recipient')}: {recipient}</span>}<time className="numeric">{formatDate(mail.created_at, useUTCDate)}</time></div>
       <div className="flex flex-wrap gap-1">
         {canDelete && <Button variant="ghost" size="sm" className="text-destructive" onClick={async () => { if (await confirmAction({ title: t('delete'), description: t('deleteMailTip'), destructive: true })) onDelete?.() }}><Trash2 />{t('delete')}</Button>}
         {!!mail.attachments?.length && <Button variant="ghost" size="sm" onClick={() => setAttachmentsOpen(true)}><Paperclip />{t('attachments')}</Button>}
@@ -82,7 +82,7 @@ export function MailContent({ mail, showEmailTo = true, canDelete, showReply, sh
           <div className="grid min-w-0 gap-1.5 text-xs sm:max-w-4xl">
             <div className="grid min-w-0 grid-cols-[4.5rem_minmax(0,1fr)] items-baseline gap-2"><span className="text-muted-foreground">{t('sender')}</span><strong className="min-w-0 break-all font-medium text-foreground">{sender}</strong></div>
             <div className="grid min-w-0 grid-cols-[4.5rem_minmax(0,1fr)] items-baseline gap-2"><span className="text-muted-foreground">{t('recipient')}</span><span className="min-w-0 break-all text-foreground">{recipient}</span></div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pl-20 text-muted-foreground"><time className="numeric">{t('receivedAt')}: {formatDate(mail.created_at, useUTCDate)}</time><span className="numeric">#{mail.id}</span></div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pl-20 text-muted-foreground"><time className="numeric">{t('receivedAt')}: {formatDate(mail.created_at, useUTCDate)}</time></div>
           </div>
         </DialogHeader>
         <div className="min-h-0 overflow-auto bg-background">

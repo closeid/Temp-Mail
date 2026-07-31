@@ -150,6 +150,7 @@ test('mail workspace remains dense and responsive', async ({ page }, testInfo) =
   await expect(fullscreen).toContainText('Layout verification')
   await expect(fullscreen).toContainText('sender@example.com')
   await expect(fullscreen).toContainText('sample@getanemail.net')
+  await expect(page.getByText('#12', { exact: true })).toHaveCount(0)
   const body = fullscreen.getByText('A compact mailbox message.')
   await expect(body).toBeVisible()
   const bodyBox = await body.boundingBox()
@@ -283,6 +284,9 @@ test('dashboard unbinds owned addresses from address and user management', async
   await addressMenuItem.click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
   await expect.poll(() => unbindRequests).toEqual([{ addressId: '7', userId: '3' }])
+  const toast = page.locator('[data-sonner-toast]').filter({ hasText: 'Address unbound' }).first()
+  await expect(toast.locator('[data-close-button]')).toHaveCSS('right', '0px')
+  await expect(toast.locator('[data-close-button]')).toHaveCSS('bottom', '0px')
 
   await page.getByRole('button', { name: 'User', exact: true }).click()
   await expect(page).toHaveURL(/\/dashboard\/users\/list$/)

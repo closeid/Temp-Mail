@@ -22,6 +22,7 @@
 
 ### Bug Fixes
 
+- fix: |Frontend notifications and mail lists| Move every Sonner toast close button to the bottom-right and remove visible mail IDs from inbox and sent-mail views in both the frontend and administration UI
 - fix: |Administration| Keep creation timestamps in the user's bound-address dialog on one line on desktop and mobile, allowing the table container to scroll horizontally when space is limited
 - fix: |Frontend sessions and headers| Keep the Worker-configured administrator password in memory only and clear it on reload or sign-out; move frontend and administration sign-out actions to the top-right header, remove duplicate settings-page actions, and keep mobile mailbox header actions on one icon-only row
 - fix: |Authentication security| Generate OAuth2 state with a cryptographically secure random value and clear both session and mobile-compatibility state immediately after callback; allow Enter in either sign-in field to submit the login form; only open HTTP/HTTPS URLs extracted from email by AI; upgrade DOMPurify and the AWS S3 SDK to remove known HTML-sanitizer and XML-parser dependency vulnerabilities
