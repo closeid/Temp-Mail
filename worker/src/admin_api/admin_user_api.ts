@@ -106,7 +106,13 @@ export default {
         const { success: addressSuccess } = await c.env.DB.prepare(
             `DELETE FROM users_address WHERE user_id = ?`
         ).bind(user_id).run();
-        if (!success || !addressSuccess) {
+        const { success: passkeySuccess } = await c.env.DB.prepare(
+            `DELETE FROM user_passkeys WHERE user_id = ?`
+        ).bind(user_id).run();
+        const { success: roleSuccess } = await c.env.DB.prepare(
+            `DELETE FROM user_roles WHERE user_id = ?`
+        ).bind(user_id).run();
+        if (!success || !addressSuccess || !passkeySuccess || !roleSuccess) {
             return c.text(msgs.FailedDeleteUserMsg, 500)
         }
         return c.json({ success: true })
@@ -196,6 +202,29 @@ export default {
         return c.json({
             results: results,
         });
+    },
+    getUserPasskeys: async (c: Context<HonoCustomType>) => {
+        const msgs = i18n.getMessagesbyContext(c);
+        const userId = Number(c.req.param('user_id'));
+        if (!Number.isInteger(userId) || userId <= 0) return c.text(msgs.UserNotFoundMsg, 400);
+        const user = await c.env.DB.prepare(`SELECT id FROM users WHERE id = ?`).bind(userId).first();
+        if (!user) return c.text(msgs.UserNotFoundMsg, 404);
+        const { results } = await c.env.DB.prepare(
+            `SELECT passkey_name, passkey_id, created_at, updated_at FROM user_passkeys WHERE user_id = ? ORDER BY created_at DESC`
+        ).bind(userId).all<Record<string, string>>();
+        return c.json({ results });
+    },
+    deleteUserPasskey: async (c: Context<HonoCustomType>) => {
+        const msgs = i18n.getMessagesbyContext(c);
+        const userId = Number(c.req.param('user_id'));
+        const passkeyId = c.req.param('passkey_id');
+        if (!Number.isInteger(userId) || userId <= 0 || !passkeyId) return c.text(msgs.InvalidInputMsg, 400);
+        const result = await c.env.DB.prepare(
+            `DELETE FROM user_passkeys WHERE user_id = ? AND passkey_id = ?`
+        ).bind(userId, passkeyId).run();
+        if (!result.success) return c.text(msgs.OperationFailedMsg, 500);
+        if (!result.meta.changes) return c.text(msgs.PasskeyNotFoundMsg, 404);
+        return c.json({ success: true });
     },
     getRoleAddressConfig: async (c: Context<HonoCustomType>) => {
         const value = await getJsonSetting<RoleAddressConfig>(c, CONSTANTS.ROLE_ADDRESS_CONFIG_KEY);

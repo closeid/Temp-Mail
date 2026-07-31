@@ -222,4 +222,27 @@ export default {
             jwt: jwt
         })
     },
+    changePassword: async (c: Context<HonoCustomType>) => {
+        const user = c.get("userPayload");
+        const msgs = i18n.getMessagesbyContext(c);
+        const { current_password, new_password } = await c.req.json();
+        if (typeof current_password !== "string" || typeof new_password !== "string") {
+            return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
+        }
+        try {
+            checkUserPassword(new_password);
+        } catch (error) {
+            return c.text(`${msgs.FailedUpdatePasswordMsg}: ${(error as Error).message}`, 400);
+        }
+        const result = await c.env.DB.prepare(
+            `UPDATE users SET password = ?, updated_at = datetime('now') WHERE id = ? AND password = ?`
+        ).bind(new_password, user.user_id, current_password).run();
+        if (!result.success) {
+            return c.text(msgs.FailedUpdatePasswordMsg, 500);
+        }
+        if (!result.meta.changes) {
+            return c.text(msgs.CurrentPasswordIncorrectMsg, 400);
+        }
+        return c.json({ success: true });
+    },
 }

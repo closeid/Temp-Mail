@@ -13,12 +13,12 @@ export const MAIL_ROUTES = {
   sendbox: '/mail/sent',
   sendmail: '/mail/compose',
   addresses: '/addresses',
-  accountSettings: '/settings/mailbox',
+  accountSettings: '/settings/credentials',
   appearance: '/settings/appearance',
   auto_reply: '/settings/auto-reply',
   webhook: '/settings/webhook',
   s3_attachment: '/settings/attachments',
-  user_settings: '/settings/account',
+  user_settings: '/settings/security',
 } as const
 
 export type MailRouteKey = keyof typeof MAIL_ROUTES

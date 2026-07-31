@@ -29,6 +29,7 @@ const messages: LocaleMessages = {
     UserEmailNotMatchRegexMsg: "Email address format does not match the required pattern",
     InvalidVerifyCodeMsg: "Invalid verify code",
     InvalidEmailOrPasswordMsg: "Invalid email or password",
+    CurrentPasswordIncorrectMsg: "Current password is incorrect",
     VerifyMailSenderNotSetMsg: "Verify mail sender address is not set, please contact the administrator",
     CodeAlreadySentMsg: "Code already sent, please wait",
     InvalidUserDefaultRoleMsg: "Invalid user default role, please contact the administrator",

@@ -19,6 +19,7 @@ api.delete('/api/user/mails/:id', user_mail_api.deleteMail);
 
 // user api
 api.post('/api/user/login', user.login);
+api.post('/api/user/change_password', user.changePassword);
 api.post('/api/user/verify_code', user.verifyCode);
 api.post('/api/user/register', user.register);
 

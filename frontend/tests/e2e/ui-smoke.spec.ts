@@ -162,9 +162,9 @@ test('mailbox settings use the mailbox title and keep sign-out only in the heade
   await page.addInitScript(() => localStorage.setItem('jwt', 'test.jwt.credential'))
   await mockCommon(page)
   await page.route('**/api/settings', (route) => route.fulfill({ json: { address: 'sample@getanemail.net', send_balance: 8, auto_reply: {} } }))
-  await page.goto('/en/settings/mailbox')
+  await page.goto('/en/settings/credentials')
 
-  await expect(page).toHaveTitle('Settings - sample@getanemail.net - Get an Email')
+  await expect(page).toHaveTitle('Credentials - sample@getanemail.net - Get an Email')
   await expect(page.locator('header').getByRole('button', { name: 'Logout' })).toHaveCount(1)
   await expect(page.locator('main').getByRole('button', { name: 'Logout' })).toHaveCount(0)
   await page.locator('header').getByRole('button', { name: 'Logout' }).click()
@@ -304,6 +304,58 @@ test('dashboard unbinds owned addresses from address and user management', async
   expect(unbindRequests[1]).toEqual({ addressId: '7', userId: '3' })
 })
 
+test('security settings change the password and let the user delete a Passkey', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('userJwt', 'user.session.jwt'))
+  await mockCommon(page)
+  let passwordRequest: Record<string, string> | undefined
+  let deletedPasskey = ''
+  await page.route('**/api/user/settings', (route) => route.fulfill({ json: { user_email: 'owner@example.com', user_id: 8, user_role: 'member', is_admin: false } }))
+  await page.route('**/api/user/change_password', async (route) => {
+    passwordRequest = route.request().postDataJSON()
+    await route.fulfill({ json: { success: true } })
+  })
+  await page.route('**/api/user/passkey', (route) => route.fulfill({ json: [{ passkey_id: 'passkey-1', passkey_name: 'Laptop', created_at: '2026-07-31 10:00:00' }] }))
+  await page.route('**/api/user/passkey/passkey-1', async (route) => {
+    deletedPasskey = route.request().url().split('/').pop() || ''
+    await route.fulfill({ json: { success: true } })
+  })
+
+  await page.goto('/en/settings/security')
+  await page.getByLabel('Current Password', { exact: true }).fill('old-password')
+  await page.getByLabel('New Password', { exact: true }).fill('new-password')
+  await page.getByLabel('Confirm New Password', { exact: true }).fill('new-password')
+  await page.getByRole('button', { name: 'Change Password', exact: true }).click()
+  await expect.poll(() => Boolean(passwordRequest && passwordRequest.current_password.length === 64 && passwordRequest.new_password.length === 64 && passwordRequest.current_password !== passwordRequest.new_password)).toBe(true)
+
+  await page.getByRole('button', { name: 'Show Passkey List' }).click()
+  await expect(page.getByRole('dialog')).toContainText('Laptop')
+  await page.getByTitle('Delete Passkey').click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
+  await expect.poll(() => deletedPasskey).toBe('passkey-1')
+})
+
+test('administrator can view and delete a user Passkey', async ({ page }) => {
+  await mockCommon(page, { disableAdminPasswordCheck: true })
+  let deletedPasskey = ''
+  await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 8, user_email: 'owner@example.com', role_text: 'member', address_count: 0, created_at: '2026-07-31' }] } }))
+  await page.route('**/api/admin/user_roles', (route) => route.fulfill({ json: [{ role: 'member' }] }))
+  await page.route('**/api/admin/users/8/passkeys', (route) => route.fulfill({ json: { results: [{ passkey_id: 'passkey-1', passkey_name: 'Laptop', created_at: '2026-07-31 10:00:00' }] } }))
+  await page.route('**/api/admin/users/8/passkeys/passkey-1', async (route) => {
+    deletedPasskey = route.request().url().split('/').pop() || ''
+    await route.fulfill({ json: { success: true } })
+  })
+
+  await page.goto('/en/dashboard/users/list')
+  const row = page.getByRole('row').filter({ hasText: 'owner@example.com' })
+  await row.getByTitle('Actions').click()
+  await page.getByRole('menuitem', { name: 'Manage Passkeys' }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toContainText('Laptop')
+  await dialog.getByTitle('Delete Passkey').click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
+  await expect.poll(() => deletedPasskey).toBe('passkey-1')
+})
+
 test('dashboard administration settings stay available and aligned', async ({ page }, testInfo) => {
   await mockCommon(page, { disableAdminPasswordCheck: true, enableWebhook: false })
   await page.route('**/api/admin/statistics', (route) => route.fulfill({ json: { mailCount: 0, addressCount: 0 } }))
@@ -434,7 +486,7 @@ test('standalone mailbox JWT is restricted to the current mailbox', async ({ pag
   await mockCommon(page)
   await page.route('**/api/settings', (route) => route.fulfill({ json: { address: 'single@getanemail.net', send_balance: 0, auto_reply: {} } }))
   await page.route('**/api/mails?**', (route) => route.fulfill({ json: { count: 0, results: [] } }))
-  await page.goto('/en/mailbox')
+  await page.goto('/en/mail/inbox')
 
   await expect(page).toHaveTitle(/^(Mail Box|收件箱) - single@getanemail\.net - Get an Email$/)
   await expect(page.getByRole('button', { name: /Address Management|地址管理/ })).toHaveCount(0)
@@ -442,8 +494,8 @@ test('standalone mailbox JWT is restricted to the current mailbox', async ({ pag
   await expect(page.getByRole('option')).toHaveCount(1)
   await expect(page.getByRole('option')).toHaveText('single@getanemail.net')
   await page.keyboard.press('Escape')
-  await page.getByRole('button', { name: /Account Settings|账户/ }).click()
-  await expect(page.getByRole('button', { name: /User Settings|用户设置/ })).toHaveCount(0)
+  await page.getByRole('button', { name: /Account Settings|账号设置/ }).click()
+  await expect(page.getByRole('button', { name: /Security|安全/ })).toHaveCount(0)
 })
 
 test('account session keeps mailbox switching and can bind the current JWT mailbox', async ({ page }) => {

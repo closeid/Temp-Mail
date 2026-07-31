@@ -27,6 +27,7 @@ export type LocaleMessages = {
     UserEmailNotMatchRegexMsg: string
     InvalidVerifyCodeMsg: string
     InvalidEmailOrPasswordMsg: string
+    CurrentPasswordIncorrectMsg: string
     VerifyMailSenderNotSetMsg: string
     CodeAlreadySentMsg: string
     InvalidUserDefaultRoleMsg: string

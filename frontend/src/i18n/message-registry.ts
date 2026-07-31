@@ -308,7 +308,7 @@ export const MESSAGE_REGISTRY = {
     },
     "addressCredentialLabel": {
       "en": "Address JWT",
-      "zh": "Address JWT"
+      "zh": "邮箱地址 JWT"
     },
     "addressPassword": {
       "en": "Address Password",
@@ -428,7 +428,11 @@ export const MESSAGE_REGISTRY = {
     },
     "accountSettings": {
       "en": "Account Settings",
-      "zh": "账户"
+      "zh": "账号设置"
+    },
+    "credentials": {
+      "en": "Credentials",
+      "zh": "凭证"
     },
     "appearance": {
       "en": "Appearance",
@@ -476,6 +480,22 @@ export const MESSAGE_REGISTRY = {
       "en": "Actions",
       "zh": "操作"
     },
+    "changePassword": {
+      "en": "Change Password",
+      "zh": "修改密码"
+    },
+    "changePasswordDescription": {
+      "en": "Enter your current password, then choose a new password for this account.",
+      "zh": "输入当前密码，然后为此账号设置新密码。"
+    },
+    "confirmPassword": {
+      "en": "Confirm New Password",
+      "zh": "确认新密码"
+    },
+    "currentPassword": {
+      "en": "Current Password",
+      "zh": "当前密码"
+    },
     "createPasskey": {
       "en": "Create Passkey",
       "zh": "创建 Passkey"
@@ -488,6 +508,14 @@ export const MESSAGE_REGISTRY = {
       "en": "Delete Passkey",
       "zh": "删除 Passkey"
     },
+    "newPassword": {
+      "en": "New Password",
+      "zh": "新密码"
+    },
+    "passkeyId": {
+      "en": "Passkey ID",
+      "zh": "Passkey ID"
+    },
     "passkeyCreated": {
       "en": "Passkey created successfully",
       "zh": "Passkey 创建成功"
@@ -499,6 +527,14 @@ export const MESSAGE_REGISTRY = {
     "passkey_name": {
       "en": "Passkey Name",
       "zh": "Passkey 名称"
+    },
+    "passwordChanged": {
+      "en": "Password changed",
+      "zh": "密码已修改"
+    },
+    "passwordMismatch": {
+      "en": "The new passwords do not match",
+      "zh": "两次输入的新密码不一致"
     },
     "passordTip": {
       "en": "The server will only receive the hash value of the password, and will not receive the plaintext password, so it cannot view or retrieve your password. If the administrator enables email verification, you can reset the password in incognito mode",
@@ -596,7 +632,7 @@ export const MESSAGE_REGISTRY = {
     },
     "appearance": {
       "en": "Appearance",
-      "zh": "外观"
+      "zh": "外观配置"
     },
     "confirm": {
       "en": "Confirm",
@@ -648,7 +684,7 @@ export const MESSAGE_REGISTRY = {
     },
     "maintenance": {
       "en": "Maintenance",
-      "zh": "维护"
+      "zh": "自动清理"
     },
     "ok": {
       "en": "OK",
@@ -660,7 +696,7 @@ export const MESSAGE_REGISTRY = {
     },
     "roleAddressConfig": {
       "en": "Role Address Config",
-      "zh": "角色地址配置"
+      "zh": "角色配置"
     },
     "sendBox": {
       "en": "Send Box",
@@ -672,7 +708,7 @@ export const MESSAGE_REGISTRY = {
     },
     "senderAccess": {
       "en": "Sender Access Control",
-      "zh": "发件权限控制"
+      "zh": "发件权限"
     },
     "statistics": {
       "en": "Statistics",
@@ -708,7 +744,7 @@ export const MESSAGE_REGISTRY = {
     },
     "workerconfig": {
       "en": "Worker Config",
-      "zh": "Worker 配置"
+      "zh": "系统配置"
     }
   },
   "views.User": {
@@ -727,6 +763,10 @@ export const MESSAGE_REGISTRY = {
     "user_settings": {
       "en": "User Settings",
       "zh": "用户设置"
+    },
+    "security": {
+      "en": "Security",
+      "zh": "安全"
     }
   },
   "views.user.UserLogin": {

@@ -21,7 +21,7 @@ const MAILBOX_ENDPOINTS: Endpoint[] = [
   ['POST', '/api/request_send_mail_access'], ['POST', '/api/send_mail'], ['GET', '/api/sendbox'], ['DELETE', '/api/sendbox/:id'],
 ]
 const USER_ENDPOINTS: Endpoint[] = [
-  ['GET', '/api/user/open_settings'], ['GET', '/api/user/settings'], ['POST', '/api/user/login'], ['POST', '/api/user/register'], ['POST', '/api/user/verify_code'],
+  ['GET', '/api/user/open_settings'], ['GET', '/api/user/settings'], ['POST', '/api/user/login'], ['POST', '/api/user/change_password'], ['POST', '/api/user/register'], ['POST', '/api/user/verify_code'],
   ['GET', '/api/user/oauth2/login_url'], ['POST', '/api/user/oauth2/callback'], ['GET', '/api/user/mails'], ['DELETE', '/api/user/mails/:id'],
   ['GET', '/api/user/bind_address'], ['POST', '/api/user/bind_address'], ['GET', '/api/user/bind_address_jwt/:address_id'], ['POST', '/api/user/unbind_address'], ['POST', '/api/user/transfer_address'],
   ['GET', '/api/user/passkey'], ['POST', '/api/user/passkey/rename'], ['DELETE', '/api/user/passkey/:passkey_id'],
@@ -33,7 +33,7 @@ const ADMIN_ENDPOINTS: Endpoint[] = [
   ['GET', '/api/admin/mails'], ['GET', '/api/admin/mails_unknow'], ['DELETE', '/api/admin/mails/:id'], ['GET', '/api/admin/sendbox'], ['DELETE', '/api/admin/sendbox/:id'],
   ['GET', '/api/admin/address_sender'], ['POST', '/api/admin/address_sender'], ['DELETE', '/api/admin/address_sender/:id'], ['GET', '/api/admin/statistics'],
   ['GET', '/api/admin/account_settings'], ['POST', '/api/admin/account_settings'], ['POST', '/api/admin/cleanup'], ['GET', '/api/admin/auto_cleanup'], ['POST', '/api/admin/auto_cleanup'],
-  ['GET', '/api/admin/user_settings'], ['POST', '/api/admin/user_settings'], ['GET', '/api/admin/users'], ['POST', '/api/admin/users'], ['DELETE', '/api/admin/users/:user_id'], ['POST', '/api/admin/users/:user_id/reset_password'],
+  ['GET', '/api/admin/user_settings'], ['POST', '/api/admin/user_settings'], ['GET', '/api/admin/users'], ['POST', '/api/admin/users'], ['DELETE', '/api/admin/users/:user_id'], ['POST', '/api/admin/users/:user_id/reset_password'], ['GET', '/api/admin/users/:user_id/passkeys'], ['DELETE', '/api/admin/users/:user_id/passkeys/:passkey_id'],
   ['GET', '/api/admin/user_roles'], ['POST', '/api/admin/user_roles'], ['GET', '/api/admin/role_address_config'], ['POST', '/api/admin/role_address_config'],
   ['GET', '/api/admin/access_tokens'], ['POST', '/api/admin/access_tokens'], ['DELETE', '/api/admin/access_tokens/:id'],
   ['GET', '/api/admin/users/bind_address/:user_id'], ['POST', '/api/admin/users/bind_address'], ['DELETE', '/api/admin/users/bind_address/:address_id?user_id=:user_id'], ['GET', '/api/admin/user_oauth2_settings'], ['POST', '/api/admin/user_oauth2_settings'],

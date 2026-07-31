@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api } from '@/lib/api'
 import { appStore, useAppStore } from '@/lib/store'
@@ -123,7 +122,6 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
             {openSettings.enableGlobalTurnstileCheck && <Turnstile ref={loginTurnstile} value={loginToken} onChange={setLoginToken} />}
             <Button className="h-11 w-full shadow-[0_8px_20px_rgba(21,183,126,0.18)]" type="submit"><LogIn />{t('login')}</Button>
             <div className="flex justify-center"><Button className="h-[30px] px-[10px]" type="button" variant="link" onClick={() => go(AUTH_ROUTES.forgotPassword)}>{t('forgotPassword')}</Button></div>
-            <Separator />
             <Button className="h-10 w-full justify-start bg-background" type="button" variant="secondary" onClick={() => setAddressLoginOpen(true)}><AtSign />{t('loginWithAddressCredential')}</Button>
             <Button className="h-10 w-full justify-start bg-background" type="button" variant="secondary" disabled={passkeyPending} onClick={passkeyLogin}><KeyRound />{t('loginWithPasskey')}</Button>
             {userOpenSettings.oauth2ClientIDs.map((provider) => <Button key={provider.clientID} className="h-10 w-full justify-start bg-background" type="button" variant="secondary" onClick={() => oauthLogin(provider.clientID)}>

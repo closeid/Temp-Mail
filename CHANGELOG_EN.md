@@ -10,6 +10,8 @@
 
 ### Features
 
+- feat: |Account security/Administration API| Add Settings -> Security for changing an account password after verifying the current password; extract the Passkey list into a shared component that retains deletion, add administrator actions and APIs to inspect or delete a user's Passkeys, and remove Passkeys and roles when deleting a user
+- feat: |Mailbox navigation| Rename the primary Account menu to Account Settings and its secondary entries to Credentials and Security, moving them to explicit `/settings/credentials` and `/settings/security` routes
 - feat: |Administration/API| Add text-only unbind actions to All Addresses and each user's bound-address list; administrators can remove only the mailbox ownership relationship through an API that validates both address and user IDs to prevent concurrent mis-unbinding
 - feat: |Administration security| Add User -> Access Tokens to create, name, expire, and revoke full administration API tokens whose plaintext is shown once and whose database representation is hash-only
 - feat: |Authentication UI| Confirm that configured OAuth2 providers automatically appear as sign-in actions and add desktop/mobile visual regression screenshots
@@ -22,6 +24,7 @@
 
 ### Bug Fixes
 
+- fix: |Internationalization| Translate the Address JWT label in Address Credentials and Connection Methods for Chinese users
 - fix: |Frontend notifications and mail lists| Move every Sonner toast close button to the bottom-right and remove visible mail IDs from inbox and sent-mail views in both the frontend and administration UI
 - fix: |Administration| Keep creation timestamps in the user's bound-address dialog on one line on desktop and mobile, allowing the table container to scroll horizontally when space is limited
 - fix: |Frontend sessions and headers| Keep the Worker-configured administrator password in memory only and clear it on reload or sign-out; move frontend and administration sign-out actions to the top-right header, remove duplicate settings-page actions, and keep mobile mailbox header actions on one icon-only row

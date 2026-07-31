@@ -28,12 +28,12 @@ function RuntimeEffects() {
     sendbox: indexT('sendbox'),
     sendmail: indexT('sendmail'),
     addresses: userT('address_management'),
-    accountSettings: commonT('settings'),
+    accountSettings: indexT('credentials'),
     appearance: commonT('settings'),
     auto_reply: commonT('settings'),
     webhook: commonT('settings'),
     s3_attachment: commonT('settings'),
-    user_settings: commonT('settings'),
+    user_settings: userT('security'),
   } satisfies Record<MailRouteKey, string>)[mailPage] : ''
 
   useEffect(() => { document.documentElement.classList.toggle('dark', isDark) }, [isDark])

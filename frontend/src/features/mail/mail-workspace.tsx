@@ -59,12 +59,12 @@ export function MailWorkspace({ page }: { page: MailRouteKey }) {
     { key: 'sendmail', label: t('sendmail'), content: <SendMailPage onSent={() => go('sendbox')} /> },
   ]
   const settingsItems: SecondaryWorkspaceItem[] = [
-    ...(hasAddress ? [{ key: 'accountSettings', label: t('accountSettings'), content: <AddressAccountSettings /> } satisfies SecondaryWorkspaceItem] : []),
+    ...(hasAddress ? [{ key: 'accountSettings', label: t('credentials'), content: <AddressAccountSettings /> } satisfies SecondaryWorkspaceItem] : []),
     { key: 'appearance', label: t('appearance'), content: <AppearanceSettings showSimpleIndex /> },
     ...(hasAddress && openSettings.enableAutoReply ? [{ key: 'auto_reply', label: t('auto_reply'), content: <AutoReplySettings /> } satisfies SecondaryWorkspaceItem] : []),
     ...(hasAddress && openSettings.enableWebhook ? [{ key: 'webhook', label: t('webhookSettings'), content: <WebhookSettings fetchData={() => api.fetch('/api/webhook/settings')} saveSettings={(model) => api.fetch('/api/webhook/settings', { method: 'POST', body: model })} testSettings={(model) => api.fetch('/api/webhook/test', { method: 'POST', body: model })} /> } satisfies SecondaryWorkspaceItem] : []),
     ...(hasAddress && openSettings.isS3Enabled ? [{ key: 's3_attachment', label: t('s3Attachment'), content: <AttachmentsPage /> } satisfies SecondaryWorkspaceItem] : []),
-    ...(hasUser ? [{ key: 'user_settings', label: userT('user_settings'), content: <UserSettingsPage /> } satisfies SecondaryWorkspaceItem] : []),
+    ...(hasUser ? [{ key: 'user_settings', label: userT('security'), content: <UserSettingsPage /> } satisfies SecondaryWorkspaceItem] : []),
   ]
   let content: ReactNode
   if (page === 'mailbox') content = simple ? <div className="flex h-full min-h-0 flex-col"><div className="flex min-h-11 items-center justify-end border-b border-border px-3"><button type="button" className="text-sm text-primary" onClick={() => appStore.setState({ useSimpleIndex: false })}>{t('enterSimpleMode')}</button></div><div className="min-h-0 flex-1">{inbox}</div></div> : inbox

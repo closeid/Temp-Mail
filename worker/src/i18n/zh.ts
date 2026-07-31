@@ -29,6 +29,7 @@ const messages: LocaleMessages = {
     UserEmailNotMatchRegexMsg: "邮箱地址格式不符合要求",
     InvalidVerifyCodeMsg: "无效的验证码",
     InvalidEmailOrPasswordMsg: "无效的邮箱或密码",
+    CurrentPasswordIncorrectMsg: "当前密码不正确",
     VerifyMailSenderNotSetMsg: "验证邮件发送邮箱未设置, 请联系管理员",
     CodeAlreadySentMsg: "验证码已发送, 请稍等",
     InvalidUserDefaultRoleMsg: "无效的用户默认角色, 请联系管理员",
