@@ -8,7 +8,6 @@ export type UserOauth2Settings = {
     accessTokenFormat?: string;
     userInfoURL: string;
     redirectURL: string;
-    logoutURL?: string;
     userEmailKey: string;
     enableEmailFormat?: boolean;  // Enable email format transformation
     userEmailFormat?: string;     // Regex pattern to match email

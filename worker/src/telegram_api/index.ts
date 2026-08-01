@@ -51,7 +51,6 @@ api.post("/api/admin/telegram/init", async (c) => {
     const domain = new URL(c.req.url).host;
     const token = c.env.TELEGRAM_BOT_TOKEN;
     const webhookUrl = `https://${domain}/api/telegram/webhook`;
-    console.log(`setting webhook to ${webhookUrl}`);
     const bot = newTelegramBot(c, token);
     await bot.telegram.setWebhook(webhookUrl)
     await initTelegramBotCommands(c, bot);

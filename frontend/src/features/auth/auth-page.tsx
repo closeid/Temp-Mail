@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { AtSign, Fingerprint, KeyRound, LogIn, Send, UserPlus } from 'lucide-react'
 import { startAuthentication } from '@simplewebauthn/browser'
-import DOMPurify from 'dompurify'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { Brand } from '@/components/brand'
@@ -13,11 +12,12 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api } from '@/lib/api'
 import { appStore, useAppStore } from '@/lib/store'
-import { hashPassword, isValidEmailAddress, isWebAuthnCancellation, stringifyError } from '@/lib/utils'
+import { getSafeExternalUrl, hashPassword, isValidEmailAddress, isWebAuthnCancellation, stringifyError } from '@/lib/utils'
 import { getPathWithLocale } from '@/i18n/utils'
 import { useScopedI18n } from '@/i18n/react'
 import { AUTH_ROUTES, MAIL_ROUTES, type AuthRouteKey } from '@/app/routes'
 import { AddressLogin } from './address-login'
+import { sanitizeSvg } from '@/lib/sanitize'
 
 export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
   const navigate = useNavigate()
@@ -81,9 +81,9 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
     if (passkeyPending) return
     setPasskeyPending(true)
     try {
-      const options = await api.fetch<any>('/api/user/passkey/authenticate_request', { method: 'POST', body: { domain: location.hostname } })
+      const options = await api.fetch<any>('/api/user/passkey/authenticate_request', { method: 'POST' })
       const credential = await startAuthentication({ optionsJSON: options })
-      const result = await api.fetch<{ jwt: string }>('/api/user/passkey/authenticate_response', { method: 'POST', body: { origin: location.origin, domain: location.hostname, credential } })
+      const result = await api.fetch<{ jwt: string }>('/api/user/passkey/authenticate_response', { method: 'POST', body: { credential } })
       const hasMailbox = await api.activateUserSession(result.jwt)
       go(hasMailbox ? MAIL_ROUTES.mailbox : MAIL_ROUTES.addresses)
     } catch (error) {
@@ -95,10 +95,11 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
 
   const oauthLogin = async (clientID: string) => {
     try {
-      const state = crypto.randomUUID()
-      appStore.setState({ userOauth2SessionClientID: clientID, userOauth2SessionState: state })
-      const result = await api.fetch<{ url: string }>(`/api/user/oauth2/login_url?clientID=${encodeURIComponent(clientID)}&state=${encodeURIComponent(state)}`)
-      location.href = result.url
+      const result = await api.fetch<{ url: string; state: string }>(`/api/user/oauth2/login_url?clientID=${encodeURIComponent(clientID)}`)
+      const loginUrl = getSafeExternalUrl(result.url)
+      if (!loginUrl || !result.state) throw new Error('Invalid OAuth2 login response')
+      appStore.setState({ userOauth2SessionClientID: clientID, userOauth2SessionState: result.state })
+      location.href = loginUrl
     } catch (error) { toast.error(stringifyError(error)) }
   }
 
@@ -125,7 +126,7 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
             <Button className="h-10 w-full justify-start bg-background" type="button" variant="secondary" onClick={() => setAddressLoginOpen(true)}><AtSign />{t('loginWithAddressCredential')}</Button>
             <Button className="h-10 w-full justify-start bg-background" type="button" variant="secondary" disabled={passkeyPending} onClick={passkeyLogin}><KeyRound />{t('loginWithPasskey')}</Button>
             {userOpenSettings.oauth2ClientIDs.map((provider) => <Button key={provider.clientID} className="h-10 w-full justify-start bg-background" type="button" variant="secondary" onClick={() => oauthLogin(provider.clientID)}>
-              {provider.icon ? <span className="size-4" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(provider.icon, { USE_PROFILES: { svg: true, svgFilters: true } }) }} /> : <Fingerprint />}
+              {provider.icon ? <span className="size-4" dangerouslySetInnerHTML={{ __html: sanitizeSvg(provider.icon) }} /> : <Fingerprint />}
               {t('loginWith', { provider: provider.name })}
             </Button>)}
           </form>

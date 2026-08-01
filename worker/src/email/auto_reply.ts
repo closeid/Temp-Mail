@@ -50,7 +50,7 @@ export const auto_reply = async (
                     data: results.message || "This is an auto-reply message, please reconact later."
                 });
                 if (getBooleanValue(env.E2E_TEST_MODE)) {
-                    await message.reply(msg.asRaw());
+                    await message.reply(msg.asRaw() as any);
                 } else {
                     const { EmailMessage } = await import('cloudflare:email');
                     const replyMessage = new EmailMessage(

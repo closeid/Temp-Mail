@@ -52,6 +52,7 @@ type Bindings = {
     ADMIN_USERNAME: string | undefined
     DISABLE_ADMIN_PASSWORD_CHECK: string | boolean | undefined
     JWT_SECRET: string
+    ENABLE_GLOBAL_TURNSTILE_CHECK: string | boolean | undefined
     BLACK_LIST: string | undefined
     ENABLE_AUTO_REPLY: string | boolean | undefined
     ENABLE_WEBHOOK: string | boolean | undefined

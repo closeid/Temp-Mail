@@ -2,10 +2,11 @@ import { Context } from "hono";
 import { Jwt } from 'hono/utils/jwt'
 import { CONSTANTS } from "../constants";
 import { bindTelegramAddress, jwtListToAddressData, tgUserNewAddress, unbindTelegramAddress } from "./common";
-import { checkCfTurnstile, checkIsAdmin, getBooleanValue } from "../utils";
+import { checkCfTurnstile, checkIsAdmin, constantTimeEqual, getBooleanValue } from "../utils";
 import { resolveRawEmailRow } from "../gzip";
 import { TelegramSettings } from "./settings";
 import i18n from "../i18n";
+import { RawMailRow } from '../models';
 
 const encoder = new TextEncoder();
 const TG_AUTH_TIMEOUT = 300;
@@ -13,6 +14,9 @@ const TG_AUTH_TIMEOUT = 300;
 const checkTelegramAuth = async (
     c: Context<HonoCustomType>, initData: string
 ): Promise<string> => {
+    if (typeof initData !== 'string' || !initData || initData.length > 16_384 || !c.env.TELEGRAM_BOT_TOKEN) {
+        throw Error("Invalid initData");
+    }
     // check if the request is from telegram
     const initDataObj = new URLSearchParams(initData);
     initDataObj.sort()
@@ -20,14 +24,18 @@ const checkTelegramAuth = async (
     initDataObj.delete("hash");
     const dataToCheck = [...initDataObj.entries()].map(([key, value]) => key + "=" + value).join("\n");
     const auth_date = Number(initDataObj.get('auth_date'));
-    if (auth_date + TG_AUTH_TIMEOUT < (new Date().getTime() / 1000)) {
+    const now = Math.floor(Date.now() / 1000);
+    if (!Number.isInteger(auth_date) || auth_date <= 0
+        || auth_date > now + 30
+        || auth_date + TG_AUTH_TIMEOUT < now
+    ) {
         throw Error("Auth date expired");
     }
     const user = initDataObj.get('user');
     if (!hash || !user) {
         throw Error("Invalid initData");
     }
-    const { id: userId } = JSON.parse(user);
+    const { id: userId } = JSON.parse(user) as { id?: unknown };
     const cryptoKey = await crypto.subtle.importKey(
         "raw",
         encoder.encode("WebAppData"),
@@ -51,13 +59,14 @@ const checkTelegramAuth = async (
     const calcHash = Array.from(new Uint8Array(calcHmac))
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
-    if (calcHash != hash) {
+    if (!constantTimeEqual(calcHash, hash)) {
         throw Error("Invalid initData");
     }
-    if (typeof userId === "number") {
+    if (typeof userId === "number" && Number.isSafeInteger(userId) && userId > 0) {
         return userId.toString();
     }
-    return userId;
+    if (typeof userId === 'string' && /^\d{1,20}$/.test(userId)) return userId;
+    throw Error("Invalid initData");
 }
 
 async function getTelegramBindAddress(c: Context<HonoCustomType>): Promise<Response> {
@@ -78,8 +87,8 @@ async function getTelegramBindAddress(c: Context<HonoCustomType>): Promise<Respo
         }
         return c.json(res);
     }
-    catch (e) {
-        return c.text((e as Error).message, 400);
+    catch (_) {
+        return c.text("Invalid Telegram authentication", 400);
     }
 }
 
@@ -104,8 +113,8 @@ async function newTelegramAddress(c: Context<HonoCustomType>): Promise<Response>
         )
         return c.json(res);
     }
-    catch (e) {
-        return c.text((e as Error).message, 400);
+    catch (_) {
+        return c.text(msgs.OperationFailedMsg, 400);
     }
 }
 
@@ -117,20 +126,21 @@ async function bindAddress(c: Context<HonoCustomType>): Promise<Response> {
         await bindTelegramAddress(c, userId, jwt, msgs);
         return c.json({ success: true });
     }
-    catch (e) {
-        return c.text((e as Error).message, 400);
+    catch (_) {
+        return c.text(msgs.OperationFailedMsg, 400);
     }
 }
 
 async function unbindAddress(c: Context<HonoCustomType>): Promise<Response> {
     const { initData, address } = await c.req.json();
+    const msgs = i18n.getMessagesbyContext(c);
     try {
         const userId = await checkTelegramAuth(c, initData);
         await unbindTelegramAddress(c, userId, address);
         return c.json({ success: true });
     }
-    catch (e) {
-        return c.text((e as Error).message, 400);
+    catch (_) {
+        return c.text(msgs.OperationFailedMsg, 400);
     }
 }
 
@@ -141,7 +151,7 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
         if (checkIsAdmin(c)) {
             const result = await c.env.DB.prepare(
                 `SELECT * FROM raw_mails where id = ?`
-            ).bind(mailId).first();
+            ).bind(mailId).first<RawMailRow>();
             if (!result) {
                 return c.text("Mail not found", 404);
             }
@@ -152,7 +162,7 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
         const { addressList, addressIdMap } = await jwtListToAddressData(c, jwtList, msgs);
         const result = await c.env.DB.prepare(
             `SELECT * FROM raw_mails where id = ?`
-        ).bind(mailId).first();
+        ).bind(mailId).first<RawMailRow>();
         if (!result) return c.json(null);
         const settings = await c.env.KV.get<TelegramSettings>(CONSTANTS.TG_KV_SETTINGS_KEY, "json");
         const superUser = settings?.enableGlobalMailPush && settings?.globalMailPushList.includes(userId);
@@ -170,8 +180,8 @@ async function getMail(c: Context<HonoCustomType>): Promise<Response> {
         }
         return c.json(await resolveRawEmailRow(result));
     }
-    catch (e) {
-        return c.text((e as Error).message, 400);
+    catch (_) {
+        return c.text(msgs.OperationFailedMsg, 400);
     }
 }
 

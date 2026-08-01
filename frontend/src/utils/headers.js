@@ -9,6 +9,9 @@ const hasControlChar = (str) => {
     return false;
 };
 
+const MAX_HEADER_VALUE_LENGTH = 16_384;
+const JWT_PATTERN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+
 /**
  * Returns a header value that is safe to attach to an outgoing request, or
  * `undefined` to mean "skip this header".
@@ -28,8 +31,13 @@ export const safeHeaderValue = (value) => {
     if (trimmed === '' || trimmed === 'undefined' || trimmed === 'null') {
         return undefined;
     }
-    if (hasControlChar(trimmed)) return undefined;
+    if (trimmed.length > MAX_HEADER_VALUE_LENGTH || hasControlChar(trimmed)) return undefined;
     return trimmed;
+};
+
+export const safeJwtValue = (value) => {
+    const safe = safeHeaderValue(value);
+    return safe && JWT_PATTERN.test(safe) ? safe : undefined;
 };
 
 /**
@@ -37,6 +45,6 @@ export const safeHeaderValue = (value) => {
  * the JWT is missing or unsafe.
  */
 export const safeBearerHeader = (jwt) => {
-    const safe = safeHeaderValue(jwt);
+    const safe = safeJwtValue(jwt);
     return safe ? `Bearer ${safe}` : undefined;
 };

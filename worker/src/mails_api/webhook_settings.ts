@@ -1,75 +1,43 @@
-import { Context } from "hono";
-import { CONSTANTS } from "../constants";
-import { AdminWebhookSettings, WebhookSettings, RawMailRow } from "../models";
-import { commonParseMail, sendWebhook, validateWebhookSettings } from "../common";
-import { resolveRawEmail } from "../gzip";
-import i18n from "../i18n";
+import { Context } from 'hono';
 
+import { CONSTANTS } from '../constants';
+import i18n from '../i18n';
+import { AdminWebhookSettings } from '../models';
+import {
+    getStoredWebhookSettings,
+    saveStoredWebhookSettings,
+    testStoredWebhookSettings,
+} from '../webhook_settings_service';
+
+const ensureWebhookAccess = async (c: Context<HonoCustomType>, address: string): Promise<Response | null> => {
+    const settings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, 'json');
+    if (settings?.enableAllowList && !settings.allowList.includes(address)) {
+        return c.text(i18n.getMessagesbyContext(c).WebhookNotAllowedForUserMsg, 403);
+    }
+    return null;
+};
+
+const getAddress = (c: Context<HonoCustomType>): string => c.get('jwtPayload').address;
 
 async function getWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
-    const msgs = i18n.getMessagesbyContext(c);
-    const { address } = c.get("jwtPayload")
-    const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    if (adminSettings?.enableAllowList && !adminSettings?.allowList.includes(address)) {
-        return c.text(msgs.WebhookNotAllowedForUserMsg, 403);
-    }
-    const settings = await c.env.KV.get<WebhookSettings>(
-        `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`, "json"
-    ) || new WebhookSettings();
-    return c.json(settings);
+    const address = getAddress(c);
+    const denied = await ensureWebhookAccess(c, address);
+    if (denied) return denied;
+    return getStoredWebhookSettings(c, `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`);
 }
 
-
 async function saveWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
-    const msgs = i18n.getMessagesbyContext(c);
-    const { address } = c.get("jwtPayload")
-    const adminSettings = await c.env.KV.get<AdminWebhookSettings>(CONSTANTS.WEBHOOK_KV_SETTINGS_KEY, "json");
-    if (adminSettings?.enableAllowList && !adminSettings?.allowList.includes(address)) {
-        return c.text(msgs.WebhookNotAllowedForUserMsg, 403);
-    }
-    const settings = await c.req.json<WebhookSettings>();
-    if (!validateWebhookSettings(settings)) return c.text(msgs.InvalidInputMsg, 400);
-    await c.env.KV.put(
-        `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`,
-        JSON.stringify(settings));
-    return c.json({ success: true })
+    const address = getAddress(c);
+    const denied = await ensureWebhookAccess(c, address);
+    if (denied) return denied;
+    return saveStoredWebhookSettings(c, `${CONSTANTS.WEBHOOK_KV_USER_SETTINGS_KEY}:${address}`);
 }
 
 async function testWebhookSettings(c: Context<HonoCustomType>): Promise<Response> {
-    const settings = await c.req.json<WebhookSettings>();
-    const msgs = i18n.getMessagesbyContext(c);
-    if (!validateWebhookSettings(settings)) return c.text(msgs.InvalidInputMsg, 400);
-    const { address } = c.get("jwtPayload");
-    // random raw email
-    const mailRow = await c.env.DB.prepare(
-        `SELECT * FROM raw_mails WHERE address = ? ORDER BY RANDOM() LIMIT 1`
-    ).bind(address).first<RawMailRow>();
-    const mailId = mailRow?.id;
-    const raw = mailRow ? await resolveRawEmail(mailRow) : "";
-    const parsedEmailContext: ParsedEmailContext = { rawEmail: raw };
-    const parsedEmail = await commonParseMail(parsedEmailContext);
-    const res = await sendWebhook(settings, {
-        id: mailId || "0",
-        url: c.env.FRONTEND_URL ? `${c.env.FRONTEND_URL}?mail_id=${mailId}` : "",
-        from: parsedEmail?.sender || "test@test.com",
-        to: address,
-        subject: parsedEmail?.subject || "test subject",
-        raw: raw || "test raw email",
-        parsedText: parsedEmail?.text || "test parsed text",
-        parsedHtml: parsedEmail?.html || "test parsed html",
-        aiExtract: null,
-        aiExtractType: "",
-        aiExtractResult: "",
-        aiExtractResultText: ""
-    });
-    if (!res.success) {
-        return c.text(res.message || "send webhook error", 400);
-    }
-    return c.json({ success: true });
+    const address = getAddress(c);
+    const denied = await ensureWebhookAccess(c, address);
+    if (denied) return denied;
+    return testStoredWebhookSettings(c, address);
 }
 
-export default {
-    getWebhookSettings,
-    saveWebhookSettings,
-    testWebhookSettings,
-}
+export default { getWebhookSettings, saveWebhookSettings, testWebhookSettings };

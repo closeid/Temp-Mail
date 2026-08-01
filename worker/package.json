@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
     "deploy": "wrangler deploy --minify",
     "start": "wrangler dev",
     "build": "wrangler deploy --dry-run --outdir dist --minify"
@@ -16,6 +17,7 @@
     "@types/node": "^25.9.4",
     "eslint": "9.39.1",
     "globals": "^16.5.0",
+    "typescript": "5.9.3",
     "typescript-eslint": "^8.62.0",
     "wrangler": "^4.104.0"
   },

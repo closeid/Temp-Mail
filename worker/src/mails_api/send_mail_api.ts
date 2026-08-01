@@ -1,12 +1,11 @@
 import { Context, Hono } from 'hono'
-import { Jwt } from 'hono/utils/jwt'
 import { createMimeMessage } from 'mimetext';
 import { Resend } from 'resend';
 import { WorkerMailer, WorkerMailerOptions } from 'worker-mailer';
 
 import i18n from '../i18n';
 import { CONSTANTS } from '../constants'
-import { getJsonSetting, getDomains, getBooleanValue, getJsonObjectValue, getDomainMapValue, getMailDomain, includesDomain } from '../utils';
+import { getJsonSetting, getDomains, getBooleanValue, getJsonObjectValue, getDomainMapValue, getMailDomain, includesDomain, isValidUserEmail, verifyJwt } from '../utils';
 import { GeoData } from '../models'
 import { handleListQuery, isSendMailBindingEnabled, updateAddressUpdatedAt } from '../common'
 import { getSendBalanceState, requestSendMailAccess } from './send_balance';
@@ -86,7 +85,7 @@ const sendMailByResend = async (
         `RESEND_TOKEN_${mailDomain.replace(/\./g, "_").toUpperCase()}`
     ] || c.env.RESEND_TOKEN;
     const resend = new Resend(token);
-    const { data, error } = await resend.emails.send({
+    const { error } = await resend.emails.send({
         from: reqJson.from_name ? `${reqJson.from_name} <${address}>` : address,
         to: reqJson.to_name ? `${reqJson.to_name} <${reqJson.to_mail}>` : reqJson.to_mail,
         subject: reqJson.subject,
@@ -99,7 +98,6 @@ const sendMailByResend = async (
     if (error) {
         throw new Error(`Resend error: ${error.name} ${error.message}`);
     }
-    console.log(`Resend success: ${JSON.stringify(data)}`);
 }
 
 const sendMailBySmtp = async (
@@ -160,7 +158,13 @@ export const sendMail = async (
         from_name, to_mail, to_name,
         subject, content, is_html
     } = reqJson;
-    if (!to_mail) {
+    if (typeof from_name !== 'string' || from_name.length > 200
+        || typeof to_name !== 'string' || to_name.length > 200
+        || typeof to_mail !== 'string' || !isValidUserEmail(to_mail)
+        || typeof subject !== 'string' || subject.length > 998
+        || typeof content !== 'string' || content.length > 5_000_000
+        || typeof is_html !== 'boolean'
+    ) {
         throw new Error(msgs.InvalidToMailMsg)
     }
     // check SEND_BLOCK_LIST_KEY
@@ -250,30 +254,32 @@ export const sendMail = async (
 
 api.post('/api/send_mail', async (c) => {
     const { address } = c.get("jwtPayload")
+    const msgs = i18n.getMessagesbyContext(c);
     const reqJson = await c.req.json();
     try {
         await sendMail(c, address, reqJson);
     } catch (e) {
         console.error("Failed to send mail", e);
-        return c.text(`Failed to send mail ${(e as Error).message}`, 400)
+        return c.text(msgs.OperationFailedMsg, 400)
     }
     return c.json({ status: "ok" })
 })
 
 api.post('/api/external/send_mail', async (c) => {
     const msgs = i18n.getMessagesbyContext(c);
-    const { token } = await c.req.json();
+    const { token, from_name, to_mail, to_name, subject, content, is_html } = await c.req.json();
     try {
-        const { address } = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
+        if (typeof token !== 'string') return c.text(msgs.AddressNotFoundMsg, 400);
+        const { address } = await verifyJwt<{ address?: string }>(token, c.env.JWT_SECRET);
         if (!address) {
             return c.text(msgs.AddressNotFoundMsg, 400)
         }
-        const reqJson = await c.req.json();
+        const reqJson = { from_name, to_mail, to_name, subject, content, is_html };
         await sendMail(c, address as string, reqJson);
         return c.json({ status: "ok" })
     } catch (e) {
         console.error("Failed to send mail", e);
-        return c.text(`Failed to send mail ${(e as Error).message}`, 400)
+        return c.text(msgs.OperationFailedMsg, 400)
     }
 })
 

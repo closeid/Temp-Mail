@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { getFingerprint } from '@/utils/fingerprint'
-import { safeBearerHeader, safeHeaderValue } from '@/utils/headers'
+import { safeBearerHeader, safeHeaderValue, safeJwtValue } from '@/utils/headers'
 import { appStore, type OpenSettings } from './store'
 
 const instance = axios.create({
@@ -8,6 +8,17 @@ const instance = axios.create({
   timeout: 30_000,
   validateStatus: (status) => status >= 200 && status <= 500,
 })
+
+const PUBLIC_USER_ENDPOINTS = new Set([
+  '/api/user/open_settings',
+  '/api/user/register',
+  '/api/user/login',
+  '/api/user/verify_code',
+  '/api/user/passkey/authenticate_request',
+  '/api/user/passkey/authenticate_response',
+  '/api/user/oauth2/login_url',
+  '/api/user/oauth2/callback',
+])
 
 export type ApiOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -18,7 +29,7 @@ export type ApiOptions = {
   headers?: Record<string, string>
 }
 
-export async function apiFetch<T = any>(path: string, options: ApiOptions = {}): Promise<T> {
+async function apiFetch<T = any>(path: string, options: ApiOptions = {}): Promise<T> {
   appStore.setState((current) => ({ loading: current.loading + 1 }))
   try {
     const state = appStore.getState()
@@ -33,11 +44,12 @@ export async function apiFetch<T = any>(path: string, options: ApiOptions = {}):
     const isUserEndpoint = path.startsWith('/api/user/')
     const isAdminEndpoint = path.startsWith('/api/admin/')
     const isExternalEndpoint = path.startsWith('/api/external/')
-    const isPublicUserEndpoint = ['/api/user/open_settings', '/api/user/register', '/api/user/login', '/api/user/verify_code'].some((endpoint) => path.startsWith(endpoint)) || path.startsWith('/api/user/passkey/authenticate_') || path.startsWith('/api/user/oauth2')
+    const endpointPath = path.split('?', 1)[0]
+    const isPublicUserEndpoint = PUBLIC_USER_ENDPOINTS.has(endpointPath)
     const isPublicMailboxEndpoint = path === '/api/address_login' || path === '/api/new_address'
     const needsAddressCredential = !isOpenEndpoint && !isTelegramEndpoint && !isAdminEndpoint && !isExternalEndpoint && !isPublicMailboxEndpoint && (!isUserEndpoint || path === '/api/user/bind_address')
-    const userToken = safeHeaderValue(options.userJwt || state.userJwt)
-    const userAccess = safeHeaderValue(state.userSettings.access_token)
+    const userToken = safeJwtValue(options.userJwt || state.userJwt)
+    const userAccess = safeJwtValue(state.userSettings.access_token)
     const customAuth = safeHeaderValue(state.auth)
     const adminAuth = safeHeaderValue(state.adminAuth)
     const authorization = safeBearerHeader(options.addressJwt ?? state.jwt)
@@ -110,7 +122,7 @@ export async function fetchAddressSettings() {
   }
 }
 
-export async function activateUserSession(userJwt: string) {
+async function activateUserSession(userJwt: string) {
   let effectiveUserJwt = userJwt
   let userResult = await apiFetch<Record<string, any>>('/api/user/settings', { userJwt: effectiveUserJwt })
   if (userResult.new_user_token) {

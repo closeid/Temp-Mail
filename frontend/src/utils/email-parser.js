@@ -25,7 +25,7 @@ export async function processItem(item) {
                 item.message = item.message.replace(`cid:${a_item.content_id}`, blob_url);
             }
             return {
-                id: a_item.content_id || Math.random().toString(36).substring(2, 15),
+                id: a_item.content_id || crypto.randomUUID(),
                 filename: a_item.filename || a_item.content_id || "",
                 size: humanFileSize(a_item.content?.length || 0),
                 url: blob_url,
@@ -59,7 +59,7 @@ export async function processItem(item) {
                 item.message = item.message.replace(`cid:${a_item.contentId}`, blob_url);
             }
             return {
-                id: a_item.contentId || Math.random().toString(36).substring(2, 15),
+                id: a_item.contentId || crypto.randomUUID(),
                 filename: a_item.filename || a_item.contentId || "",
                 size: humanFileSize(a_item.content?.length || 0),
                 url: blob_url,

@@ -1,7 +1,6 @@
 import { Context, Hono } from 'hono'
 import { cors } from 'hono/cors';
 import { jwt } from 'hono/jwt'
-import { Jwt } from 'hono/utils/jwt'
 
 import { api as commonApi } from './commom_api';
 import { api as openAuthApi } from './open_api/auth';
@@ -14,7 +13,15 @@ import { api as telegramApi } from './telegram_api'
 import i18n from './i18n';
 import { email } from './email';
 import { scheduled } from './scheduled';
-import { getPasswords, getBooleanValue, getDomains, checkIsAdmin, hashPassword } from './utils';
+import {
+	checkIsAdmin,
+	constantTimeEqual,
+	getBooleanValue,
+	getDomains,
+	getPasswords,
+	hashPassword,
+	verifyExpiringJwt,
+} from './utils';
 import { checkAccessControl } from './ip_blacklist';
 
 const API_PATHS = ["/api/"];
@@ -25,8 +32,52 @@ const SPECIALIZED_API_PATHS = [
 	"/api/telegram/",
 	"/api/external/",
 ];
+const PUBLIC_USER_API_PATHS = new Set([
+	'/api/user/open_settings',
+	'/api/user/register',
+	'/api/user/login',
+	'/api/user/verify_code',
+	'/api/user/passkey/authenticate_request',
+	'/api/user/passkey/authenticate_response',
+	'/api/user/oauth2/login_url',
+	'/api/user/oauth2/callback',
+]);
+const RATE_LIMITED_API_PATHS = new Set([
+	'/api/new_address',
+	'/api/send_mail',
+	'/api/external/send_mail',
+	'/api/user/register',
+	'/api/user/login',
+	'/api/user/verify_code',
+	'/api/address_login',
+	'/api/open/site_login',
+	'/api/open/admin_login',
+]);
+const HTML_CONTENT_SECURITY_POLICY = [
+	"default-src 'self'",
+	"script-src 'self' https://challenges.cloudflare.com https://static.cloudflareinsights.com https://telegram.org",
+	"style-src 'self' 'unsafe-inline'",
+	"img-src 'self' data: blob: https:",
+	"font-src 'self' data:",
+	"connect-src 'self' https: wss:",
+	"frame-src 'self' blob: https://challenges.cloudflare.com",
+	"worker-src 'self' blob:",
+	"object-src 'none'",
+	"base-uri 'self'",
+	"form-action 'self'",
+].join('; ');
 
 const app = new Hono<HonoCustomType>()
+app.use('/*', async (c, next) => {
+	await next();
+	c.header('X-Content-Type-Options', 'nosniff');
+	c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+	c.header('Permissions-Policy', 'camera=(), geolocation=(), microphone=()');
+	if (c.req.path.startsWith('/api/')) c.header('Cache-Control', 'no-store');
+	if (c.res.headers.get('content-type')?.toLowerCase().includes('text/html')) {
+		c.header('Content-Security-Policy', HTML_CONTENT_SECURITY_POLICY);
+	}
+});
 //cors
 app.use('/*', cors());
 // error handler
@@ -56,23 +107,13 @@ app.use('/*', async (c, next) => {
 	const usesAdminToken = c.req.path.startsWith("/api/admin/") && Boolean(c.req.raw.headers.get("x-admin-token"));
 	if (!usesAdminToken && !c.req.path.startsWith("/api/open/") && !c.req.path.startsWith("/api/telegram/") && passwords && passwords.length > 0) {
 		const auth = c.req.raw.headers.get("x-custom-auth");
-		if (!auth || !passwords.includes(auth)) {
+		if (!auth || !passwords.some((password) => constantTimeEqual(password, auth))) {
 			return c.text(msgs.CustomAuthPasswordMsg, 401)
 		}
 	}
 
 	// rate limit for specific endpoints
-	if (
-		c.req.path.startsWith("/api/new_address")
-		|| c.req.path.startsWith("/api/send_mail")
-		|| c.req.path.startsWith("/api/external/send_mail")
-		|| c.req.path.startsWith("/api/user/register")
-		|| c.req.path.startsWith("/api/user/login")
-		|| c.req.path.startsWith("/api/user/verify_code")
-		|| c.req.path.startsWith("/api/address_login")
-		|| c.req.path.startsWith("/api/open/site_login")
-		|| c.req.path.startsWith("/api/open/admin_login")
-	) {
+	if (RATE_LIMITED_API_PATHS.has(c.req.path)) {
 		const reqIp = c.req.raw.headers.get("cf-connecting-ip")
 		if (reqIp && c.env.RATE_LIMITER) {
 			const { success } = await c.env.RATE_LIMITER.limit(
@@ -116,16 +157,10 @@ const checkUserPayload = async (
 	try {
 		const token = c.req.raw.headers.get("x-user-token");
 		if (!token) return;
-		const payload = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
-		// check expired
-		if (!payload.exp) return;
-		// exp is in seconds
-		if (payload.exp < Math.floor(Date.now() / 1000)) {
-			return;
-		}
+		const payload = await verifyExpiringJwt<UserPayload>(token, c.env.JWT_SECRET);
 		c.set("userPayload", payload as UserPayload);
-	} catch (e) {
-		console.error(e);
+	} catch (_) {
+		// An optional invalid token is treated as an anonymous request.
 	}
 }
 
@@ -135,17 +170,11 @@ const checkoutUserRolePayload = async (
 	try {
 		const token = c.req.raw.headers.get("x-user-access-token");
 		if (!token) return;
-		const payload = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
-		// check expired
-		if (!payload.exp) return;
-		// exp is in seconds
-		if (payload.exp < Math.floor(Date.now() / 1000)) {
-			return;
-		}
+		const payload = await verifyExpiringJwt<{ user_role?: string }>(token, c.env.JWT_SECRET);
 		if (typeof payload?.user_role !== "string") return;
 		c.set("userRolePayload", payload.user_role);
-	} catch (e) {
-		console.error(e);
+	} catch (_) {
+		// An optional invalid role token is treated as absent.
 	}
 }
 
@@ -155,17 +184,17 @@ app.use('/api/*', async (c, next) => {
 		await next();
 		return;
 	}
-	if (c.req.path.startsWith("/api/new_address")) {
+	if (c.req.path === "/api/new_address") {
 		await checkUserPayload(c);
 		await next();
 		return;
 	}
-	if (c.req.path.startsWith("/api/settings")
-		|| c.req.path.startsWith("/api/send_mail")
+	if (c.req.path === "/api/settings"
+		|| c.req.path === "/api/send_mail"
 	) {
 		await checkoutUserRolePayload(c);
 	}
-	if (c.req.path.startsWith("/api/address_login")) {
+	if (c.req.path === "/api/address_login") {
 		await next();
 		return;
 	}
@@ -181,14 +210,7 @@ app.use('/api/*', async (c, next) => {
 });
 // user API auth
 app.use('/api/user/*', async (c, next) => {
-	if (
-		c.req.path.startsWith("/api/user/open_settings")
-		|| c.req.path.startsWith("/api/user/register")
-		|| c.req.path.startsWith("/api/user/login")
-		|| c.req.path.startsWith("/api/user/verify_code")
-		|| c.req.path.startsWith("/api/user/passkey/authenticate_")
-		|| c.req.path.startsWith("/api/user/oauth2")
-	) {
+	if (PUBLIC_USER_API_PATHS.has(c.req.path)) {
 		await next();
 		return;
 	}
@@ -199,16 +221,9 @@ app.use('/api/user/*', async (c, next) => {
 	try {
 		const token = c.req.raw.headers.get("x-user-token");
 		if (!token) return c.text(msgs.UserTokenExpiredMsg, 401)
-		const payload = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
-		// check expired
-		if (!payload.exp) return c.text(msgs.UserTokenExpiredMsg, 401);
-		// exp is in seconds
-		if (payload.exp < Math.floor(Date.now() / 1000)) {
-			return c.text(msgs.UserTokenExpiredMsg, 401)
-		}
+		const payload = await verifyExpiringJwt<UserPayload>(token, c.env.JWT_SECRET);
 		c.set("userPayload", payload as UserPayload);
-	} catch (e) {
-		console.error(e);
+	} catch (_) {
 		return c.text(msgs.UserTokenExpiredMsg, 401)
 	}
 	if (c.req.path.startsWith("/api/user/bind_address")) {
@@ -258,20 +273,14 @@ app.use('/api/admin/*', async (c, next) => {
 	const access_token = c.req.raw.headers.get("x-user-access-token");
 	if (c.env.ADMIN_USER_ROLE && access_token) {
 		try {
-			const payload = await Jwt.verify(access_token, c.env.JWT_SECRET, "HS256");
-			// check expired
-			if (!payload.exp) return c.text(msgs.UserAcceesTokenExpiredMsg, 401);
-			// exp is in seconds
-			if (payload.exp < Math.floor(Date.now() / 1000)) {
-				return c.text(msgs.UserAcceesTokenExpiredMsg, 401)
-			}
+			const payload = await verifyExpiringJwt<{ user_role?: string }>(access_token, c.env.JWT_SECRET);
 			if (payload.user_role !== c.env.ADMIN_USER_ROLE) {
 				return c.text(msgs.UserRoleIsNotAdminMsg, 401)
 			}
 			await next();
 			return;
-		} catch (e) {
-			console.error(e);
+		} catch (_) {
+			// Continue to the configured admin password fallback.
 		}
 	}
 

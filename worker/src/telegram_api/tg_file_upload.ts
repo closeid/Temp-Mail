@@ -29,7 +29,7 @@ export async function sendTelegramAttachments(
                     media: `attach://${attachKey}`,
                     ...(i === 0 && j === 0 ? { caption } : {}),
                 });
-                const blob = new Blob([att.content], { type: 'application/octet-stream' });
+                const blob = new Blob([Uint8Array.from(att.content)], { type: 'application/octet-stream' });
                 formData.append(attachKey, blob, att.filename || `attachment_${j}`);
             }
             formData.append('chat_id', chatId);

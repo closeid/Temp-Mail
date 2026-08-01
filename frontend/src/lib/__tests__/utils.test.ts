@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { getSafeExternalUrl, isValidEmailAddress, isWebAuthnCancellation } from '../utils'
+import { getSafeExternalUrl, isValidEmailAddress, isWebAuthnCancellation, secureRandomInt } from '../utils'
+import { safeBearerHeader, safeHeaderValue, safeJwtValue } from '../../utils/headers'
 
 describe('external URL validation', () => {
   it('allows only absolute HTTP and HTTPS URLs', () => {
@@ -34,5 +35,35 @@ describe('WebAuthn cancellation detection', () => {
 
   it('does not hide unrelated authentication errors', () => {
     expect(isWebAuthnCancellation(new Error('network failed'))).toBe(false)
+  })
+})
+
+describe('secure random integers', () => {
+  it('stays within the requested range', () => {
+    for (let index = 0; index < 100; index += 1) {
+      const value = secureRandomInt(7)
+      expect(value).toBeGreaterThanOrEqual(0)
+      expect(value).toBeLessThan(7)
+    }
+  })
+
+  it('rejects invalid ranges', () => {
+    expect(() => secureRandomInt(0)).toThrow(RangeError)
+    expect(() => secureRandomInt(1.5)).toThrow(RangeError)
+  })
+})
+
+describe('credential header validation', () => {
+  const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJhZGRyZXNzIjoidGVzdEBleGFtcGxlLmNvbSJ9.signature'
+
+  it('accepts bounded JWT values and builds a bearer header', () => {
+    expect(safeJwtValue(jwt)).toBe(jwt)
+    expect(safeBearerHeader(jwt)).toBe(`Bearer ${jwt}`)
+  })
+
+  it('rejects malformed, control-character, and oversized values', () => {
+    expect(safeJwtValue('not-a-jwt')).toBeUndefined()
+    expect(safeHeaderValue('value\nInjected: true')).toBeUndefined()
+    expect(safeHeaderValue('x'.repeat(16_385))).toBeUndefined()
   })
 })

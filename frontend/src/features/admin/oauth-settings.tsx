@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import DOMPurify from 'dompurify'
 import { ChevronDown, Plus, Save, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { confirmAction } from '@/components/action-dialogs'
@@ -16,6 +15,7 @@ import { api } from '@/lib/api'
 import { stringifyError } from '@/lib/utils'
 import type { UserOauth2Settings } from '@/models'
 import { useScopedI18n } from '@/i18n/react'
+import { sanitizeSvg } from '@/lib/sanitize'
 
 type ProviderType = 'github' | 'linuxdo' | 'authentik' | 'custom'
 type Provider = UserOauth2Settings & { accessTokenFormat: string }
@@ -32,7 +32,6 @@ const createProvider = (name: string, type: ProviderType): Provider => {
     userInfoURL: '',
     userEmailKey: 'email',
     redirectURL: `${location.origin}/user/oauth2/callback`,
-    logoutURL: '',
     scope: '',
     enableEmailFormat: false,
     userEmailFormat: '',
@@ -88,7 +87,7 @@ export function OAuthSettingsPage() {
             {expanded === index && <div className="grid gap-5 pb-6 pl-6">
               <Field label={t('name')}><Input value={provider.name} onChange={(event) => update(index, { name: event.target.value })} /></Field>
               <Field label={iconLabel.label} description={iconLabel.description}><Textarea className="min-h-24 font-mono text-xs" value={provider.icon || ''} onChange={(event) => update(index, { icon: event.target.value })} /></Field>
-              {provider.icon && <div className="flex size-10 items-center justify-center rounded-md border border-border p-2 [&_svg]:size-full" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(provider.icon, { USE_PROFILES: { svg: true, svgFilters: true } }) }} />}
+              {provider.icon && <div className="flex size-10 items-center justify-center rounded-md border border-border p-2 [&_svg]:size-full" dangerouslySetInnerHTML={{ __html: sanitizeSvg(provider.icon) }} />}
               <div className="grid gap-5 sm:grid-cols-2"><Field label={adminT('clientId')}><Input value={provider.clientID} onChange={(event) => update(index, { clientID: event.target.value })} /></Field><Field label={adminT('clientSecret')}><Input type="password" value={provider.clientSecret} onChange={(event) => update(index, { clientSecret: event.target.value })} /></Field></div>
               <Field label={adminT('authorizationUrl')}><Input type="url" value={provider.authorizationURL} onChange={(event) => update(index, { authorizationURL: event.target.value })} /></Field>
               <Field label={adminT('accessTokenUrl')}><Input type="url" value={provider.accessTokenURL} onChange={(event) => update(index, { accessTokenURL: event.target.value })} /></Field>

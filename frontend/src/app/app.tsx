@@ -5,6 +5,7 @@ import { AuthPage } from '@/features/auth/auth-page'
 import { CredentialDialog } from '@/features/auth/credential-dialog'
 import { SiteAccessDialog } from '@/features/auth/site-access-dialog'
 import { appStore, canShowAdmin, isCredentialOnlySession, useAppStore } from '@/lib/store'
+import { safeJwtValue } from '@/utils/headers'
 import { DEFAULT_LOCALE, getPathWithLocale, resolveSupportedLocale } from '@/i18n/utils'
 import {
   ADMIN_LOGIN_ROUTE,
@@ -48,13 +49,20 @@ function RuntimeRouteSync() {
   const navigate = useNavigate()
   useEffect(() => {
     const params = new URLSearchParams(location.search)
-    const jwt = params.get('jwt')
-    if (!jwt) return
-    appStore.setState((state) => ({ jwt, mailboxAccessMode: 'credential', settings: { ...state.settings, fetched: false, address: '' } }))
+    const fragmentParams = new URLSearchParams(location.hash.replace(/^#/, ''))
+    const rawJwt = fragmentParams.get('jwt') || params.get('jwt')
+    if (!rawJwt) return
+    const jwt = safeJwtValue(rawJwt)
+    if (jwt) appStore.setState((state) => ({ jwt, mailboxAccessMode: 'credential', settings: { ...state.settings, fetched: false, address: '' } }))
     params.delete('jwt')
+    fragmentParams.delete('jwt')
     const locale = resolveSupportedLocale(location.pathname.split('/')[1]) || DEFAULT_LOCALE
-    navigate({ pathname: getPathWithLocale(MAIL_ROUTES.mailbox, locale), search: params.toString() ? `?${params}` : '' }, { replace: true })
-  }, [location.pathname, location.search, navigate])
+    navigate({
+      pathname: jwt ? getPathWithLocale(MAIL_ROUTES.mailbox, locale) : location.pathname,
+      search: params.toString() ? `?${params}` : '',
+      hash: fragmentParams.toString() ? `#${fragmentParams}` : '',
+    }, { replace: true })
+  }, [location.hash, location.pathname, location.search, navigate])
   return null
 }
 
@@ -134,7 +142,6 @@ export function App() {
       {localeRoutePair('/user/oauth2/callback', <OauthCallback />)}
       {localeRoutePair('/telegram/addresses', <TelegramAddressPage />)}
       {localeRoutePair('/telegram/mail', <TelegramMailPage />)}
-      {localeRoutePair('/telegram_mail', <TelegramMailPage />)}
       <Route path="*" element={<EntryRedirect />} />
     </Routes></Suspense>
     <SiteAccessDialog />

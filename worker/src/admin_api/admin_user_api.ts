@@ -1,7 +1,18 @@
 import { Context } from 'hono';
 
 import { CONSTANTS } from '../constants';
-import { getJsonSetting, saveSetting, checkUserPassword, getDomains, getUserRoles, getMailDomain, includesDomain } from '../utils';
+import {
+    getJsonSetting,
+    saveSetting,
+    checkUserPassword,
+    getDomains,
+    getUserRoles,
+    getMailDomain,
+    includesDomain,
+    isValidUserEmail,
+    normalizeStringArray,
+    protectPasswordHash,
+} from '../utils';
 import { UserSettings, GeoData, UserInfo, RoleAddressConfig } from "../models";
 import { handleListQuery } from '../common'
 import UserBindAddressModule from '../user_api/bind_address';
@@ -17,6 +28,24 @@ export default {
         const msgs = i18n.getMessagesbyContext(c);
         const value = await c.req.json();
         const settings = new UserSettings(value);
+        const booleanFields = [
+            settings.enable,
+            settings.enableMailVerify,
+            settings.enableMailAllowList,
+            settings.enableEmailCheckRegex,
+        ];
+        if (booleanFields.some((field) => field !== undefined && typeof field !== 'boolean')
+            || !Number.isInteger(settings.maxAddressCount) || settings.maxAddressCount > 1000
+        ) return c.text(msgs.InvalidInputMsg, 400);
+        if (settings.mailAllowList !== undefined) {
+            const mailAllowList = normalizeStringArray(settings.mailAllowList, 1000, 253);
+            if (!mailAllowList) return c.text(msgs.InvalidInputMsg, 400);
+            settings.mailAllowList = mailAllowList;
+        }
+        if (settings.emailCheckRegex) {
+            if (settings.emailCheckRegex.length > 200) return c.text(msgs.InvalidInputMsg, 400);
+            try { new RegExp(settings.emailCheckRegex); } catch (_) { return c.text(msgs.InvalidInputMsg, 400); }
+        }
         if (settings.enableMailVerify && !c.env.KV) {
             return c.text(msgs.EnableKVForMailVerifyMsg, 403)
         }
@@ -69,20 +98,22 @@ export default {
     createUser: async (c: Context<HonoCustomType>) => {
         const msgs = i18n.getMessagesbyContext(c);
         const { email, password } = await c.req.json();
-        if (!email || !password) {
+        const normalizedEmail = typeof email === 'string' ? email.trim() : '';
+        if (!isValidUserEmail(normalizedEmail) || !password) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
         }
         // geo data
         const reqIp = c.req.raw.headers.get("cf-connecting-ip")
         const geoData = new GeoData(reqIp, c.req.raw.cf as any);
-        const userInfo = new UserInfo(geoData, email);
+        const userInfo = new UserInfo(geoData, normalizedEmail);
         try {
             checkUserPassword(password);
+            const protectedPassword = await protectPasswordHash(password, c.env.JWT_SECRET);
             const { success } = await c.env.DB.prepare(
                 `INSERT INTO users (user_email, password, user_info)`
                 + ` VALUES (?, ?, ?)`
             ).bind(
-                email, password, JSON.stringify(userInfo)
+                normalizedEmail, protectedPassword, JSON.stringify(userInfo)
             ).run();
             if (!success) {
                 return c.text(msgs.FailedToRegisterMsg, 500)
@@ -124,14 +155,15 @@ export default {
         if (!user_id) return c.text(msgs.UserNotFoundMsg, 400);
         try {
             checkUserPassword(password);
+            const protectedPassword = await protectPasswordHash(password, c.env.JWT_SECRET);
             const { success } = await c.env.DB.prepare(
                 `UPDATE users SET password = ? WHERE id = ?`
-            ).bind(password, user_id).run();
+            ).bind(protectedPassword, user_id).run();
             if (!success) {
                 return c.text(msgs.FailedUpdatePasswordMsg, 500)
             }
         } catch (e) {
-            return c.text(`${msgs.FailedUpdatePasswordMsg}: ${(e as Error).message}`, 500)
+            return c.text(`${msgs.FailedUpdatePasswordMsg}: ${(e as Error).message}`, 400)
         }
         return c.json({ success: true });
     },
@@ -237,8 +269,13 @@ export default {
         if (typeof configs !== "object" || configs === null || Array.isArray(configs)) {
             return c.text(msgs.InvalidMaxAddressCountMsg, 400);
         }
-        for (const config of Object.values(configs)) {
-            if (typeof config?.maxAddressCount === "number" && config.maxAddressCount < 0) {
+        if (Object.keys(configs).length > 100) return c.text(msgs.InvalidInputMsg, 400);
+        for (const [role, config] of Object.entries(configs)) {
+            if (!role.trim() || role.length > 100 || !config || typeof config !== 'object'
+                || !Number.isInteger(config.maxAddressCount)
+                || (config.maxAddressCount as number) < 0
+                || (config.maxAddressCount as number) > 1000
+            ) {
                 return c.text(msgs.InvalidMaxAddressCountMsg, 400);
             }
         }

@@ -5,7 +5,5 @@ export const LOCALE_REGISTRY = [
 
 export type SupportedLocale = (typeof LOCALE_REGISTRY)[number]['locale']
 export const SUPPORTED_LOCALES = LOCALE_REGISTRY.map((entry) => entry.locale) as SupportedLocale[]
-export const getLocaleRegistryEntry = (locale: SupportedLocale) => LOCALE_REGISTRY.find((entry) => entry.locale === locale)!
-export const getLocaleLabel = (locale: SupportedLocale) => getLocaleRegistryEntry(locale).label
-export const getLocaleOptions = () => LOCALE_REGISTRY.map(({ locale, label }) => ({ label, value: locale, key: locale }))
+const getLocaleRegistryEntry = (locale: SupportedLocale) => LOCALE_REGISTRY.find((entry) => entry.locale === locale)!
 export const getTurnstileLocale = (locale: SupportedLocale) => getLocaleRegistryEntry(locale).turnstileLocale

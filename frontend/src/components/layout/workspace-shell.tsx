@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { appStore, canShowAdmin, useAppStore } from '@/lib/store'
-import { cn } from '@/lib/utils'
+import { cn, getSafeExternalUrl } from '@/lib/utils'
 import { useI18n, useScopedI18n } from '@/i18n/react'
 import { getPathWithLocale } from '@/i18n/utils'
 import { LOCALE_REGISTRY } from '@/i18n/locale-registry'
@@ -27,6 +27,7 @@ export function WorkspaceShell({ items, mobileItems, active, onSelect, topbar, s
   const { t } = useScopedI18n('views.Header')
   const adminT = useScopedI18n('ui.admin').t
   const state = useAppStore((value) => value)
+  const safeStatusUrl = getSafeExternalUrl(state.openSettings.statusUrl)
   const visible = items.filter((item) => !item.hidden)
   const mobileVisible = (mobileItems || visible).filter((item) => !item.hidden)
   const go = (target: 'mail' | 'admin') => {
@@ -45,7 +46,7 @@ export function WorkspaceShell({ items, mobileItems, active, onSelect, topbar, s
           {(scope === 'admin' || canShowAdmin(state)) && <DropdownMenuSeparator />}
           <DropdownMenuItem onSelect={() => appStore.setState({ isDark: !state.isDark })}>{state.isDark ? <Sun className="size-4 stroke-[1.75]" /> : <Moon className="size-4 stroke-[1.75]" />}{state.isDark ? t('light') : t('dark')}</DropdownMenuItem>
           <DropdownMenuSub><DropdownMenuSubTrigger><Languages className="size-4 stroke-[1.75]" />{LOCALE_REGISTRY.find((item) => item.locale === locale)?.label}</DropdownMenuSubTrigger><DropdownMenuSubContent>{LOCALE_REGISTRY.map((item) => <DropdownMenuItem key={item.locale} onSelect={() => changeLocale(item.locale)}>{item.label}</DropdownMenuItem>)}</DropdownMenuSubContent></DropdownMenuSub>
-          {state.openSettings.statusUrl && <><DropdownMenuSeparator /><DropdownMenuItem asChild><a href={state.openSettings.statusUrl} target="_blank" rel="noreferrer">{t('status')}</a></DropdownMenuItem></>}
+          {safeStatusUrl && <><DropdownMenuSeparator /><DropdownMenuItem asChild><a href={safeStatusUrl} target="_blank" rel="noopener noreferrer">{t('status')}</a></DropdownMenuItem></>}
         </DropdownMenuContent></DropdownMenu></div>
       </aside>
       <main className="min-w-0 flex-1 overflow-hidden pb-[calc(58px+env(safe-area-inset-bottom))] md:pb-0">{children}</main>

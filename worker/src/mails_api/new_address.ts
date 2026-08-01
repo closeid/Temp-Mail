@@ -67,7 +67,8 @@ const createNewAddress = async (c: Context<HonoCustomType>) => {
         });
         return c.json(res);
     } catch (e) {
-        return c.text(`${msgs.FailedCreateAddressMsg}: ${(e as Error).message}`, 400)
+        console.error("Failed to create address", e);
+        return c.text(msgs.FailedCreateAddressMsg, 400)
     }
 };
 

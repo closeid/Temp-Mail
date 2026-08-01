@@ -4,8 +4,6 @@ import { cn } from '@/lib/utils'
 import { useScopedI18n } from '@/i18n/react'
 
 export const Dialog = DialogPrimitive.Root
-export const DialogTrigger = DialogPrimitive.Trigger
-export const DialogClose = DialogPrimitive.Close
 
 export function DialogContent({ className, children, showClose = true, ...props }: React.ComponentProps<typeof DialogPrimitive.Content> & { showClose?: boolean }) {
   const { t } = useScopedI18n('ui.common')

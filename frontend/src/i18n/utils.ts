@@ -1,18 +1,13 @@
 import { LOCALE_REGISTRY, SUPPORTED_LOCALES } from './locale-registry'
 
-export { SUPPORTED_LOCALES } from './locale-registry'
 export type { SupportedLocale } from './locale-registry'
 
 import type { SupportedLocale } from './locale-registry'
 
 export const DEFAULT_LOCALE: SupportedLocale = 'zh'
-export const FALLBACK_LOCALE: SupportedLocale = 'zh'
-export const PREFERRED_LOCALE_STORAGE_KEY = 'preferredLocale'
-export const EMPTY_LOCALE_MESSAGES = Object.fromEntries(
-  SUPPORTED_LOCALES.map((supportedLocale) => [supportedLocale, {}]),
-) as Record<SupportedLocale, Record<string, never>>
+const FALLBACK_LOCALE: SupportedLocale = 'zh'
 
-export const isSupportedLocale = (locale: unknown): locale is SupportedLocale => {
+const isSupportedLocale = (locale: unknown): locale is SupportedLocale => {
   return typeof locale === 'string' && SUPPORTED_LOCALES.includes(locale as SupportedLocale)
 }
 
@@ -29,7 +24,7 @@ export const resolveSupportedLocale = (locale: string | null | undefined): Suppo
   return null
 }
 
-export const matchSupportedLocale = (locale: string | null | undefined): SupportedLocale | null => {
+const matchSupportedLocale = (locale: string | null | undefined): SupportedLocale | null => {
   if (!locale) return null
   const normalizedLocale = locale.trim().toLowerCase()
 
@@ -52,13 +47,6 @@ export const getBrowserLocales = (): string[] => {
   return locales.filter(Boolean)
 }
 
-export const getStoredLocale = (): SupportedLocale | '' => {
-  if (typeof window === 'undefined') return ''
-
-  const locale = window.localStorage.getItem(PREFERRED_LOCALE_STORAGE_KEY)
-  return isSupportedLocale(locale) ? locale : ''
-}
-
 export const getPreferredLocale = (
   storedLocale: string | null | undefined,
   browserLocales: string[] = [],
@@ -72,8 +60,6 @@ export const getPreferredLocale = (
 
   return FALLBACK_LOCALE
 }
-
-export const getInitialLocale = () => DEFAULT_LOCALE
 
 const splitPathSuffix = (fullPath: string) => {
   const match = fullPath.match(/^([^?#]*)(.*)$/)

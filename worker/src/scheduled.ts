@@ -3,19 +3,23 @@ import { cleanup } from './common'
 import { CONSTANTS } from './constants'
 import { getJsonSetting } from './utils';
 import { CleanupSettings } from './models';
-import { executeCustomSqlCleanup } from './admin_api/cleanup_api';
+import { executeCustomSqlCleanup, normalizeCleanupSettings } from './admin_api/cleanup_api';
 
 export async function scheduled(event: ScheduledEvent, env: Bindings, ctx: any) {
     console.log("Scheduled event: ", event);
-    const autoCleanupSetting = await getJsonSetting<CleanupSettings>(
+    const storedCleanupSetting = await getJsonSetting<CleanupSettings>(
         { env: env, } as Context<HonoCustomType>,
         CONSTANTS.AUTO_CLEANUP_KEY
     );
-    if (!autoCleanupSetting) {
+    if (!storedCleanupSetting) {
         console.log("No auto cleanup settings found, skipping cleanup.");
         return;
     }
-    console.log("autoCleanupSetting:", JSON.stringify(autoCleanupSetting));
+    const autoCleanupSetting = normalizeCleanupSettings(storedCleanupSetting);
+    if (!autoCleanupSetting) {
+        console.error('Invalid auto cleanup settings, skipping cleanup.');
+        return;
+    }
     if (autoCleanupSetting.enableMailsAutoCleanup) {
         await cleanup(
             { env: env, } as Context<HonoCustomType>,

@@ -23,6 +23,16 @@
 - feat: |Frontend| Add a "Full-width mailbox list view" toggle in Appearance settings. When enabled, the mailbox shows a full-width list of subjects and body previews by default; clicking a mail expands it into the two-pane split view, clicking the same mail again returns to the list view; in multi-select mode, clicking a mail updates both its checked state and the right-side preview while disabling same-mail collapse, and the split width still follows the "Left list width in two-column mailbox view" setting. Defaults to off, preserving the original two-pane behavior
 - feat: |Frontend| Add "Body Preview Lines" in Appearance settings for the full-width mailbox list view, allowing runtime control over the body-preview clamp. It defaults to 2 lines, and 0 disables previews
 
+### Security
+
+- security: |Worker/Frontend| Complete an end-to-end security audit: protect user and mailbox password hashes with a server-side HMAC and migrate legacy values on successful sign-in; use constant-time credential comparisons, enforce expiry for temporary tokens, and replace credential randomness with a CSPRNG; strictly validate OAuth2 state, Passkey origins and challenges, Telegram Mini App signatures and timestamps; bound public inputs, cleanup settings, webhook payloads, and outbound-mail requests, while preventing public responses from exposing provider or database errors
+- security: |Browser| Sanitize mail HTML and OAuth icons through DOMPurify, harden external-link relationships, move mailbox credential auto-login tokens to the URL fragment and remove them immediately; add CSP, `nosniff`, Referrer Policy, Permissions Policy, and API `no-store` headers to Worker and Pages responses
+
+### Improvements
+
+- refactor: |Code quality| Consolidate administrator and mailbox webhook read/save/test behavior, and share pagination and input-normalization logic; remove unused frontend files, Radix dependencies, UI wrappers, the stale Telegram route, commented implementations, and redundant exports; add dedicated Worker and frontend type-check commands
+- test: |Security and builds| Add HTML/SVG sanitization, secure-random, and credential-header regression tests; pass Worker lint, TypeScript checks, a Wrangler dry build, 25 frontend unit tests, Knip dead-code analysis, and the production frontend build
+
 ### Bug Fixes
 
 - fix: |Internationalization| Translate the Address JWT label in Address Credentials and Connection Methods for Chinese users

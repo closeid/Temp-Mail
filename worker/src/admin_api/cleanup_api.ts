@@ -28,6 +28,63 @@ const DEFAULT_CLEANUP_SETTINGS: CleanupSettings = {
     customSqlCleanupList: [],
 };
 
+const BOOLEAN_FIELDS = [
+    'enableMailsAutoCleanup',
+    'enableUnknowMailsAutoCleanup',
+    'enableSendBoxAutoCleanup',
+    'enableAddressAutoCleanup',
+    'enableInactiveAddressAutoCleanup',
+    'enableUnboundAddressAutoCleanup',
+    'enableEmptyAddressAutoCleanup',
+] as const;
+const DAY_FIELDS = [
+    'cleanMailsDays',
+    'cleanUnknowMailsDays',
+    'cleanSendBoxDays',
+    'cleanAddressDays',
+    'cleanInactiveAddressDays',
+    'cleanUnboundAddressDays',
+    'cleanEmptyAddressDays',
+] as const;
+
+export const normalizeCleanupSettings = (value: unknown): CleanupSettings | null => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    const input = value as Record<string, unknown>;
+    const settings = { ...DEFAULT_CLEANUP_SETTINGS };
+    for (const field of BOOLEAN_FIELDS) {
+        if (input[field] === undefined) continue;
+        if (typeof input[field] !== 'boolean') return null;
+        settings[field] = input[field];
+    }
+    for (const field of DAY_FIELDS) {
+        const days = input[field];
+        if (days === undefined) continue;
+        if (!Number.isInteger(days) || (days as number) < 0 || (days as number) > 1000) return null;
+        settings[field] = days as number;
+    }
+    const tasks = input.customSqlCleanupList;
+    if (tasks === undefined) return settings;
+    if (!Array.isArray(tasks) || tasks.length > 50) return null;
+    const ids = new Set<string>();
+    settings.customSqlCleanupList = [];
+    for (const task of tasks) {
+        if (!task || typeof task !== 'object' || Array.isArray(task)) return null;
+        const { id, name, sql, enabled } = task as Record<string, unknown>;
+        if (typeof id !== 'string' || !id.trim() || id.length > 100 || ids.has(id)
+            || typeof name !== 'string' || !name.trim() || name.length > 100
+            || typeof sql !== 'string' || typeof enabled !== 'boolean'
+        ) return null;
+        ids.add(id);
+        settings.customSqlCleanupList.push({
+            id: id.trim(),
+            name: name.trim(),
+            sql: normalizeSql(sql),
+            enabled,
+        });
+    }
+    return settings;
+};
+
 // Normalize SQL: trim and remove trailing semicolon
 const normalizeSql = (sql: string): string => {
     let normalized = sql.trim();
@@ -99,7 +156,7 @@ export const executeCustomSqlCleanup = async (
     const sql = normalizeSql(customSql.sql);
 
     try {
-        console.log(`Executing custom SQL cleanup [${customSql.name}]: ${sql}`);
+        console.log(`Executing custom SQL cleanup [${customSql.name}]`);
         const result = await c.env.DB.prepare(sql).run();
         const rowsAffected = result.meta?.changes ?? 0;
         console.log(`Custom SQL cleanup [${customSql.name}] completed, rows affected: ${rowsAffected}`);
@@ -125,11 +182,13 @@ export default {
     },
     getCleanup: async (c: Context<HonoCustomType>) => {
         const cleanupSetting = await getJsonSetting<CleanupSettings>(c, CONSTANTS.AUTO_CLEANUP_KEY);
-        return c.json({ ...DEFAULT_CLEANUP_SETTINGS, ...(cleanupSetting || {}) })
+        return c.json(normalizeCleanupSettings({ ...DEFAULT_CLEANUP_SETTINGS, ...(cleanupSetting || {}) })
+            || DEFAULT_CLEANUP_SETTINGS)
     },
     saveCleanup: async (c: Context<HonoCustomType>) => {
         const msgs = i18n.getMessagesbyContext(c);
-        const cleanupSetting = await c.req.json<CleanupSettings>();
+        const cleanupSetting = normalizeCleanupSettings(await c.req.json());
+        if (!cleanupSetting) return c.text(msgs.InvalidCleanupConfigMsg, 400);
 
         // Validate custom SQL cleanup list
         if (cleanupSetting.customSqlCleanupList && cleanupSetting.customSqlCleanupList.length > 0) {

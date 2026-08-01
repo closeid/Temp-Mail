@@ -1,4 +1,5 @@
 import { Context } from "hono";
+import { Jwt } from "hono/utils/jwt";
 import { createMimeMessage } from "mimetext";
 import { UserSettings, RoleAddressConfig } from "./models";
 import { CONSTANTS } from "./constants";
@@ -19,7 +20,7 @@ export const getJsonObjectValue = <T = any>(
     try {
         return JSON.parse(value) as T;
     } catch (e) {
-        console.error(`GetJsonValue: Failed to parse ${value}`, e);
+        console.error("GetJsonValue: Failed to parse JSON value", e);
     }
     return null;
 }
@@ -90,6 +91,27 @@ export const getSplitStringListValue = (
         .filter((item: string) => item.length > 0);
 }
 
+export const normalizeStringArray = (
+    value: unknown,
+    maxItems: number = 1000,
+    maxItemLength: number = 320,
+): string[] | null => {
+    if (!Array.isArray(value) || value.length > maxItems) return null;
+    const normalized: string[] = [];
+    const seen = new Set<string>();
+    for (const item of value) {
+        if (typeof item !== 'string') return null;
+        const trimmed = item.trim();
+        if (!trimmed) continue;
+        if (trimmed.length > maxItemLength) return null;
+        if (!seen.has(trimmed)) {
+            seen.add(trimmed);
+            normalized.push(trimmed);
+        }
+    }
+    return normalized;
+}
+
 export const getBooleanValue = (
     value: boolean | string | any
 ): boolean => {
@@ -126,15 +148,18 @@ export const getStringArray = (
         return [];
     }
     // check if value is an array, if not use json.parse
+    let parsed: unknown = value;
     if (!Array.isArray(value)) {
         try {
-            return JSON.parse(value);
+            parsed = JSON.parse(value);
         } catch (e) {
             console.error("Failed to parse value", e);
             return [];
         }
     }
-    return value;
+    return Array.isArray(parsed)
+        ? parsed.filter((item): item is string => typeof item === "string")
+        : [];
 }
 
 export const trimLower = (
@@ -316,14 +341,16 @@ export const getPasswords = (c: Context<HonoCustomType>): string[] => {
     // check if PASSWORDS is an array, if not use json.parse
     if (!Array.isArray(c.env.PASSWORDS)) {
         try {
-            const res = JSON.parse(c.env.PASSWORDS) as string[];
-            return res.filter((item) => item.length > 0);
+            const res = JSON.parse(c.env.PASSWORDS) as unknown;
+            return Array.isArray(res)
+                ? res.filter((item): item is string => typeof item === "string" && item.length > 0)
+                : [];
         } catch (e) {
             console.error("Failed to parse PASSWORDS", e);
             return [];
         }
     }
-    return c.env.PASSWORDS.filter((item) => item.length > 0);
+    return c.env.PASSWORDS.filter((item) => typeof item === "string" && item.length > 0);
 }
 
 export const getAdminPasswords = (c: Context<HonoCustomType>): string[] => {
@@ -333,20 +360,25 @@ export const getAdminPasswords = (c: Context<HonoCustomType>): string[] => {
     // check if ADMIN_PASSWORDS is an array, if not use json.parse
     if (!Array.isArray(c.env.ADMIN_PASSWORDS)) {
         try {
-            const res = JSON.parse(c.env.ADMIN_PASSWORDS) as string[];
-            return res.filter((item) => item.length > 0);
+            const res = JSON.parse(c.env.ADMIN_PASSWORDS) as unknown;
+            return Array.isArray(res)
+                ? res.filter((item): item is string => typeof item === "string" && item.length > 0)
+                : [];
         } catch (e) {
             console.error("Failed to parse ADMIN_PASSWORDS", e);
             return [];
         }
     }
-    return c.env.ADMIN_PASSWORDS.filter((item) => item.length > 0);
+    return c.env.ADMIN_PASSWORDS.filter((item) => typeof item === "string" && item.length > 0);
 }
 
 export const checkIsAdmin = (c: Context<HonoCustomType>): boolean => {
     const adminAuth = c.req.raw.headers.get("x-admin-auth");
     if (!adminAuth) return false;
-    return getAdminPasswords(c).includes(adminAuth);
+    return getAdminPasswords(c).reduce(
+        (matched, password) => constantTimeEqual(password, adminAuth) || matched,
+        false
+    );
 }
 
 export const getEnvStringList = (value: string | string[] | undefined): string[] => {
@@ -356,14 +388,16 @@ export const getEnvStringList = (value: string | string[] | undefined): string[]
     // check if is an array, if not use json.parse
     if (!Array.isArray(value)) {
         try {
-            const res = JSON.parse(value) as string[];
-            return res.filter((item) => item.length > 0);
+            const res = JSON.parse(value) as unknown;
+            return Array.isArray(res)
+                ? res.filter((item): item is string => typeof item === "string" && item.length > 0)
+                : [];
         } catch (e) {
-            console.error("Failed to parse ADMIN_PASSWORDS", e);
+            console.error("Failed to parse string list", e);
             return [];
         }
     }
-    return value.filter((item) => item.length > 0);
+    return value.filter((item) => typeof item === "string" && item.length > 0);
 }
 
 export const sendAdminInternalMail = async (
@@ -382,7 +416,7 @@ export const sendAdminInternalMail = async (
             contentType: 'text/plain',
             data: text
         });
-        const message_id = Math.random().toString(36).substring(2, 15);
+        const message_id = secureRandomString(13, 'abcdefghijklmnopqrstuvwxyz0123456789');
         const rawText = msg.asRaw();
         let success = false;
         if (getBooleanValue(c.env.ENABLE_MAIL_GZIP)) {
@@ -461,7 +495,7 @@ export const checkCfTurnstile = async (
 }
 
 export const checkUserPassword = (password: string) => {
-    if (!password || password.length < 1 || password.length > 100) {
+    if (!/^[a-f0-9]{64}$/i.test(password)) {
         throw new Error("Invalid password")
     }
     return true;
@@ -486,6 +520,102 @@ export const getMaxAddressCount = async (
     if (typeof roleMaxCount !== 'number') return settings.maxAddressCount;
     if (roleMaxCount < 0) return settings.maxAddressCount;
     return roleMaxCount;
+};
+
+const encoder = new TextEncoder();
+const PASSWORD_STORAGE_PREFIX = "hmac-sha256$";
+const RANDOM_INTEGER_RANGE = 0x1_0000_0000;
+
+const bytesToHex = (value: ArrayBuffer): string => Array.from(new Uint8Array(value))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+
+export const constantTimeEqual = (left: string, right: string): boolean => {
+    const leftBytes = encoder.encode(left);
+    const rightBytes = encoder.encode(right);
+    const length = Math.max(leftBytes.length, rightBytes.length);
+    let difference = leftBytes.length ^ rightBytes.length;
+    for (let index = 0; index < length; index++) {
+        difference |= (leftBytes[index] || 0) ^ (rightBytes[index] || 0);
+    }
+    return difference === 0;
+};
+
+const hmacPasswordHash = async (passwordHash: string, secret: string): Promise<string> => {
+    const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(secret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"]
+    );
+    const digest = await crypto.subtle.sign(
+        "HMAC",
+        key,
+        encoder.encode(`get-an-email/password/v1:${passwordHash}`)
+    );
+    return bytesToHex(digest);
+};
+
+export const protectPasswordHash = async (
+    passwordHash: string,
+    secret: string
+): Promise<string> => {
+    checkUserPassword(passwordHash);
+    return `${PASSWORD_STORAGE_PREFIX}${await hmacPasswordHash(passwordHash, secret)}`;
+};
+
+export const verifyPasswordHash = async (
+    storedPassword: string | null | undefined,
+    passwordHash: string,
+    secret: string
+): Promise<boolean> => {
+    if (!storedPassword || !/^[a-f0-9]{64}$/i.test(passwordHash)) return false;
+    const candidate = storedPassword.startsWith(PASSWORD_STORAGE_PREFIX)
+        ? `${PASSWORD_STORAGE_PREFIX}${await hmacPasswordHash(passwordHash, secret)}`
+        : passwordHash;
+    return constantTimeEqual(storedPassword, candidate);
+};
+
+export const passwordHashNeedsUpgrade = (storedPassword: string): boolean => {
+    return !storedPassword.startsWith(PASSWORD_STORAGE_PREFIX);
+};
+
+export const secureRandomInt = (maxExclusive: number): number => {
+    if (!Number.isInteger(maxExclusive) || maxExclusive <= 0 || maxExclusive > RANDOM_INTEGER_RANGE) {
+        throw new RangeError("maxExclusive must be an integer between 1 and 2^32");
+    }
+    const unbiasedLimit = Math.floor(RANDOM_INTEGER_RANGE / maxExclusive) * maxExclusive;
+    const buffer = new Uint32Array(1);
+    do {
+        crypto.getRandomValues(buffer);
+    } while (buffer[0] >= unbiasedLimit);
+    return buffer[0] % maxExclusive;
+};
+
+export const secureRandomString = (length: number, charset: string): string => {
+    if (!Number.isInteger(length) || length < 0 || !charset || charset.length > RANDOM_INTEGER_RANGE) {
+        throw new RangeError("Invalid random string parameters");
+    }
+    let value = "";
+    while (value.length < length) value += charset[secureRandomInt(charset.length)];
+    return value;
+};
+
+export const verifyJwt = async <T extends Record<string, unknown>>(
+    token: string,
+    secret: string,
+): Promise<T> => await Jwt.verify(token, secret, "HS256") as T;
+
+export const verifyExpiringJwt = async <T extends Record<string, unknown>>(
+    token: string,
+    secret: string,
+): Promise<T> => {
+    const payload = await verifyJwt<T>(token, secret);
+    if (typeof payload.exp !== "number" || payload.exp <= Math.floor(Date.now() / 1000)) {
+        throw new Error('Token expired');
+    }
+    return payload;
 };
 
 /**

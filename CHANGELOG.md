@@ -23,6 +23,16 @@
 - feat: |Frontend| 邮箱新增「邮箱全宽列表视图」开关（在外观设置中控制），开启后默认全宽列表展示邮件标题与正文预览，点击单封邮件再展开为双栏，再次点击同一封邮件可回到列表视图；多选模式下点击邮件会同步切换勾选状态与右侧预览，并禁用同邮件点击收回列表，展开时双栏左侧列表宽度仍遵循「邮箱双栏视图左侧列表宽度占比」配置；默认关闭，保留原有双栏行为
 - feat: |Frontend| 邮箱全宽列表视图新增「正文预览行数」配置（在外观设置中控制），可设置邮件正文预览的最大行数，默认 2 行，0 表示关闭预览
 
+### Security
+
+- security: |Worker/前端| 完成全链路安全审计：用户与邮箱密码哈希增加服务端 HMAC 保护并在登录时自动迁移旧数据；认证比较改为恒定时间，临时令牌强制校验过期时间，随机凭据改用 CSPRNG；OAuth2 state、Passkey 来源与挑战、Telegram Mini App 签名和时间窗口均由服务端严格校验；公开输入、清理配置、Webhook 与发信请求增加类型、长度和数量限制，公开错误不再返回底层服务或数据库异常
+- security: |浏览器安全| 对邮件 HTML 和 OAuth 图标统一使用 DOMPurify 清理，外部链接增加安全关系属性，邮箱凭据自动登录改用 URL Fragment 并立即清除；Worker 与 Pages 增加 CSP、`nosniff`、Referrer Policy、Permissions Policy 和 API `no-store` 响应头
+
+### Improvements
+
+- refactor: |代码质量| 合并管理员与邮箱 Webhook 的读取、保存和测试服务，复用分页查询与输入规范化逻辑；删除未使用的前端文件、Radix 依赖、UI 包装器、旧 Telegram 路径、注释实现和多余导出，并为 Worker 与前端增加独立类型检查命令
+- test: |安全与构建| 增加 HTML/SVG 清理、安全随机数和凭据请求头回归测试；通过 Worker lint、TypeScript 检查、Wrangler 干构建、前端 25 项单元测试、Knip 无用代码检查和生产构建
+
 ### Bug Fixes
 
 - fix: |国际化| 修复“地址凭证与连接方式”中 Address JWT 的中文标签显示

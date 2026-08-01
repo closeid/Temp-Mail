@@ -1,7 +1,12 @@
 import { Hono } from 'hono'
-import { Jwt } from 'hono/utils/jwt'
-
-import utils, { checkCfTurnstile, getPasswords, getAdminPasswords, hashPassword } from '../utils';
+import utils, {
+    checkCfTurnstile,
+    constantTimeEqual,
+    getPasswords,
+    getAdminPasswords,
+    hashPassword,
+    verifyJwt,
+} from '../utils';
 import i18n from '../i18n';
 
 const api = new Hono<HonoCustomType>()
@@ -18,7 +23,9 @@ api.post('/api/open/site_login', async (c) => {
     }
     const passwords = getPasswords(c);
     const hashedPasswords = await Promise.all(passwords.map(p => hashPassword(p)));
-    if (!hashedPasswords.length || !password || !hashedPasswords.includes(password)) {
+    if (!hashedPasswords.length || !password
+        || !hashedPasswords.some((candidate) => constantTimeEqual(candidate, password))
+    ) {
         return c.text(msgs.CustomAuthPasswordMsg, 401)
     }
     return c.json({ success: true })
@@ -36,7 +43,9 @@ api.post('/api/open/admin_login', async (c) => {
     }
     const adminUsername = c.env.ADMIN_USERNAME || 'admin';
     const hashedPasswords = await Promise.all(getAdminPasswords(c).map(p => hashPassword(p)));
-    if (!hashedPasswords.length || !username || username !== adminUsername || !password || !hashedPasswords.includes(password)) {
+    if (!hashedPasswords.length || !username || !constantTimeEqual(username, adminUsername) || !password
+        || !hashedPasswords.some((candidate) => constantTimeEqual(candidate, password))
+    ) {
         return c.text(msgs.NeedAdminPasswordMsg, 401)
     }
     return c.json({ success: true })
@@ -56,7 +65,7 @@ api.post('/api/open/credential_login', async (c) => {
         return c.text(msgs.InvalidAddressCredentialMsg, 401)
     }
     try {
-        const payload = await Jwt.verify(credential, c.env.JWT_SECRET, "HS256");
+        const payload = await verifyJwt<{ address?: string }>(credential, c.env.JWT_SECRET);
         if (!payload.address) {
             return c.text(msgs.InvalidAddressCredentialMsg, 401)
         }

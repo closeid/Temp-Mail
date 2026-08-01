@@ -35,6 +35,7 @@ export default {
         const { id } = c.req.param();
         const { user_id } = c.get("userPayload");
         const bindedAddressList = await UserBindAddressModule.getBindedAddressListById(c, user_id);
+        if (bindedAddressList.length === 0) return c.json({ success: true });
         const { success } = await c.env.DB.prepare(
             `DELETE FROM raw_mails WHERE id = ?`
             + ` and address IN (${bindedAddressList.map(() => "?").join(",")})`

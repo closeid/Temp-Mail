@@ -2,7 +2,12 @@ import { Context } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n'
-import { getBooleanValue, isAddressCountLimitReached } from '../utils'
+import {
+    checkUserPassword,
+    getBooleanValue,
+    isAddressCountLimitReached,
+    protectPasswordHash,
+} from '../utils'
 import { newAddress, handleListQuery, commonGetUserRole } from '../common'
 
 type AddressOwner = {
@@ -191,13 +196,17 @@ const clearSentItems = async (c: Context<HonoCustomType>) => {
 };
 
 const showPassword = async (c: Context<HonoCustomType>) => {
+    const msgs = i18n.getMessagesbyContext(c);
     const { id } = c.req.param();
+    const addressId = Number(id);
+    if (!Number.isInteger(addressId) || addressId <= 0) return c.text(msgs.InvalidInputMsg, 400);
     const name = await c.env.DB.prepare(
         `SELECT name FROM address WHERE id = ? `
-    ).bind(id).first("name");
+    ).bind(addressId).first<string | null>("name");
+    if (!name) return c.text(msgs.AddressNotFoundMsg, 404);
     const jwt = await Jwt.sign({
         address: name,
-        address_id: id
+        address_id: addressId
     }, c.env.JWT_SECRET, "HS256")
     return c.json({ jwt });
 };
@@ -210,12 +219,15 @@ const resetPassword = async (c: Context<HonoCustomType>) => {
     if (!getBooleanValue(c.env.ENABLE_ADDRESS_PASSWORD)) {
         return c.text(msgs.PasswordChangeDisabledMsg, 403);
     }
-    if (!password) {
+    try {
+        checkUserPassword(password);
+    } catch (_) {
         return c.text(msgs.NewPasswordRequiredMsg, 400);
     }
+    const protectedPassword = await protectPasswordHash(password, c.env.JWT_SECRET);
     const { success } = await c.env.DB.prepare(
         `UPDATE address SET password = ?, updated_at = datetime('now') WHERE id = ?`
-    ).bind(password, id).run();
+    ).bind(protectedPassword, id).run();
     if (!success) {
         return c.text(msgs.FailedUpdatePasswordMsg, 500);
     }

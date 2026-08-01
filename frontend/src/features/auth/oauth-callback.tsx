@@ -22,7 +22,7 @@ export function OauthCallback() {
         if (params.get('state') !== appStore.getState().userOauth2SessionState) throw new Error(t('stateNotMatch'))
         const code = params.get('code')
         if (!code) throw new Error(t('codeNotFound'))
-        const result = await api.fetch<{ jwt: string }>('/api/user/oauth2/callback', { method: 'POST', body: { code, clientID: appStore.getState().userOauth2SessionClientID } })
+        const result = await api.fetch<{ jwt: string }>('/api/user/oauth2/callback', { method: 'POST', body: { code, state: params.get('state'), clientID: appStore.getState().userOauth2SessionClientID } })
         const hasMailbox = await api.activateUserSession(result.jwt)
         navigate(getPathWithLocale(hasMailbox ? MAIL_ROUTES.mailbox : MAIL_ROUTES.addresses, locale), { replace: true })
       } catch (reason) { const message = stringifyError(reason); setError(message); toast.error(message) }

@@ -39,8 +39,10 @@ describe('safeHeaderValue', () => {
 });
 
 describe('safeBearerHeader', () => {
+    const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ4In0.signature';
+
     it('wraps a safe JWT in a Bearer prefix', () => {
-        expect(safeBearerHeader('abc123')).toBe('Bearer abc123');
+        expect(safeBearerHeader(jwt)).toBe(`Bearer ${jwt}`);
     });
 
     it('returns undefined when the JWT is empty so the header is dropped', () => {
@@ -59,6 +61,6 @@ describe('safeBearerHeader', () => {
     });
 
     it('trims surrounding whitespace before building the header', () => {
-        expect(safeBearerHeader('  abc123  ')).toBe('Bearer abc123');
+        expect(safeBearerHeader(`  ${jwt}  `)).toBe(`Bearer ${jwt}`);
     });
 });

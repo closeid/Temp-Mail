@@ -2,10 +2,10 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 import { WorkerMailerOptions } from 'worker-mailer';
 
-import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, normalizeDomains, trimLower } from './utils';
+import { getBooleanValue, getDomains, getStringArray, getStringValue, getIntValue, getUserRoles, getDefaultDomains, getJsonSetting, getAnotherWorkerList, hashPassword, getJsonObjectValue, getRandomSubdomainDomains, getDomainMapValue, normalizeDomains, protectPasswordHash, secureRandomInt, secureRandomString, trimLower } from './utils';
 import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
-import { AddressCreationSettings, AdminWebhookSettings, ExtractResult, WebhookMail, WebhookSettings } from './models';
+import { AddressCreationSettings, AdminWebhookSettings, ExtractResult, RawMailRow, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
@@ -13,6 +13,7 @@ const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
 const MAX_RANDOM_SUBDOMAIN_ATTEMPTS = 5;
 const MAX_DOMAIN_LENGTH = 253;
 const DOMAIN_LABEL_RE = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
+const RANDOM_ALPHANUMERIC_CHARSET = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 const normalizeDomainValue = (domain: string): string => {
     return trimLower(domain);
@@ -83,30 +84,18 @@ export const generateRandomName = (c: Context<HonoCustomType>): string => {
         1
     );
 
-    // Build full name recursively until minimum length is reached
-    const buildName = (currentName: string = ""): string => {
-        return currentName.length >= minLength
-            ? currentName
-            : buildName(currentName + Math.random().toString(36).substring(2, 15));
-    };
-
-    const fullName = buildName();
+    const fullName = secureRandomString(Math.max(minLength, 13), RANDOM_ALPHANUMERIC_CHARSET);
 
     // Return truncated to max length
     return fullName.substring(0, Math.min(fullName.length, maxLength));
 };
 
 const generateRandomSubdomain = (c: Context<HonoCustomType>): string => {
-    const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
     const length = Math.min(
         Math.max(getIntValue(c.env.RANDOM_SUBDOMAIN_LENGTH, DEFAULT_RANDOM_SUBDOMAIN_LENGTH), 1),
         63
     );
-    let subdomain = "";
-    for (let i = 0; i < length; i++) {
-        subdomain += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return subdomain;
+    return secureRandomString(length, RANDOM_ALPHANUMERIC_CHARSET);
 }
 
 const allowRandomSubdomainForDomain = (
@@ -259,12 +248,7 @@ export function updateAddressUpdatedAt(
 }
 
 export const generateRandomPassword = (): string => {
-    const charset = "abcdefghijklmnopqrstuvwxyz0123456789";
-    let password = "";
-    for (let i = 0; i < 8; i++) {
-        password += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return password;
+    return secureRandomString(16, RANDOM_ALPHANUMERIC_CHARSET);
 }
 
 const generatePasswordForAddress = async (
@@ -277,9 +261,10 @@ const generatePasswordForAddress = async (
 
     const plainPassword = generateRandomPassword();
     const hashedPassword = await hashPassword(plainPassword);
+    const storedPassword = await protectPasswordHash(hashedPassword, c.env.JWT_SECRET);
     const { success } = await c.env.DB.prepare(
         `UPDATE address SET password = ?, updated_at = datetime('now') WHERE name = ?`
-    ).bind(hashedPassword, address).run();
+    ).bind(storedPassword, address).run();
 
     if (!success) {
         console.warn("Failed to set generated password for address:", address);
@@ -380,7 +365,7 @@ export const newAddress = async (
         if (createAddressDefaultDomainFirst) {
             domain = normalizeDomainValue(allowDomains[0]);
         } else {
-            domain = normalizeDomainValue(allowDomains[Math.floor(Math.random() * allowDomains.length)]);
+            domain = normalizeDomainValue(allowDomains[secureRandomInt(allowDomains.length)]);
         }
     } else if (typeof domain === "string") {
         domain = normalizeDomainValue(domain);
@@ -467,50 +452,51 @@ export const cleanup = async (
     cleanDays: number | undefined | null
 ): Promise<boolean> => {
     const msgs = i18n.getMessagesbyContext(c);
-    if (!cleanType || typeof cleanDays !== 'number' || cleanDays < 0 || cleanDays > 1000) {
+    if (!cleanType || typeof cleanDays !== 'number' || !Number.isInteger(cleanDays) || cleanDays < 0 || cleanDays > 1000) {
         throw new Error(msgs.InvalidCleanupConfigMsg)
     }
-    console.log(`Cleanup ${cleanType} before ${cleanDays} days`);
+    const days = cleanDays as number;
+    console.log(`Cleanup ${cleanType} before ${days} days`);
     switch (cleanType) {
         case "inactiveAddress":
             await batchDeleteAddressWithData(
                 c,
-                `updated_at < datetime('now', '-${cleanDays} day')`
+                `updated_at < datetime('now', '-${days} day')`
             )
             break;
         case "addressCreated":
             await batchDeleteAddressWithData(
                 c,
-                `created_at < datetime('now', '-${cleanDays} day')`
+                `created_at < datetime('now', '-${days} day')`
             )
             break;
         case "unboundAddress":
             await batchDeleteAddressWithData(
                 c,
-                `id NOT IN (SELECT address_id FROM users_address) AND created_at < datetime('now', '-${cleanDays} day')`
+                `id NOT IN (SELECT address_id FROM users_address) AND created_at < datetime('now', '-${days} day')`
             )
             break;
         case "mails":
             await c.env.DB.prepare(`
-                DELETE FROM raw_mails WHERE created_at < datetime('now', '-${cleanDays} day')`
+                DELETE FROM raw_mails WHERE created_at < datetime('now', '-${days} day')`
             ).run();
             break;
         case "mails_unknow":
             await c.env.DB.prepare(`
                 DELETE FROM raw_mails WHERE address NOT IN
-                (select name from address) AND created_at < datetime('now', '-${cleanDays} day')`
+                (select name from address) AND created_at < datetime('now', '-${days} day')`
             ).run();
             break;
         case "sendbox":
             await c.env.DB.prepare(`
-                DELETE FROM sendbox WHERE created_at < datetime('now', '-${cleanDays} day')`
+                DELETE FROM sendbox WHERE created_at < datetime('now', '-${days} day')`
             ).run();
             break;
         case "emptyAddress":
             // Delete addresses that have no emails and were created more than N days ago
             await batchDeleteAddressWithData(
                 c,
-                `name NOT IN (SELECT DISTINCT address FROM raw_mails WHERE address IS NOT NULL) AND created_at < datetime('now', '-${cleanDays} day')`
+                `name NOT IN (SELECT DISTINCT address FROM raw_mails WHERE address IS NOT NULL) AND created_at < datetime('now', '-${days} day')`
             )
             break;
         default:
@@ -614,26 +600,16 @@ export const handleListQuery = async (
     hiddenFields: string[] = []
 ): Promise<Response> => {
     const msgs = i18n.getMessagesbyContext(c);
-    if (typeof limit === "string") {
-        limit = parseInt(limit);
-    }
-    if (typeof offset === "string") {
-        offset = parseInt(offset);
-    }
-    if (!limit || limit < 0 || limit > 100) {
+    const pagination = normalizePagination(limit, offset);
+    if (pagination.error === "limit") {
         return c.text(msgs.InvalidLimitMsg, 400)
     }
-    if (offset == null || offset == undefined || offset < 0) {
+    if (pagination.error === "offset") {
         return c.text(msgs.InvalidOffsetMsg, 400)
     }
-    const orderClause = orderBy || 'id desc';
-    const resultsQuery = `${query} order by ${orderClause} limit ? offset ?`;
-    const { results } = await c.env.DB.prepare(resultsQuery).bind(
-        ...params, limit, offset
-    ).all();
-    const count = offset == 0 ? await c.env.DB.prepare(
-        countQuery
-    ).bind(...params).first("count") : 0;
+    const { results, count } = await queryListPage(
+        c, query, countQuery, params, pagination.limit!, pagination.offset!, orderBy
+    );
     if (hiddenFields.length === 0) {
         return c.json({ results, count });
     }
@@ -653,6 +629,46 @@ export const hideObjectFields = <T extends Record<string, unknown>>(
     return filteredRow;
 }
 
+type Pagination = {
+    limit?: number;
+    offset?: number;
+    error?: "limit" | "offset";
+};
+
+const normalizePagination = (
+    limit: string | number | undefined | null,
+    offset: string | number | undefined | null
+): Pagination => {
+    const parsedLimit = typeof limit === "string" ? Number.parseInt(limit, 10) : limit;
+    if (!Number.isInteger(parsedLimit) || !parsedLimit || parsedLimit < 0 || parsedLimit > 100) {
+        return { error: "limit" };
+    }
+    const parsedOffset = typeof offset === "string" ? Number.parseInt(offset, 10) : offset;
+    if (!Number.isInteger(parsedOffset) || parsedOffset == null || parsedOffset < 0) {
+        return { error: "offset" };
+    }
+    return { limit: parsedLimit, offset: parsedOffset };
+};
+
+const queryListPage = async <T extends Record<string, unknown> = Record<string, unknown>>(
+    c: Context<HonoCustomType>,
+    query: string,
+    countQuery: string,
+    params: string[],
+    limit: number,
+    offset: number,
+    orderBy?: string
+): Promise<{ results: T[]; count: unknown }> => {
+    const orderClause = orderBy || "id desc";
+    const { results } = await c.env.DB.prepare(
+        `${query} order by ${orderClause} limit ? offset ?`
+    ).bind(...params, limit, offset).all<T>();
+    const count = offset === 0
+        ? await c.env.DB.prepare(countQuery).bind(...params).first("count")
+        : 0;
+    return { results, count };
+};
+
 /**
  * handleListQuery variant for raw_mails: resolves raw_blob → raw after query.
  */
@@ -665,19 +681,13 @@ export const handleMailListQuery = async (
 ): Promise<Response> => {
     const { resolveRawEmailList } = await import('./gzip');
     const msgs = i18n.getMessagesbyContext(c);
-    if (typeof limit === "string") limit = parseInt(limit);
-    if (typeof offset === "string") offset = parseInt(offset);
-    if (!limit || limit < 0 || limit > 100) return c.text(msgs.InvalidLimitMsg, 400);
-    if (offset == null || offset == undefined || offset < 0) return c.text(msgs.InvalidOffsetMsg, 400);
-    const orderClause = orderBy || 'id desc';
-    const resultsQuery = `${query} order by ${orderClause} limit ? offset ?`;
-    const { results } = await c.env.DB.prepare(resultsQuery).bind(
-        ...params, limit, offset
-    ).all();
+    const pagination = normalizePagination(limit, offset);
+    if (pagination.error === "limit") return c.text(msgs.InvalidLimitMsg, 400);
+    if (pagination.error === "offset") return c.text(msgs.InvalidOffsetMsg, 400);
+    const { results, count } = await queryListPage<RawMailRow>(
+        c, query, countQuery, params, pagination.limit!, pagination.offset!, orderBy
+    );
     const resolvedResults = await resolveRawEmailList(results);
-    const count = offset == 0 ? await c.env.DB.prepare(
-        countQuery
-    ).bind(...params).first("count") : 0;
     return c.json({ results: resolvedResults, count });
 }
 
@@ -698,30 +708,6 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
         return parsedEmailContext.parsedEmail;
     }
     const raw_mail = parsedEmailContext.rawEmail;
-    // NOTE: WASM parse email
-    // try {
-    //     const { parse_message_wrapper } = await import('mail-parser-wasm-worker');
-
-    //     const parsedEmail = parse_message_wrapper(raw_mail);
-    //     parsedEmailContext.parsedEmail = {
-    //         sender: parsedEmail.sender || "",
-    //         subject: parsedEmail.subject || "",
-    //         text: parsedEmail.text || "",
-    //         headers: parsedEmail.headers?.map(
-    //             (header) => ({ key: header.key, value: header.value })
-    //         ) || [],
-    //         html: parsedEmail.body_html || "",
-    //         attachments: (parsedEmail.attachments || []).map(att => ({
-    //             filename: att.filename || "attachment",
-    //             mimeType: att.content_type || "application/octet-stream",
-    //             content: att.content,
-    //             disposition: "attachment",
-    //         })),
-    //     };
-    //     return parsedEmailContext.parsedEmail;
-    // } catch (e) {
-    //     console.error("Failed use mail-parser-wasm-worker to parse email", e);
-    // }
     try {
         const { default: PostalMime } = await import('postal-mime');
         const parsedEmail = await PostalMime.parse(raw_mail);
@@ -734,7 +720,9 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
             attachments: (parsedEmail.attachments || []).map(att => ({
                 filename: att.filename || "attachment",
                 mimeType: att.mimeType || "application/octet-stream",
-                content: new Uint8Array(att.content),
+                content: typeof att.content === 'string'
+                    ? new TextEncoder().encode(att.content)
+                    : new Uint8Array(att.content),
                 disposition: att.disposition || "attachment",
             })),
         };
@@ -941,7 +929,6 @@ export async function triggerAnotherWorker(
         }
 
         if (!keywords.some(keyword => keyword && parsedTextLowercase.includes(keyword.toLowerCase()))) {
-            console.log(`worker.binding = ${bindingName} not match keywords, parsedText = ${parsedText}`);
             continue;
         }
         try {
@@ -954,7 +941,6 @@ export async function triggerAnotherWorker(
                 bodyObj.headers = headerObj
             }
             const requestBody = JSON.stringify(bodyObj);
-            console.log(`exec worker , binding = ${bindingName} , requestBody = ${requestBody}`);
             await method(requestBody);
         } catch (e1) {
             console.error(`execute method = ${methodName} error`, e1);

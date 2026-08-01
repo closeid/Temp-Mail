@@ -2,7 +2,16 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n';
-import { getJsonSetting, getMailDomain, getStringValue, getUserRoles, includesDomain } from '../utils';
+import {
+    getJsonSetting,
+    getMailDomain,
+    getStringValue,
+    getUserRoles,
+    includesDomain,
+    isValidUserEmail,
+    secureRandomString,
+    verifyExpiringJwt,
+} from '../utils';
 import { UserOauth2Settings } from '../models';
 import { CONSTANTS } from '../constants';
 
@@ -10,7 +19,7 @@ import { CONSTANTS } from '../constants';
 export default {
     getOauth2LoginUrl: async (c: Context<HonoCustomType>) => {
         const settings = await getJsonSetting<UserOauth2Settings[]>(c, CONSTANTS.OAUTH2_SETTINGS_KEY);
-        const { clientID, state } = c.req.query();
+        const { clientID } = c.req.query();
         const msgs = i18n.getMessagesbyContext(c);
         const setting = settings?.find(s => s.clientID === clientID);
         if (!setting) {
@@ -21,13 +30,27 @@ export default {
         url.searchParams.set('response_type', 'code');
         url.searchParams.set('redirect_uri', setting.redirectURL);
         url.searchParams.set('scope', setting.scope);
-        url.searchParams.set('state', state || '');
-        return c.json({ url: url.toString() });
+        const now = Math.floor(Date.now() / 1000);
+        const state = await Jwt.sign({
+            purpose: 'oauth2-login',
+            clientID: setting.clientID,
+            nonce: secureRandomString(32, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'),
+            iat: now,
+            exp: now + 600,
+        }, c.env.JWT_SECRET, 'HS256');
+        url.searchParams.set('state', state);
+        return c.json({ url: url.toString(), state });
     },
     oauth2Login: async (c: Context<HonoCustomType>) => {
-        const { clientID, code } = await c.req.json<{ clientID?: string, code?: string }>();
+        const { clientID, code, state } = await c.req.json<{ clientID?: string, code?: string, state?: string }>();
         const msgs = i18n.getMessagesbyContext(c);
-        if (!clientID || !code) {
+        if (!clientID || !code || code.length > 4096 || !state) {
+            return c.text(msgs.Oauth2CliendIDOrCodeMissingMsg, 400);
+        }
+        try {
+            const payload = await verifyExpiringJwt<{ purpose?: string; clientID?: string }>(state, c.env.JWT_SECRET);
+            if (payload.purpose !== 'oauth2-login' || payload.clientID !== clientID) throw new Error('Invalid state');
+        } catch (_) {
             return c.text(msgs.Oauth2CliendIDOrCodeMissingMsg, 400);
         }
         const settings = await getJsonSetting<UserOauth2Settings[]>(c, CONSTANTS.OAUTH2_SETTINGS_KEY);
@@ -52,26 +75,51 @@ export default {
                     ? 'application/json'
                     : 'application/x-www-form-urlencoded',
                 "Accept": "application/json"
-            }
+            },
+            signal: AbortSignal.timeout(10_000),
         })
         if (!res.ok) {
             console.error(`Failed to get access token: ${res.status} ${res.statusText}`)
             return c.text(msgs.Oauth2FailedGetAccessTokenMsg, 400);
         }
-        const resJson = await res.json();
+        const tokenResponseText = await res.text();
+        if (new TextEncoder().encode(tokenResponseText).length > 65_536) {
+            return c.text(msgs.Oauth2FailedGetAccessTokenMsg, 400);
+        }
+        let resJson: Record<string, unknown>;
+        try {
+            resJson = JSON.parse(tokenResponseText) as Record<string, unknown>;
+        } catch (_) {
+            return c.text(msgs.Oauth2FailedGetAccessTokenMsg, 400);
+        }
         const { access_token, token_type } = resJson as { access_token: string, token_type?: string };
+        if (typeof access_token !== 'string' || !access_token || access_token.length > 16_384
+            || (token_type !== undefined && (typeof token_type !== 'string' || token_type.length > 64))
+        ) {
+            return c.text(msgs.Oauth2FailedGetAccessTokenMsg, 400);
+        }
         const userRes = await fetch(setting.userInfoURL, {
             headers: {
                 "Authorization": `${token_type || 'Bearer'} ${access_token}`,
                 "Accept": "application/json",
                 "User-Agent": "Cloudflare Workers"
-            }
+            },
+            signal: AbortSignal.timeout(10_000),
         })
         if (!userRes.ok) {
             console.error(`Failed to get user info: ${userRes.status} ${userRes.statusText}`)
             return c.text(msgs.Oauth2FailedGetUserInfoMsg, 400);
         }
-        const userInfo = await userRes.json<any>()
+        const userInfoText = await userRes.text();
+        if (new TextEncoder().encode(userInfoText).length > 65_536) {
+            return c.text(msgs.Oauth2FailedGetUserInfoMsg, 400);
+        }
+        let userInfo: any;
+        try {
+            userInfo = JSON.parse(userInfoText);
+        } catch (_) {
+            return c.text(msgs.Oauth2FailedGetUserInfoMsg, 400);
+        }
 
         const rawEmail = await (async () => {
             if (setting.userEmailKey.startsWith("$")) {
@@ -103,12 +151,12 @@ export default {
                 const replacement = setting.userEmailReplace || '$1';
                 return rawEmailStr.replace(regex, replacement).trim();
             } catch (e) {
-                console.error(`Invalid regex in userEmailFormat: ${setting.userEmailFormat}`, e);
+                console.error('Invalid OAuth2 user email format', e);
                 return rawEmailStr;
             }
         })();
 
-        if (!email) {
+        if (!isValidUserEmail(email)) {
             return c.text(msgs.Oauth2FailedGetUserEmailMsg, 400);
         }
         // check email in mail allow list
@@ -154,7 +202,7 @@ export default {
         const jwt = await Jwt.sign({
             user_email: email,
             user_id: user_id,
-            // 90 days expire in seconds
+            // 30 days expire in seconds
             exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
             iat: Math.floor(Date.now() / 1000),
         }, c.env.JWT_SECRET, "HS256")

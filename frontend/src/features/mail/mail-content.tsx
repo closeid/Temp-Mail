@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import DOMPurify from 'dompurify'
 import { Download, Expand, Forward, Paperclip, Reply, Trash2 } from 'lucide-react'
 import { confirmAction } from '@/components/action-dialogs'
 import { Button } from '@/components/ui/button'
@@ -9,6 +8,7 @@ import { formatDate } from '@/lib/utils'
 import { useAppStore } from '@/lib/store'
 import { useScopedI18n } from '@/i18n/react'
 import { AiExtract } from './ai-extract'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 export type MailItem = {
   id: number | string
@@ -39,7 +39,7 @@ type Props = {
 
 function MailBody({ mail, textMode }: { mail: MailItem; textMode: boolean }) {
   const useIframe = useAppStore((state) => state.useIframeShowMail)
-  const safeHtml = useMemo(() => DOMPurify.sanitize(mail.message || '', { ADD_ATTR: ['target'] }), [mail.message])
+  const safeHtml = useMemo(() => sanitizeHtml(mail.message), [mail.message])
   if (textMode) return <pre className="m-0 whitespace-pre-wrap break-words font-sans leading-7">{mail.text || mail.message}</pre>
   if (useIframe) return <iframe title={mail.subject || 'Mail'} sandbox="" srcDoc={safeHtml} className="min-h-[520px] w-full border-0 bg-white" />
   return <div className="mail-html" dangerouslySetInnerHTML={{ __html: safeHtml }} />

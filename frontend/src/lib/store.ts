@@ -35,14 +35,14 @@ export type OpenSettings = {
   [key: string]: any
 }
 
-export type AddressSettings = {
+type AddressSettings = {
   fetched: boolean
   send_balance: number
   address: string
   auto_reply: Record<string, any>
 }
 
-export type UserSettings = {
+type UserSettings = {
   fetched: boolean
   user_email: string
   user_id: number
@@ -53,7 +53,7 @@ export type UserSettings = {
   [key: string]: any
 }
 
-export type UserOpenSettings = {
+type UserOpenSettings = {
   fetched: boolean
   enable: boolean
   enableMailVerify: boolean
@@ -61,7 +61,7 @@ export type UserOpenSettings = {
   [key: string]: any
 }
 
-export type MailboxAccessMode = 'standard' | 'credential'
+type MailboxAccessMode = 'standard' | 'credential'
 
 export type AppState = {
   loading: number
@@ -102,6 +102,8 @@ const session = typeof window === 'undefined' ? null : window.sessionStorage
 
 // Administrator passwords remain memory-only and are cleared by every reload.
 local?.removeItem('adminAuth')
+local?.removeItem('userOauth2SessionState_fb')
+local?.removeItem('userOauth2SessionClientID_fb')
 for (const key of ['indexTab', 'userTab', 'adminTab', 'workspaceSection']) session?.removeItem(key)
 
 const readString = (storage: Storage | null, key: string, fallback = '') => storage?.getItem(key) ?? fallback
@@ -152,8 +154,8 @@ const initialState: AppState = {
   userOpenSettings: { fetched: false, enable: false, enableMailVerify: false, oauth2ClientIDs: [] },
   userSettings: { fetched: false, user_email: '', user_id: 0, is_admin: false, access_token: null, new_user_token: null, user_role: null },
   sendMailModel: readObject(session, 'sendMailModel', { fromName: '', toName: '', toMail: '', subject: '', contentType: 'text', content: '' }),
-  userOauth2SessionState: readString(session, 'userOauth2SessionState') || readString(local, 'userOauth2SessionState_fb'),
-  userOauth2SessionClientID: readString(session, 'userOauth2SessionClientID') || readString(local, 'userOauth2SessionClientID_fb'),
+  userOauth2SessionState: readString(session, 'userOauth2SessionState'),
+  userOauth2SessionClientID: readString(session, 'userOauth2SessionClientID'),
   isTelegram: typeof window !== 'undefined' && Boolean((window as any).Telegram?.WebApp?.initData),
   telegramInitData: typeof window === 'undefined' ? '' : ((window as any).Telegram?.WebApp?.initData || ''),
 }
@@ -186,8 +188,6 @@ export const appStore = {
       const [storage, storageKey, mode] = entry
       const value = state[key]
       storage?.setItem(storageKey, mode === 'json' ? JSON.stringify(value) : key === 'isDark' ? (value ? 'dark' : 'light') : String(value))
-      if (key === 'userOauth2SessionState') value ? local?.setItem('userOauth2SessionState_fb', String(value)) : local?.removeItem('userOauth2SessionState_fb')
-      if (key === 'userOauth2SessionClientID') value ? local?.setItem('userOauth2SessionClientID_fb', String(value)) : local?.removeItem('userOauth2SessionClientID_fb')
     }
     listeners.forEach((listener) => listener())
   },

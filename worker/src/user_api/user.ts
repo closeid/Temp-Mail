@@ -2,7 +2,21 @@ import { Context } from 'hono';
 import { Jwt } from 'hono/utils/jwt'
 
 import i18n from '../i18n';
-import utils, { checkCfTurnstile, getJsonSetting, checkUserPassword, getUserRoles, getStringValue, getMailDomain, includesDomain, isValidUserEmail } from "../utils"
+import utils, {
+    checkCfTurnstile,
+    constantTimeEqual,
+    getJsonSetting,
+    checkUserPassword,
+    getUserRoles,
+    getStringValue,
+    getMailDomain,
+    includesDomain,
+    isValidUserEmail,
+    passwordHashNeedsUpgrade,
+    protectPasswordHash,
+    secureRandomInt,
+    verifyPasswordHash,
+} from "../utils"
 import { CONSTANTS } from "../constants";
 import { GeoData, UserInfo, UserSettings } from "../models";
 import { sendMail } from "../mails_api/send_mail_api";
@@ -50,7 +64,7 @@ export default {
             return c.text(msgs.CodeAlreadySentMsg, 400)
         }
         // generate code 6 digits and convert to string
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const code = (100000 + secureRandomInt(900000)).toString();
         // send code to email
         try {
             await sendMail(c, settings.verifyMailSender, {
@@ -62,7 +76,8 @@ export default {
                 is_html: false,
             })
         } catch (e) {
-            return c.text(`Failed to send verify code: ${(e as Error).message}`, 500)
+            console.error("Failed to send verification code", e);
+            return c.text(msgs.OperationFailedMsg, 500)
         }
         // save to KV
         await c.env.KV.put(`temp-mail:${email}`, code, { expirationTtl: 300 });
@@ -86,7 +101,12 @@ export default {
         if (!isValidUserEmail(email) || !password) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
         }
-        checkUserPassword(password);
+        try {
+            checkUserPassword(password);
+        } catch (_) {
+            return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
+        }
+        const protectedPassword = await protectPasswordHash(password, c.env.JWT_SECRET);
         // check cf turnstile only when mail verify is disabled
         // (when enabled, verify_code endpoint already checks turnstile)
         if (!settings.enableMailVerify) {
@@ -96,7 +116,7 @@ export default {
                 return c.text(msgs.TurnstileCheckFailedMsg, 400)
             }
         }
-        if (settings.enableMailVerify && !code) {
+        if (settings.enableMailVerify && (typeof code !== 'string' || !/^\d{6}$/.test(code))) {
             return c.text(msgs.InvalidVerifyCodeMsg, 400)
         }
         // check mail domain allow list
@@ -121,7 +141,7 @@ export default {
         // check code
         if (settings.enableMailVerify) {
             const verifyCode = await c.env.KV.get(`temp-mail:${email}`)
-            if (verifyCode != code) {
+            if (!verifyCode || !constantTimeEqual(verifyCode, code)) {
                 return c.text(msgs.InvalidVerifyCodeMsg, 400)
             }
         }
@@ -136,7 +156,7 @@ export default {
                     `INSERT INTO users (user_email, password, user_info)`
                     + ` VALUES (?, ?, ?)`
                 ).bind(
-                    email, password, JSON.stringify(userInfo)
+                    email, protectedPassword, JSON.stringify(userInfo)
                 ).run();
                 if (!success) {
                     return c.text(msgs.FailedToRegisterMsg, 500)
@@ -146,7 +166,8 @@ export default {
                 if (error.message && error.message.includes("UNIQUE")) {
                     return c.text(msgs.UserAlreadyExistsMsg, 400)
                 }
-                return c.text(`${msgs.FailedToRegisterMsg}: ${error.message}`, 500)
+                console.error("Failed to register user", error);
+                return c.text(msgs.FailedToRegisterMsg, 500)
             }
             return c.json({ success: true })
         }
@@ -156,12 +177,13 @@ export default {
             + ` VALUES (?, ?, ?)`
             + ` ON CONFLICT(user_email) DO UPDATE SET password = ?, user_info = ?, updated_at = datetime('now')`
         ).bind(
-            email, password, JSON.stringify(userInfo),
-            password, JSON.stringify(userInfo)
+            email, protectedPassword, JSON.stringify(userInfo),
+            protectedPassword, JSON.stringify(userInfo)
         ).run();
         if (!success) {
             return c.text(msgs.FailedToRegisterMsg, 400);
         }
+        await c.env.KV.delete(`temp-mail:${email}`);
         const defaultRole = getStringValue(c.env.USER_DEFAULT_ROLE);
         if (!defaultRole) return c.json({ success: true })
         const user_roles = getUserRoles(c);
@@ -192,6 +214,11 @@ export default {
         const { password, cf_token } = body;
         const msgs = i18n.getMessagesbyContext(c);
         if (!isValidUserEmail(email) || !password) return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
+        try {
+            checkUserPassword(password);
+        } catch (_) {
+            return c.text(msgs.InvalidEmailOrPasswordMsg, 401);
+        }
         // check cf turnstile if global turnstile is enabled
         if (utils.isGlobalTurnstileEnabled(c)) {
             try {
@@ -203,18 +230,22 @@ export default {
         const { id: user_id, password: dbPassword } = await c.env.DB.prepare(
             `SELECT id, password FROM users where user_email = ?`
         ).bind(email).first() || {};
-        if (!dbPassword) {
-            return c.text(msgs.UserNotFoundMsg, 400)
+        const passwordMatches = typeof dbPassword === "string"
+            && await verifyPasswordHash(dbPassword, password, c.env.JWT_SECRET);
+        if (!passwordMatches || !user_id) {
+            return c.text(msgs.InvalidEmailOrPasswordMsg, 401)
         }
-        // TODO: need check password use random salt
-        if (dbPassword != password) {
-            return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
+        if (passwordHashNeedsUpgrade(dbPassword)) {
+            const protectedPassword = await protectPasswordHash(password, c.env.JWT_SECRET);
+            await c.env.DB.prepare(
+                `UPDATE users SET password = ?, updated_at = datetime('now') WHERE id = ? AND password = ?`
+            ).bind(protectedPassword, user_id, dbPassword).run();
         }
         // create jwt
         const jwt = await Jwt.sign({
             user_email: email,
             user_id: user_id,
-            // 90 days expire in seconds
+            // 30 days expire in seconds
             exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
             iat: Math.floor(Date.now() / 1000),
         }, c.env.JWT_SECRET, "HS256")
@@ -230,18 +261,25 @@ export default {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
         }
         try {
+            checkUserPassword(current_password);
             checkUserPassword(new_password);
         } catch (error) {
-            return c.text(`${msgs.FailedUpdatePasswordMsg}: ${(error as Error).message}`, 400);
+            return c.text(msgs.FailedUpdatePasswordMsg, 400);
         }
+        const currentStoredPassword = await c.env.DB.prepare(
+            `SELECT password FROM users WHERE id = ?`
+        ).bind(user.user_id).first<string | null>('password');
+        if (!currentStoredPassword
+            || !await verifyPasswordHash(currentStoredPassword, current_password, c.env.JWT_SECRET)
+        ) {
+            return c.text(msgs.CurrentPasswordIncorrectMsg, 400);
+        }
+        const protectedPassword = await protectPasswordHash(new_password, c.env.JWT_SECRET);
         const result = await c.env.DB.prepare(
-            `UPDATE users SET password = ?, updated_at = datetime('now') WHERE id = ? AND password = ?`
-        ).bind(new_password, user.user_id, current_password).run();
+            `UPDATE users SET password = ?, updated_at = datetime('now') WHERE id = ?`
+        ).bind(protectedPassword, user.user_id).run();
         if (!result.success) {
             return c.text(msgs.FailedUpdatePasswordMsg, 500);
-        }
-        if (!result.meta.changes) {
-            return c.text(msgs.CurrentPasswordIncorrectMsg, 400);
         }
         return c.json({ success: true });
     },

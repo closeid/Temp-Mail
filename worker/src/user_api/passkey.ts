@@ -11,6 +11,37 @@ import { Passkey } from '../models';
 import type { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import i18n from '../i18n';
+import { verifyExpiringJwt } from '../utils';
+
+const PASSKEY_CHALLENGE_TTL_SECONDS = 300;
+
+const resolveWebAuthnContext = (c: Context<HonoCustomType>): { origin: string; rpID: string } => {
+    // The expected origin is a server-side trust decision. A caller-controlled
+    // Origin header must never define the WebAuthn relying party.
+    const candidate = c.env.FRONTEND_URL || new URL(c.req.url).origin;
+    const url = new URL(candidate);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
+        throw new Error('Invalid WebAuthn origin');
+    }
+    return { origin: url.origin, rpID: url.hostname };
+};
+
+const createChallenge = async (
+    c: Context<HonoCustomType>,
+    purpose: 'passkey-registration' | 'passkey-authentication',
+    rpID: string,
+    user?: UserPayload,
+): Promise<string> => {
+    const now = Math.floor(Date.now() / 1000);
+    return Jwt.sign({
+        purpose,
+        rpID,
+        user_id: user?.user_id,
+        user_email: user?.user_email,
+        iat: now,
+        exp: now + PASSKEY_CHALLENGE_TTL_SECONDS,
+    }, c.env.JWT_SECRET, 'HS256');
+};
 
 export default {
     getPassKeys: async (c: Context<HonoCustomType>) => {
@@ -24,12 +55,12 @@ export default {
         const msgs = i18n.getMessagesbyContext(c);
         const user = c.get("userPayload");
         const { passkey_id, passkey_name } = await c.req.json();
-        if (!passkey_name || passkey_name.length > 255) {
+        if (typeof passkey_name !== 'string' || !passkey_name.trim() || passkey_name.length > 255) {
             return c.text(msgs.InvalidPasskeyNameMsg, 400);
         }
         const { success } = await c.env.DB.prepare(
             `UPDATE user_passkeys SET passkey_name = ? WHERE user_id = ? AND passkey_id = ?`
-        ).bind(passkey_name, user.user_id, passkey_id).run();
+        ).bind(passkey_name.trim(), user.user_id, passkey_id).run();
         return c.json({ success });
     },
     deletePassKey: async (c: Context<HonoCustomType>) => {
@@ -42,7 +73,8 @@ export default {
     },
     registerRequest: async (c: Context<HonoCustomType>) => {
         const user = c.get("userPayload");
-        const { domain } = await c.req.json();
+        await c.req.json();
+        const { rpID } = resolveWebAuthnContext(c);
         const { results } = await c.env.DB.prepare(
             `SELECT passkey FROM user_passkeys WHERE user_id = ?`
         ).bind(user.user_id).all<Record<string, string>>();
@@ -52,17 +84,12 @@ export default {
                 id: passkey.id,
                 transports: passkey.transports,
             }));
-        // create challenge with 1 hour expiration
-        const challenge = await Jwt.sign({
-            user_email: user.user_email,
-            user_id: user.user_id,
-            iat: Math.floor(Date.now() / 1000),
-        }, c.env.JWT_SECRET, "HS256")
+        const challenge = await createChallenge(c, 'passkey-registration', rpID, user);
         // Use SimpleWebAuthn's handy function to create registration options.
         const options = await generateRegistrationOptions({
             rpName: c.env.TITLE || "Temp Mail",
-            rpID: domain,
-            userID: new TextEncoder().encode(user.user_id.toString()),
+            rpID,
+            userID: Uint8Array.from(new TextEncoder().encode(user.user_id.toString())),
             userName: user.user_email,
             userDisplayName: user.user_email,
             attestationType: 'none',
@@ -75,19 +102,30 @@ export default {
     registerResponse: async (c: Context<HonoCustomType>) => {
         const msgs = i18n.getMessagesbyContext(c);
         const user = c.get("userPayload");
-        const { credential, origin, passkey_name } = await c.req.json();
+        const { credential, passkey_name } = await c.req.json();
+        if (typeof passkey_name !== 'string' || !passkey_name.trim() || passkey_name.length > 255) {
+            return c.text(msgs.InvalidPasskeyNameMsg, 400);
+        }
+        const { origin, rpID } = resolveWebAuthnContext(c);
         // Verify the registration response
         const verification = await verifyRegistrationResponse({
             response: credential,
             expectedChallenge: async (challenge: string) => {
-                const payload = await Jwt.verify(atob(challenge), c.env.JWT_SECRET, "HS256");
-                if (!payload || !payload.iat) return false;
-                // check iad is not older than 5 minutes
-                if (Math.floor(Date.now() / 1000) - payload.iat > 300) return false;
-                if (payload.user_id !== user.user_id) return false;
-                return true;
+                try {
+                    const payload = await verifyExpiringJwt<{
+                        purpose?: string;
+                        rpID?: string;
+                        user_id?: number;
+                    }>(atob(challenge), c.env.JWT_SECRET);
+                    return payload.purpose === 'passkey-registration'
+                        && payload.rpID === rpID
+                        && payload.user_id === user.user_id;
+                } catch (_) {
+                    return false;
+                }
             },
             expectedOrigin: origin,
+            expectedRPID: rpID,
             requireUserVerification: false,
         });
         const { verified, registrationInfo } = verification;
@@ -96,11 +134,8 @@ export default {
             return c.text(msgs.RegistrationFailedMsg, 400);
         }
 
-        const {
-            id: credentialID, publicKey,
-            counter, deviceType, backedUp,
-            transports,
-        } = registrationInfo.credential;
+        const { credentialDeviceType: deviceType, credentialBackedUp: backedUp } = registrationInfo;
+        const { id: credentialID, publicKey, counter, transports } = registrationInfo.credential;
 
         // Base64URL encode ArrayBuffers.
         const base64PublicKey = isoBase64URL.fromBuffer(publicKey);
@@ -117,18 +152,16 @@ export default {
         // Store the credential ID in the database
         const { success } = await c.env.DB.prepare(
             `INSERT INTO user_passkeys (user_id, passkey_name, passkey_id, passkey, counter) VALUES (?, ?, ?, ?, ?)`
-        ).bind(user.user_id, passkey_name, credentialID, JSON.stringify(newPasskey), counter).run();
+        ).bind(user.user_id, passkey_name.trim(), credentialID, JSON.stringify(newPasskey), counter).run();
 
         return c.json({ success });
     },
     authenticateRequest: async (c: Context<HonoCustomType>) => {
-        const { domain } = await c.req.json();
-        const challenge = await Jwt.sign({
-            domain,
-            iat: Math.floor(Date.now() / 1000),
-        }, c.env.JWT_SECRET, "HS256")
+        await c.req.json();
+        const { rpID } = resolveWebAuthnContext(c);
+        const challenge = await createChallenge(c, 'passkey-authentication', rpID);
         const options: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
-            rpID: domain,
+            rpID,
             challenge: challenge,
             allowCredentials: [],
         });
@@ -136,7 +169,8 @@ export default {
     },
     authenticateResponse: async (c: Context<HonoCustomType>) => {
         const msgs = i18n.getMessagesbyContext(c);
-        const { domain, credential, origin } = await c.req.json();
+        const { credential } = await c.req.json();
+        const { origin, rpID } = resolveWebAuthnContext(c);
         const passkey_id = credential?.id;
         if (!passkey_id) {
             return c.text(msgs.InvalidInputMsg, 400);
@@ -154,14 +188,18 @@ export default {
         const verification = await verifyAuthenticationResponse({
             response: credential,
             expectedChallenge: async (challenge: string) => {
-                const payload = await Jwt.verify(atob(challenge), c.env.JWT_SECRET, "HS256");
-                if (!payload || !payload.iat) return false;
-                // check iad is not older than 5 minutes
-                if (Math.floor(Date.now() / 1000) - payload.iat > 300) return false;
-                return true;
+                try {
+                    const payload = await verifyExpiringJwt<{
+                        purpose?: string;
+                        rpID?: string;
+                    }>(atob(challenge), c.env.JWT_SECRET);
+                    return payload.purpose === 'passkey-authentication' && payload.rpID === rpID;
+                } catch (_) {
+                    return false;
+                }
             },
             expectedOrigin: origin,
-            expectedRPID: domain,
+            expectedRPID: rpID,
             requireUserVerification: false,
             credential: {
                 id: passkeyData.id,
@@ -198,7 +236,7 @@ export default {
         const jwt = await Jwt.sign({
             user_email: user_email,
             user_id: user_id,
-            // 90 days expire in seconds
+            // 30 days expire in seconds
             exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
             iat: Math.floor(Date.now() / 1000),
         }, c.env.JWT_SECRET, "HS256")

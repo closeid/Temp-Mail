@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { EditorContent, useEditor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import DOMPurify from 'dompurify'
 import { Bold, Code2, Italic, List, ListOrdered, Redo2, Send, Strikethrough, Undo2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -12,8 +11,9 @@ import { Textarea } from '@/components/ui/textarea'
 import { SettingsLayout } from '@/components/layout/settings-layout'
 import { api } from '@/lib/api'
 import { appStore, useAppStore } from '@/lib/store'
-import { stringifyError } from '@/lib/utils'
+import { getSafeExternalUrl, isValidEmailAddress, stringifyError } from '@/lib/utils'
 import { useScopedI18n } from '@/i18n/react'
+import { sanitizeHtml } from '@/lib/sanitize'
 
 const emptyModel = { fromName: '', fromMail: '', toName: '', toMail: '', subject: '', contentType: 'text', content: '' }
 const hasContent = (value: string, type: string) => {
@@ -25,6 +25,7 @@ const hasContent = (value: string, type: string) => {
 export function SendMailPage({ admin = false, onSent }: { admin?: boolean; onSent?: () => void }) {
   const { t } = useScopedI18n(admin ? 'views.admin.SendMail' : 'views.index.SendMail')
   const { settings, model: storedModel, adminContact } = useAppStore((state) => ({ settings: state.settings, model: state.sendMailModel, adminContact: state.openSettings.adminContact }))
+  const adminContactUrl = getSafeExternalUrl(adminContact) || (isValidEmailAddress(adminContact) ? `mailto:${adminContact.trim()}` : null)
   const [model, setModel] = useState({ ...emptyModel, ...storedModel })
   const [preview, setPreview] = useState(false)
   const [sending, setSending] = useState(false)
@@ -44,7 +45,7 @@ export function SendMailPage({ admin = false, onSent }: { admin?: boolean; onSen
     } catch (error) { toast.error(stringifyError(error)) } finally { setSending(false) }
   }
   const requestAccess = async () => { try { await api.fetch('/api/request_send_mail_access', { method: 'POST', body: {} }); await api.getSettings(); toast.success(t('success')) } catch (error) { toast.error(stringifyError(error)) } }
-  if (!admin && (!settings.send_balance || settings.send_balance <= 0)) return <SettingsLayout><div className="rounded-md border border-border bg-muted/50 p-4 text-sm text-muted-foreground"><p>{t('requestAccessTip')}</p><div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" onClick={requestAccess}>{t('requestAccess')}</Button>{adminContact && <Button variant="link" asChild><a href={adminContact}>{adminContact}</a></Button>}</div></div></SettingsLayout>
+  if (!admin && (!settings.send_balance || settings.send_balance <= 0)) return <SettingsLayout><div className="rounded-md border border-border bg-muted/50 p-4 text-sm text-muted-foreground"><p>{t('requestAccessTip')}</p><div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" onClick={requestAccess}>{t('requestAccess')}</Button>{adminContactUrl ? <Button variant="link" asChild><a href={adminContactUrl}>{adminContact}</a></Button> : adminContact ? <span className="px-3 py-2">{adminContact}</span> : null}</div></div></SettingsLayout>
   const toolbar = editor && <div className="flex flex-wrap gap-1 border-b border-border p-1">{[
     [Bold, () => editor.chain().focus().toggleBold().run(), editor.isActive('bold')], [Italic, () => editor.chain().focus().toggleItalic().run(), editor.isActive('italic')], [Strikethrough, () => editor.chain().focus().toggleStrike().run(), editor.isActive('strike')], [Code2, () => editor.chain().focus().toggleCode().run(), editor.isActive('code')], [List, () => editor.chain().focus().toggleBulletList().run(), editor.isActive('bulletList')], [ListOrdered, () => editor.chain().focus().toggleOrderedList().run(), editor.isActive('orderedList')], [Undo2, () => editor.chain().focus().undo().run(), false], [Redo2, () => editor.chain().focus().redo().run(), false],
   ].map(([Icon, action, active], index) => { const C = Icon as any; return <Button key={index} type="button" size="icon" variant={active ? 'secondary' : 'ghost'} onClick={action as any}><C /></Button> })}</div>
@@ -54,6 +55,6 @@ export function SendMailPage({ admin = false, onSent }: { admin?: boolean; onSen
     <Field label={t('toName')}><div className="grid gap-2 sm:grid-cols-2"><Input value={model.toName} onChange={(event) => update('toName', event.target.value)} /><Input type="email" value={model.toMail} onChange={(event) => update('toMail', event.target.value)} /></div></Field>
     <Field label={t('subject')}><Input value={model.subject} onChange={(event) => update('subject', event.target.value)} /></Field>
     <Field label={t('options')}><div className="flex flex-wrap items-center gap-2"><Tabs value={model.contentType} onValueChange={(value) => { update('contentType', value); setPreview(false) }}><TabsList className="rounded-md border border-border p-0.5"><TabsTrigger value="text">{t('text')}</TabsTrigger><TabsTrigger value="html">{t('html')}</TabsTrigger><TabsTrigger value="rich">{t('rich text')}</TabsTrigger></TabsList></Tabs>{model.contentType !== 'text' && <Button variant="secondary" onClick={() => setPreview((value) => !value)}>{preview ? t('edit') : t('preview')}</Button>}</div></Field>
-    <Field label={t('content')}>{preview ? <div className="min-h-64 rounded-md border border-border p-4 mail-html" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(model.content) }} /> : model.contentType === 'rich' ? <div className="overflow-hidden rounded-md border border-input">{toolbar}<EditorContent editor={editor} className="min-h-[360px] px-4 py-3 [&_.tiptap]:min-h-[330px] [&_.tiptap]:outline-none" /></div> : <Textarea className="min-h-[360px] font-mono text-xs" value={model.content} onChange={(event) => update('content', event.target.value)} />}</Field>
+    <Field label={t('content')}>{preview ? <div className="min-h-64 rounded-md border border-border p-4 mail-html" dangerouslySetInnerHTML={{ __html: sanitizeHtml(model.content) }} /> : model.contentType === 'rich' ? <div className="overflow-hidden rounded-md border border-input">{toolbar}<EditorContent editor={editor} className="min-h-[360px] px-4 py-3 [&_.tiptap]:min-h-[330px] [&_.tiptap]:outline-none" /></div> : <Textarea className="min-h-[360px] font-mono text-xs" value={model.content} onChange={(event) => update('content', event.target.value)} />}</Field>
   </SettingsLayout>
 }

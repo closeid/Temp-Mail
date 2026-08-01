@@ -48,7 +48,10 @@ export function AddressBar({ manageContent, onManage }: { manageContent?: React.
   const userAddresses = useBoundAddresses(accountSession)
   const telegramAddresses = useQuery({ queryKey: ['telegram-bound-addresses', state.telegramInitData], enabled: !credentialOnly && state.isTelegram, queryFn: () => api.fetch<any[]>('/api/telegram/get_bind_address', { method: 'POST', body: { initData: state.telegramInitData } }) })
   const localOptions = useMemo<AddressOption[]>(() => readCache().map((jwt): AddressOption => ({ key: `local:${jwt}`, scope: 'local', payload: jwt, address: parseJwtAddress(jwt), label: parseJwtAddress(jwt) })).filter((item) => item.address), [cacheRevision, state.jwt])
-  const userOptions = useMemo<AddressOption[]>(() => (userAddresses.data?.results || []).map((item): AddressOption => ({ key: `user:${item.id}`, scope: 'user', payload: String(item.id), address: item.address || item.name, label: item.address || item.name })), [userAddresses.data?.results])
+  const userOptions = useMemo<AddressOption[]>(() => (userAddresses.data?.results || []).flatMap((item): AddressOption[] => {
+    const address = item.address || item.name
+    return address ? [{ key: `user:${item.id}`, scope: 'user', payload: String(item.id), address, label: address }] : []
+  }), [userAddresses.data?.results])
   const telegramOptions = useMemo<AddressOption[]>(() => (telegramAddresses.data || []).map((item): AddressOption => ({ key: `tg:${item.address}`, scope: 'tg', payload: item.jwt, address: item.address, label: item.address })), [telegramAddresses.data])
   const remoteOptions = [...userOptions, ...telegramOptions.filter((item) => !userOptions.some((userItem) => userItem.address === item.address))]
   const currentOption: AddressOption | null = state.settings.address

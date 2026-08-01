@@ -30,9 +30,9 @@ export function UserSettingsPage() {
 
   const create = async () => {
     try {
-      const options = await api.fetch<any>('/api/user/passkey/register_request', { method: 'POST', body: { domain: location.hostname } })
+      const options = await api.fetch<any>('/api/user/passkey/register_request', { method: 'POST' })
       const credential = await startRegistration({ optionsJSON: options })
-      await api.fetch('/api/user/passkey/register_response', { method: 'POST', body: { origin: location.origin, passkey_name: name || `${navigator.platform || 'Unknown'}: ${Math.random().toString(36).slice(7)}`, credential } })
+      await api.fetch('/api/user/passkey/register_response', { method: 'POST', body: { passkey_name: name || `${navigator.platform || 'Unknown'}: ${crypto.randomUUID().slice(0, 8)}`, credential } })
       toast.success(t('passkeyCreated'))
       setName('')
       setCreateOpen(false)

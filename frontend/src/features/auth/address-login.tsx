@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { useNavigate } from 'react-router-dom'
 import { api } from '@/lib/api'
 import { appStore, useAppStore } from '@/lib/store'
-import { hashPassword, stringifyError } from '@/lib/utils'
+import { hashPassword, secureRandomInt, stringifyError } from '@/lib/utils'
 import { useScopedI18n } from '@/i18n/react'
 import { getPathWithLocale } from '@/i18n/utils'
 import { Button } from '@/components/ui/button'
@@ -96,8 +96,8 @@ export function AddressLogin({ loginOnly = false, preferCredential = false, bind
 
   const generateName = () => {
     const parts = ['ember', 'quiet', 'clear', 'moss', 'cedar', 'paper', 'north', 'silver', 'signal', 'orbit']
-    const suffix = Math.floor(100 + Math.random() * 900)
-    const raw = `${parts[Math.floor(Math.random() * parts.length)]}.${parts[Math.floor(Math.random() * parts.length)]}${suffix}`
+    const suffix = 100 + secureRandomInt(900)
+    const raw = `${parts[secureRandomInt(parts.length)]}.${parts[secureRandomInt(parts.length)]}${suffix}`
     let regex = /[^a-z0-9.]/g
     try { if (openSettings.addressRegex) regex = new RegExp(openSettings.addressRegex, 'g') } catch { /* keep safe default */ }
     setName(raw.replace(regex, '').slice(0, openSettings.maxAddressLen))

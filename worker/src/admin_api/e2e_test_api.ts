@@ -63,11 +63,11 @@ const receiveMail = async (c: Context<HonoCustomType>) => {
     const env = ai_extract_result
         ? { ...c.env, ...aiExtractEnvOverrides }
         : c.env;
-    const executionContext: ExecutionContext = {
+    const executionContext = {
         waitUntil: () => {},
         passThroughOnException: () => {},
         props: {}
-    };
+    } as unknown as ExecutionContext;
     await emailHandler(mockMessage, env, executionContext);
 
     return c.json({

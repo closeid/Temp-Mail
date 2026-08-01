@@ -75,6 +75,3 @@ export const getAdminSection = (page: AdminPageKey): AdminSectionKey => {
   return (Object.keys(ADMIN_SECTION_PAGES) as AdminSectionKey[])
     .find((section) => ADMIN_SECTION_PAGES[section].includes(page)) || 'account'
 }
-
-export const getAdminPath = (page: AdminPageKey) => ADMIN_PAGE_ROUTES[page]
-export const getMailPath = (page: MailRouteKey) => MAIL_ROUTES[page]

@@ -22,6 +22,17 @@ export const formatDate = (utcDate?: string, useUTC = false) => {
 
 export const copyText = async (value: string) => navigator.clipboard.writeText(value)
 
+export const secureRandomInt = (maxExclusive: number) => {
+  if (!Number.isSafeInteger(maxExclusive) || maxExclusive <= 0 || maxExclusive > 0x1_0000_0000) {
+    throw new RangeError('Invalid random range')
+  }
+  const range = 0x1_0000_0000
+  const limit = range - (range % maxExclusive)
+  const values = new Uint32Array(1)
+  do crypto.getRandomValues(values); while (values[0] >= limit)
+  return values[0] % maxExclusive
+}
+
 export const downloadBlob = (blob: Blob, filename: string) => {
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
@@ -29,15 +40,6 @@ export const downloadBlob = (blob: Blob, filename: string) => {
   anchor.download = filename
   anchor.click()
   URL.revokeObjectURL(url)
-}
-
-export const parseJson = <T>(value: string | null, fallback: T): T => {
-  if (value == null || value === '') return fallback
-  try {
-    return JSON.parse(value) as T
-  } catch {
-    return value as T
-  }
 }
 
 export const stringifyError = (error: unknown) => error instanceof Error ? error.message : String(error)
