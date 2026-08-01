@@ -7,6 +7,7 @@ import { unbindTelegramByAddress } from './telegram_api/common';
 import { CONSTANTS } from './constants';
 import { AddressCreationSettings, AdminWebhookSettings, ExtractResult, RawMailRow, WebhookMail, WebhookSettings } from './models';
 import i18n from './i18n';
+import { parseRawMail } from './mail_parser';
 
 const DEFAULT_NAME_REGEX = /[^a-z0-9]/g;
 const DEFAULT_RANDOM_SUBDOMAIN_LENGTH = 8;
@@ -707,31 +708,8 @@ export const commonParseMail = async (parsedEmailContext: ParsedEmailContext): P
     if (parsedEmailContext.parsedEmail) {
         return parsedEmailContext.parsedEmail;
     }
-    const raw_mail = parsedEmailContext.rawEmail;
-    try {
-        const { default: PostalMime } = await import('postal-mime');
-        const parsedEmail = await PostalMime.parse(raw_mail);
-        parsedEmailContext.parsedEmail = {
-            sender: parsedEmail.from ? `${parsedEmail.from.name} <${parsedEmail.from.address}>` : "",
-            subject: parsedEmail.subject || "",
-            text: parsedEmail.text || "",
-            html: parsedEmail.html || "",
-            headers: parsedEmail.headers || [],
-            attachments: (parsedEmail.attachments || []).map(att => ({
-                filename: att.filename || "attachment",
-                mimeType: att.mimeType || "application/octet-stream",
-                content: typeof att.content === 'string'
-                    ? new TextEncoder().encode(att.content)
-                    : new Uint8Array(att.content),
-                disposition: att.disposition || "attachment",
-            })),
-        };
-        return parsedEmailContext.parsedEmail;
-    }
-    catch (e) {
-        console.error("Failed use PostalMime to parse email", e);
-    }
-    return undefined;
+    parsedEmailContext.parsedEmail = await parseRawMail(parsedEmailContext.rawEmail);
+    return parsedEmailContext.parsedEmail;
 }
 
 export const commonGetUserRole = async (

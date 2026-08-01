@@ -131,10 +131,9 @@ jobs:
         run: |
           cd worker
           echo "Using mail-parser-wasm-worker"
-          pnpm add mail-parser-wasm-worker
-          git apply ../.github/config/mail-parser-wasm-worker.patch
-          echo "Applied mail-parser-wasm-worker patch"
-          pnpm build
+          pnpm build:wasm
+          test -f dist/worker.js
+          test -n "$(find dist -maxdepth 1 -name '*.wasm' -print -quit)"
           zip -r worker-with-wasm-mail-parser.zip dist/worker.js dist/*.wasm
 
       - name: Upload worker.js

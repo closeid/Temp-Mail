@@ -35,6 +35,7 @@
 
 ### Bug Fixes
 
+- fix: |Tag Build CI| Replace the WASM mail-parser build's dynamic dependency installation and source patch with a pinned dependency and dedicated parser build entry, and pin Wrangler to prevent peer-dependency drift during lockfile-free installs
 - fix: |Internationalization| Translate the Address JWT label in Address Credentials and Connection Methods for Chinese users
 - fix: |Frontend notifications and mail lists| Move every Sonner toast close button to the bottom-right and remove visible mail IDs from inbox and sent-mail views in both the frontend and administration UI
 - fix: |Administration| Keep creation timestamps in the user's bound-address dialog on one line on desktop and mobile, allowing the table container to scroll horizontally when space is limited

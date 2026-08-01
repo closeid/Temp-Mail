@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "deploy": "wrangler deploy --minify",
     "start": "wrangler dev",
-    "build": "wrangler deploy --dry-run --outdir dist --minify"
+    "build": "wrangler deploy --dry-run --outdir dist --minify",
+    "build:wasm": "wrangler deploy --dry-run --outdir dist --minify --alias \"./mail_parser:./src/mail_parser_wasm.ts\""
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260624.1",
@@ -17,9 +18,10 @@
     "@types/node": "^25.9.4",
     "eslint": "9.39.1",
     "globals": "^16.5.0",
+    "mail-parser-wasm-worker": "0.2.2",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.62.0",
-    "wrangler": "^4.104.0"
+    "wrangler": "4.104.0"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1098.0",
