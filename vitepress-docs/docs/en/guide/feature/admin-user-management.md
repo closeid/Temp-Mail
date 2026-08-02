@@ -35,7 +35,7 @@ The `password` field of `POST /api/user/register`, `POST /api/admin/users`, and 
 
 This compatibility protocol avoids plaintext passwords in application request bodies, but the SHA-256 verifier remains a sensitive authentication credential. Always use HTTPS and never log request bodies. Prefer the application's Passkey support for a replay-resistant passwordless flow. SRP/OPAQUE PAKE requires complete enrollment, challenge, proof, and migration handling and must not be replaced by custom "extra encryption".
 
-The administrator reset-password dialog can generate and fill a compliant 12-character password. The generator uses the browser cryptographic random source and guarantees all four required character groups.
+The administrator reset-password dialog can generate and fill a compliant 12-character password. The generator uses the browser cryptographic random source and guarantees all four required character groups. Selecting **Generate password** copies the value to the system clipboard and confirms the copy. Generated values are shown directly for secure handoff; manual edits immediately restore password masking.
 
 The User Management action menu includes **Manage Passkeys**. Administrators can inspect or revoke a user's registered Passkeys without creating or renaming them. The administration API equivalents are:
 

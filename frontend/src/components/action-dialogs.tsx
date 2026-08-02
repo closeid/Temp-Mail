@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Dices } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { useScopedI18n } from '@/i18n/react'
-import { generateUserPassword } from '@/lib/utils'
+import { copyText, generateUserPassword } from '@/lib/utils'
 
 type ConfirmRequest = {
   kind: 'confirm'
@@ -56,11 +57,13 @@ export function ActionDialogs({ children }: { children: ReactNode }) {
   const [request, setRequest] = useState<ActionRequest | null>(null)
   const [value, setValue] = useState('')
   const [promptError, setPromptError] = useState('')
+  const [generatedPasswordVisible, setGeneratedPasswordVisible] = useState(false)
 
   useEffect(() => {
     dispatch = (next) => {
       setValue(next.kind === 'prompt' ? next.defaultValue || '' : '')
       setPromptError('')
+      setGeneratedPasswordVisible(false)
       setRequest(next)
     }
     return () => { dispatch = null }
@@ -77,8 +80,21 @@ export function ActionDialogs({ children }: { children: ReactNode }) {
     const resolve = request.resolve
     setValue('')
     setPromptError('')
+    setGeneratedPasswordVisible(false)
     setRequest(null)
     resolve(result)
+  }
+  const generateAndCopyPassword = async () => {
+    const password = generateUserPassword()
+    setValue(password)
+    setPromptError('')
+    setGeneratedPasswordVisible(true)
+    try {
+      await copyText(password)
+      toast.success(t('copied'))
+    } catch {
+      toast.error(t('copyFailed'))
+    }
   }
   const submitPrompt = (event: FormEvent) => {
     event.preventDefault()
@@ -103,11 +119,11 @@ export function ActionDialogs({ children }: { children: ReactNode }) {
       {request?.kind === 'prompt' && <DialogContent showClose={false}>
         <form className="grid gap-4" onSubmit={submitPrompt}>
           <DialogHeader><DialogTitle>{request.title}</DialogTitle>{request.description && <DialogDescription>{request.description}</DialogDescription>}</DialogHeader>
-          <Input autoFocus aria-invalid={Boolean(promptError)} type={request.inputType || 'text'} placeholder={request.placeholder} value={value} onChange={(event) => { setValue(event.target.value); setPromptError('') }} />
+          <Input autoFocus aria-invalid={Boolean(promptError)} autoComplete={request.inputType === 'password' ? 'new-password' : undefined} type={request.generatePassword && generatedPasswordVisible ? 'text' : request.inputType || 'text'} placeholder={request.placeholder} value={value} onChange={(event) => { setValue(event.target.value); setPromptError(''); setGeneratedPasswordVisible(false) }} />
           {promptError && <p className="text-xs leading-5 text-destructive">{promptError}</p>}
           {request.generatePassword
             ? <DialogFooter className="flex-row items-center justify-between sm:justify-between">
-              <Button className="px-2" type="button" variant="secondary" onClick={() => { setValue(generateUserPassword()); setPromptError('') }}><Dices />{t('generatePassword')}</Button>
+              <Button className="px-2" type="button" variant="secondary" onClick={generateAndCopyPassword}><Dices />{t('generatePassword')}</Button>
               <div className="flex items-center gap-2"><Button className="px-2" type="button" variant="outline" onClick={() => finishPrompt(null)}>{t('cancel')}</Button><Button className="px-2" type="submit">{request.confirmLabel || t('confirm')}</Button></div>
             </DialogFooter>
             : <DialogFooter><Button type="button" variant="outline" onClick={() => finishPrompt(null)}>{t('cancel')}</Button><Button type="submit">{request.confirmLabel || t('confirm')}</Button></DialogFooter>}

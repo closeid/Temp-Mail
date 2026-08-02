@@ -10,7 +10,7 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
     common: {
       actions: 'Actions', refresh: 'Refresh', noData: 'No data', perPage: '{count} / page', loading: 'Loading...',
       invalidJson: 'Invalid JSON', inherit: 'Inherit', enabled: 'Enabled', disabled: 'Disabled', saved: 'Saved',
-      save: 'Save', copied: 'Copied', copy: 'Copy', unknown: 'Unknown', notConfigured: 'Not configured', yes: 'Yes', no: 'No',
+      save: 'Save', copied: 'Copied', copyFailed: 'Copy failed', copy: 'Copy', unknown: 'Unknown', notConfigured: 'Not configured', yes: 'Yes', no: 'No',
       cancel: 'Cancel', confirm: 'Confirm', close: 'Close', previousPage: 'Previous page', nextPage: 'Next page', open: 'Open', unbind: 'Unbind',
       unbindAddress: 'Unbind address', addressUnbound: 'Address unbound', addresses: 'Addresses', addAddress: 'Add address', telegramAddresses: 'Telegram addresses', switch: 'Switch', remove: 'Remove', settings: 'Settings',
       generatePassword: 'Generate password', passwordRequirements: 'Use at least 8 characters with uppercase and lowercase letters, a number, and a symbol.',
@@ -65,7 +65,7 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
     common: {
       actions: '操作', refresh: '刷新', noData: '暂无数据', perPage: '每页 {count} 条', loading: '加载中...',
       invalidJson: 'JSON 格式无效', inherit: '跟随默认设置', enabled: '已启用', disabled: '已禁用', saved: '已保存',
-      save: '保存', copied: '已复制', copy: '复制', unknown: '未知', notConfigured: '未配置', yes: '是', no: '否',
+      save: '保存', copied: '已复制', copyFailed: '复制失败', copy: '复制', unknown: '未知', notConfigured: '未配置', yes: '是', no: '否',
       cancel: '取消', confirm: '确认', close: '关闭', previousPage: '上一页', nextPage: '下一页', open: '打开', unbind: '解除绑定',
       unbindAddress: '解除地址绑定', addressUnbound: '地址已解除绑定', addresses: '地址', addAddress: '添加地址', telegramAddresses: 'Telegram 地址', switch: '切换', remove: '移除', settings: '设置',
       generatePassword: '生成密码', passwordRequirements: '密码至少需要 8 位，并且必须包含英文大写字母、英文小写字母、数字和符号。',

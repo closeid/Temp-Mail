@@ -381,6 +381,7 @@ test('administrator can view and delete a user Passkey', async ({ page }) => {
 })
 
 test('administrator can generate a compliant password when resetting a user', async ({ page }) => {
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], { origin: 'http://127.0.0.1:4174' })
   await mockCommon(page, { disableAdminPasswordCheck: true })
   let passwordRequest: Record<string, string> | undefined
   await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 8, user_email: 'owner@example.com', role_text: 'member', address_count: 0, created_at: '2026-07-31' }] } }))
@@ -399,18 +400,28 @@ test('administrator can generate a compliant password when resetting a user', as
   const cancelButton = dialog.getByRole('button', { name: 'Cancel' })
   const confirmButton = dialog.getByRole('button', { name: 'Confirm' })
   await generateButton.click()
-  const generatedPassword = await dialog.locator('input[type="password"]').inputValue()
+  const passwordInput = dialog.locator('input')
+  await expect(passwordInput).toHaveAttribute('type', 'text')
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Copied' })).toBeVisible()
+  const generatedPassword = await passwordInput.inputValue()
   expect(generatedPassword).toHaveLength(12)
   expect(generatedPassword).toMatch(/[a-z]/)
   expect(generatedPassword).toMatch(/[A-Z]/)
   expect(generatedPassword).toMatch(/[0-9]/)
   expect(generatedPassword).toMatch(/[^A-Za-z0-9\s]/)
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(generatedPassword)
+  await passwordInput.fill('ManualPassword1!')
+  await expect(passwordInput).toHaveAttribute('type', 'password')
+  await generateButton.click()
+  await expect(passwordInput).toHaveAttribute('type', 'text')
+  const passwordToSubmit = await passwordInput.inputValue()
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(passwordToSubmit)
   const buttonBoxes = await Promise.all([generateButton, cancelButton, confirmButton].map((button) => button.boundingBox()))
   expect(buttonBoxes.every((box) => box && box.y === buttonBoxes[0]?.y)).toBe(true)
   expect((buttonBoxes[0]?.x || 0) < (buttonBoxes[1]?.x || 0)).toBe(true)
   await confirmButton.click()
   await expect.poll(() => passwordRequest?.password).toMatch(/^[a-f0-9]{64}$/)
-  expect(passwordRequest?.password).not.toBe(generatedPassword)
+  expect(passwordRequest?.password).not.toBe(passwordToSubmit)
 })
 
 test('dashboard administration settings stay available and aligned', async ({ page }, testInfo) => {
