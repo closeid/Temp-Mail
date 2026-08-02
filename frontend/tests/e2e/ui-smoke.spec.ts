@@ -50,6 +50,29 @@ test('unified login and registration surface', async ({ page }, testInfo) => {
   await page.screenshot({ path: `test-results/auth-${testInfo.project.name}.png`, fullPage: true })
 })
 
+test('registration enforces the user password policy before submission', async ({ page }) => {
+  await mockCommon(page, {}, { enableMailVerify: false })
+  let registrationRequest: Record<string, string> | undefined
+  await page.route('**/api/user/register', async (route) => {
+    registrationRequest = route.request().postDataJSON()
+    await route.fulfill({ json: { success: true } })
+  })
+
+  await page.goto('/en/register')
+  await page.locator('input[type="email"]').fill('new-user@example.com')
+  await page.locator('input[type="password"]').fill('weakpassword')
+  await page.getByRole('button', { name: 'Register', exact: true }).click()
+  await expect(page.locator('[data-sonner-toast]').filter({ hasText: /uppercase and lowercase letters/i })).toBeVisible()
+  expect(registrationRequest).toBeUndefined()
+
+  await page.locator('input[type="password"]').fill('StrongPassword1!')
+  await page.getByRole('button', { name: 'Register', exact: true }).click()
+  await expect.poll(() => registrationRequest).toBeTruthy()
+  expect(registrationRequest).toMatchObject({ email: 'new-user@example.com', code: '', cf_token: '' })
+  expect(registrationRequest?.password).toMatch(/^[a-f0-9]{64}$/)
+  expect(registrationRequest?.password).not.toBe('StrongPassword1!')
+})
+
 test('disabled registration leaves only the login entry', async ({ page }) => {
   await mockCommon(page, {}, { enable: false })
   await page.goto('/en/login')
@@ -322,10 +345,11 @@ test('security settings change the password and let the user delete a Passkey', 
 
   await page.goto('/en/settings/security')
   await page.getByLabel('Current Password', { exact: true }).fill('old-password')
-  await page.getByLabel('New Password', { exact: true }).fill('new-password')
-  await page.getByLabel('Confirm New Password', { exact: true }).fill('new-password')
+  await page.getByLabel('New Password', { exact: true }).fill('NewPassword1!')
+  await page.getByLabel('Confirm New Password', { exact: true }).fill('NewPassword1!')
   await page.getByRole('button', { name: 'Change Password', exact: true }).click()
   await expect.poll(() => Boolean(passwordRequest && passwordRequest.current_password.length === 64 && passwordRequest.new_password.length === 64 && passwordRequest.current_password !== passwordRequest.new_password)).toBe(true)
+  expect(passwordRequest?.new_password).not.toBe('NewPassword1!')
 
   await page.getByRole('button', { name: 'Show Passkey List' }).click()
   await expect(page.getByRole('dialog')).toContainText('Laptop')
@@ -354,6 +378,39 @@ test('administrator can view and delete a user Passkey', async ({ page }) => {
   await dialog.getByTitle('Delete Passkey').click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm' }).click()
   await expect.poll(() => deletedPasskey).toBe('passkey-1')
+})
+
+test('administrator can generate a compliant password when resetting a user', async ({ page }) => {
+  await mockCommon(page, { disableAdminPasswordCheck: true })
+  let passwordRequest: Record<string, string> | undefined
+  await page.route('**/api/admin/users?**', (route) => route.fulfill({ json: { count: 1, results: [{ id: 8, user_email: 'owner@example.com', role_text: 'member', address_count: 0, created_at: '2026-07-31' }] } }))
+  await page.route('**/api/admin/user_roles', (route) => route.fulfill({ json: [{ role: 'member' }] }))
+  await page.route('**/api/admin/users/8/reset_password', async (route) => {
+    passwordRequest = route.request().postDataJSON()
+    await route.fulfill({ json: { success: true } })
+  })
+
+  await page.goto('/en/dashboard/users/list')
+  const row = page.getByRole('row').filter({ hasText: 'owner@example.com' })
+  await row.getByTitle('Actions').click()
+  await page.getByRole('menuitem', { name: 'Reset password' }).click()
+  const dialog = page.getByRole('dialog')
+  const generateButton = dialog.getByRole('button', { name: 'Generate password' })
+  const cancelButton = dialog.getByRole('button', { name: 'Cancel' })
+  const confirmButton = dialog.getByRole('button', { name: 'Confirm' })
+  await generateButton.click()
+  const generatedPassword = await dialog.locator('input[type="password"]').inputValue()
+  expect(generatedPassword).toHaveLength(12)
+  expect(generatedPassword).toMatch(/[a-z]/)
+  expect(generatedPassword).toMatch(/[A-Z]/)
+  expect(generatedPassword).toMatch(/[0-9]/)
+  expect(generatedPassword).toMatch(/[^A-Za-z0-9\s]/)
+  const buttonBoxes = await Promise.all([generateButton, cancelButton, confirmButton].map((button) => button.boundingBox()))
+  expect(buttonBoxes.every((box) => box && box.y === buttonBoxes[0]?.y)).toBe(true)
+  expect((buttonBoxes[0]?.x || 0) < (buttonBoxes[1]?.x || 0)).toBe(true)
+  await confirmButton.click()
+  await expect.poll(() => passwordRequest?.password).toMatch(/^[a-f0-9]{64}$/)
+  expect(passwordRequest?.password).not.toBe(generatedPassword)
 })
 
 test('dashboard administration settings stay available and aligned', async ({ page }, testInfo) => {

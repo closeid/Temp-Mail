@@ -41,7 +41,7 @@ Test categories: `tests/api/` (API tests), `tests/browser/` (UI tests with Chrom
 The Docker frontend serves over **HTTPS** (self-signed cert) with Vite proxy to worker — required for WebAuthn (`navigator.credentials`) and `crypto.subtle` which need a secure context. Browser tests use `ignoreHTTPSErrors: true`.
 
 Key patterns for browser tests:
-- Frontend hashes passwords with SHA-256 (`crypto.subtle`) before sending — API test registration must use pre-hashed passwords if UI login is needed.
+- Frontend password flows validate new-password policy locally, then derive a SHA-256 value with `crypto.subtle` before every request. The Worker accepts only a 64-character hexadecimal verifier and HMAC-protects it before storage; plaintext passwords must never be sent to Worker APIs.
 - Persistent frontend state keeps the existing raw string localStorage contract — set string values directly rather than with `JSON.stringify()`.
 - WebAuthn browser tests use CDP virtual authenticator (`WebAuthn.enable` + `WebAuthn.addVirtualAuthenticator`).
 

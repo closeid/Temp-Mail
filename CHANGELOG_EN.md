@@ -10,6 +10,7 @@
 
 ### Features
 
+- feat: |User password security| Require registration, recovery, account changes, and administrator-created/reset passwords to contain at least 8 characters with upper/lowercase English letters, a number, and a symbol; derive SHA-256 values in the browser for every password request, reject non-hexadecimal 64-character verifiers in the Worker, HMAC-protect verifiers before storage, and add a cryptographically secure 12-character generator to the administrator reset dialog
 - feat: |Administration| Merge Mail Webhook and Webhook Settings into `/dashboard/mail/webhook` under the Webhook title, with separate controls for global mail delivery and the mailbox Webhook allowlist
 - feat: |Account security/Administration API| Add Settings -> Security for changing an account password after verifying the current password; extract the Passkey list into a shared component that retains deletion, add administrator actions and APIs to inspect or delete a user's Passkeys, and remove Passkeys and roles when deleting a user
 - feat: |Mailbox navigation| Rename the primary Account menu to Account Settings and its secondary entries to Credentials and Security, moving them to explicit `/settings/credentials` and `/settings/security` routes

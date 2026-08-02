@@ -537,8 +537,8 @@ export const MESSAGE_REGISTRY = {
       "zh": "两次输入的新密码不一致"
     },
     "passordTip": {
-      "en": "The server will only receive the hash value of the password, and will not receive the plaintext password, so it cannot view or retrieve your password. If the administrator enables email verification, you can reset the password in incognito mode",
-      "zh": "服务器只会接收到密码的哈希值，不会接收到明文密码，因此无法查看或者找回您的密码, 如果管理员启用了邮件验证您可以在无痕模式重置密码"
+      "en": "The browser derives a SHA-256 value before sending a password. The Worker never receives plaintext and stores only an HMAC-protected verifier. If the administrator enables email verification, you can reset your password from the sign-in page.",
+      "zh": "浏览器会先生成密码的 SHA-256 派生值再发送，Worker 不会接收明文，数据库仅保存经过 HMAC 保护的校验值。管理员开启邮箱验证后，可从登录页重置密码。"
     },
     "renamePasskey": {
       "en": "Rename Passkey",

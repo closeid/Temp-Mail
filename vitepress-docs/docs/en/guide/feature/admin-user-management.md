@@ -16,7 +16,9 @@ Role Address Configuration limits how many mailbox addresses a user with a given
 
 ## Account Security and Passkeys
 
-Signed-in users can change their account password from **Settings -> Security**. The request requires both the current and new password and uses the same client-side SHA-256 password representation as sign-in requests. Send the account JWT in the `x-user-token` header:
+Every newly assigned user password must be at least 8 characters and include an uppercase English letter, a lowercase English letter, a number, and a symbol. This applies to registration, password recovery, signed-in password changes, administrator-created users, and administrator password resets.
+
+Signed-in users can change their account password from **Settings -> Security**. The browser validates the new-password policy first, then derives separate SHA-256 values for the current and new passwords. The Worker accepts only 64-character hexadecimal verifiers and HMAC-protects them before writing to D1. Send the account JWT in the `x-user-token` header:
 
 ```http
 POST /api/user/change_password
@@ -28,6 +30,12 @@ x-user-token: <user-jwt>
   "new_password": "<sha256-new-password>"
 }
 ```
+
+The `password` field of `POST /api/user/register`, `POST /api/admin/users`, and `POST /api/admin/users/:user_id/reset_password` likewise accepts only a client-derived SHA-256 verifier, never plaintext. The official frontend applies the password policy before deriving it. Because the Worker cannot infer password composition from an irreversible verifier, direct API clients must apply the same policy.
+
+This compatibility protocol avoids plaintext passwords in application request bodies, but the SHA-256 verifier remains a sensitive authentication credential. Always use HTTPS and never log request bodies. Prefer the application's Passkey support for a replay-resistant passwordless flow. SRP/OPAQUE PAKE requires complete enrollment, challenge, proof, and migration handling and must not be replaced by custom "extra encryption".
+
+The administrator reset-password dialog can generate and fill a compliant 12-character password. The generator uses the browser cryptographic random source and guarantees all four required character groups.
 
 The User Management action menu includes **Manage Passkeys**. Administrators can inspect or revoke a user's registered Passkeys without creating or renaming them. The administration API equivalents are:
 

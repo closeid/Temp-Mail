@@ -10,12 +10,13 @@ import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { SettingsLayout } from '@/components/layout/settings-layout'
 import { api } from '@/lib/api'
-import { hashPassword, stringifyError } from '@/lib/utils'
+import { hashPassword, isValidUserPassword, stringifyError } from '@/lib/utils'
 import { useScopedI18n } from '@/i18n/react'
 import { PasskeyTable, type PasskeyRecord } from './passkey-table'
 
 export function UserSettingsPage() {
   const { t } = useScopedI18n('views.user.UserSettings')
+  const commonT = useScopedI18n('ui.common').t
   const [createOpen, setCreateOpen] = useState(false)
   const [renameOpen, setRenameOpen] = useState(false)
   const [listOpen, setListOpen] = useState(false)
@@ -59,6 +60,7 @@ export function UserSettingsPage() {
   }
   const changePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) return toast.error(t('changePasswordDescription'))
+    if (!isValidUserPassword(newPassword)) return toast.error(commonT('passwordRequirements'))
     if (newPassword !== confirmPassword) return toast.error(t('passwordMismatch'))
     setIsChangingPassword(true)
     try {
@@ -77,7 +79,7 @@ export function UserSettingsPage() {
     <section className="grid gap-4 border-b border-border pb-5">
       <div><h2 className="text-sm font-medium">{t('changePassword')}</h2><p className="mt-1 text-xs text-muted-foreground">{t('changePasswordDescription')}</p></div>
       <Field label={t('currentPassword')} htmlFor="user-current-password"><Input id="user-current-password" type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} /></Field>
-      <Field label={t('newPassword')} htmlFor="user-new-password"><Input id="user-new-password" type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></Field>
+      <Field label={t('newPassword')} htmlFor="user-new-password" description={commonT('passwordRequirements')}><Input id="user-new-password" type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} /></Field>
       <Field label={t('confirmPassword')} htmlFor="user-confirm-password"><Input id="user-confirm-password" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} /></Field>
       <Button className="w-fit" disabled={isChangingPassword} onClick={changePassword}><KeyRound />{t('changePassword')}</Button>
     </section>

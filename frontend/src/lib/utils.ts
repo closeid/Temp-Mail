@@ -5,6 +5,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export const USER_PASSWORD_MIN_LENGTH = 8
+
+export const isValidUserPassword = (password: string) => password.length >= USER_PASSWORD_MIN_LENGTH
+  && /[a-z]/.test(password)
+  && /[A-Z]/.test(password)
+  && /[0-9]/.test(password)
+  && /[^A-Za-z0-9\s]/.test(password)
+
 export const hashPassword = async (password: string) => {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password))
   return Array.from(new Uint8Array(digest))
@@ -31,6 +39,29 @@ export const secureRandomInt = (maxExclusive: number) => {
   const values = new Uint32Array(1)
   do crypto.getRandomValues(values); while (values[0] >= limit)
   return values[0] % maxExclusive
+}
+
+const USER_PASSWORD_CHARACTER_GROUPS = [
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  'abcdefghijklmnopqrstuvwxyz',
+  '0123456789',
+  '!@#$%^&*()-_=+[]{}:,.?',
+] as const
+
+export const generateUserPassword = (length = 12) => {
+  if (!Number.isSafeInteger(length) || length < USER_PASSWORD_MIN_LENGTH) {
+    throw new RangeError(`Password length must be at least ${USER_PASSWORD_MIN_LENGTH}`)
+  }
+  const allCharacters = USER_PASSWORD_CHARACTER_GROUPS.join('')
+  const password = USER_PASSWORD_CHARACTER_GROUPS.map((group) => group[secureRandomInt(group.length)])
+  while (password.length < length) password.push(allCharacters[secureRandomInt(allCharacters.length)])
+  for (let index = password.length - 1; index > 0; index -= 1) {
+    const replacementIndex = secureRandomInt(index + 1)
+    const currentCharacter = password[index]
+    password[index] = password[replacementIndex]
+    password[replacementIndex] = currentCharacter
+  }
+  return password.join('')
 }
 
 export const downloadBlob = (blob: Blob, filename: string) => {

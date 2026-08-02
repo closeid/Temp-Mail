@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getSafeExternalUrl, isValidEmailAddress, isWebAuthnCancellation, secureRandomInt } from '../utils'
+import { generateUserPassword, getSafeExternalUrl, hashPassword, isValidEmailAddress, isValidUserPassword, isWebAuthnCancellation, secureRandomInt } from '../utils'
 import { safeBearerHeader, safeHeaderValue, safeJwtValue } from '../../utils/headers'
 
 describe('external URL validation', () => {
@@ -50,6 +50,33 @@ describe('secure random integers', () => {
   it('rejects invalid ranges', () => {
     expect(() => secureRandomInt(0)).toThrow(RangeError)
     expect(() => secureRandomInt(1.5)).toThrow(RangeError)
+  })
+})
+
+describe('user password policy', () => {
+  it('requires length, upper and lower case letters, a number, and a symbol', () => {
+    expect(isValidUserPassword('Strong1!')).toBe(true)
+    expect(isValidUserPassword('Short1!')).toBe(false)
+    expect(isValidUserPassword('nouppercase1!')).toBe(false)
+    expect(isValidUserPassword('NOLOWERCASE1!')).toBe(false)
+    expect(isValidUserPassword('NoNumber!')).toBe(false)
+    expect(isValidUserPassword('NoSymbol1')).toBe(false)
+  })
+
+  it('generates compliant passwords of the requested length', () => {
+    for (let index = 0; index < 20; index += 1) {
+      const password = generateUserPassword()
+      expect(password).toHaveLength(12)
+      expect(isValidUserPassword(password)).toBe(true)
+    }
+    expect(() => generateUserPassword(7)).toThrow(RangeError)
+  })
+
+  it('derives a fixed-length value before a password is sent', async () => {
+    const password = 'StrongPassword1!'
+    const verifier = await hashPassword(password)
+    expect(verifier).toMatch(/^[a-f0-9]{64}$/)
+    expect(verifier).not.toBe(password)
   })
 })
 

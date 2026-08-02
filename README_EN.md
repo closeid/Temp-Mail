@@ -302,7 +302,7 @@ pnpm build
 The home page contains user login, registration, password recovery, passkey login, and address-credential login.
 
 - **Address credential login:** use an address JWT or the password generated when `ENABLE_ADDRESS_PASSWORD` is enabled.
-- **Registration:** available by default. Maintenance -> Administrator -> User Settings can require email verification. Verification requires KV, a working send provider, and a configured verification sender.
+- **Registration:** available by default. New user passwords must contain at least 8 characters with uppercase and lowercase English letters, a number, and a symbol. The official frontend derives a SHA-256 value before sending; the Worker accepts only 64-character hexadecimal verifiers and HMAC-protects them before storage, never plaintext passwords. The verifier remains a sensitive authentication credential, so HTTPS is mandatory; prefer Passkeys when possible. Maintenance -> Administrator -> User Settings can require email verification. Verification requires KV, a working send provider, and a configured verification sender.
 - **Passkeys:** require HTTPS and the correct relying-party domain. A signed-in user can register credentials from the account area.
 - **OAuth2:** add providers under Maintenance -> Administrator -> OAuth2 in `/dashboard`. The callback is `https://your-frontend-domain/user/oauth2/callback` and must exactly match the provider configuration.
 - **Administrators:** open `/dashboard`; unauthenticated sessions are redirected to `/dashboard/login`. Authenticate with `ADMIN_PASSWORDS`, or assign a user the role configured by `ADMIN_USER_ROLE`. Never enable `DISABLE_ADMIN_PASSWORD_CHECK` on a public deployment.

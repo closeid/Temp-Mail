@@ -13,6 +13,7 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       save: 'Save', copied: 'Copied', copy: 'Copy', unknown: 'Unknown', notConfigured: 'Not configured', yes: 'Yes', no: 'No',
       cancel: 'Cancel', confirm: 'Confirm', close: 'Close', previousPage: 'Previous page', nextPage: 'Next page', open: 'Open', unbind: 'Unbind',
       unbindAddress: 'Unbind address', addressUnbound: 'Address unbound', addresses: 'Addresses', addAddress: 'Add address', telegramAddresses: 'Telegram addresses', switch: 'Switch', remove: 'Remove', settings: 'Settings',
+      generatePassword: 'Generate password', passwordRequirements: 'Use at least 8 characters with uppercase and lowercase letters, a number, and a symbol.',
     },
     admin: {
       administration: 'Administration', settingLabel: 'Setting: {name}', administratorAccess: 'Administrator access', administratorAccessDescription: 'Enter the administrator username and password to continue.', signedIn: 'Signed in',
@@ -67,6 +68,7 @@ export const UI_MESSAGES: Record<SupportedLocale, { ui: UiMessages }> = {
       save: '保存', copied: '已复制', copy: '复制', unknown: '未知', notConfigured: '未配置', yes: '是', no: '否',
       cancel: '取消', confirm: '确认', close: '关闭', previousPage: '上一页', nextPage: '下一页', open: '打开', unbind: '解除绑定',
       unbindAddress: '解除地址绑定', addressUnbound: '地址已解除绑定', addresses: '地址', addAddress: '添加地址', telegramAddresses: 'Telegram 地址', switch: '切换', remove: '移除', settings: '设置',
+      generatePassword: '生成密码', passwordRequirements: '密码至少需要 8 位，并且必须包含英文大写字母、英文小写字母、数字和符号。',
     },
     admin: {
       administration: '后台管理', settingLabel: '配置项：{name}', administratorAccess: '后台管理验证', administratorAccessDescription: '请输入后台管理用户名和密码以继续。', signedIn: '登录成功',

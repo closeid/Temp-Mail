@@ -102,12 +102,16 @@ export default {
         if (!isValidUserEmail(normalizedEmail) || !password) {
             return c.text(msgs.InvalidEmailOrPasswordMsg, 400)
         }
+        try {
+            checkUserPassword(password);
+        } catch (_) {
+            return c.text(msgs.InvalidEmailOrPasswordMsg, 400);
+        }
         // geo data
         const reqIp = c.req.raw.headers.get("cf-connecting-ip")
         const geoData = new GeoData(reqIp, c.req.raw.cf as any);
         const userInfo = new UserInfo(geoData, normalizedEmail);
         try {
-            checkUserPassword(password);
             const protectedPassword = await protectPasswordHash(password, c.env.JWT_SECRET);
             const { success } = await c.env.DB.prepare(
                 `INSERT INTO users (user_email, password, user_info)`

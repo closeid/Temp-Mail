@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api } from '@/lib/api'
 import { appStore, useAppStore } from '@/lib/store'
-import { getSafeExternalUrl, hashPassword, isValidEmailAddress, isWebAuthnCancellation, stringifyError } from '@/lib/utils'
+import { getSafeExternalUrl, hashPassword, isValidEmailAddress, isValidUserPassword, isWebAuthnCancellation, stringifyError } from '@/lib/utils'
 import { getPathWithLocale } from '@/i18n/utils'
 import { useScopedI18n } from '@/i18n/react'
 import { AUTH_ROUTES, MAIL_ROUTES, type AuthRouteKey } from '@/app/routes'
@@ -22,6 +22,7 @@ import { sanitizeSvg } from '@/lib/sanitize'
 export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
   const navigate = useNavigate()
   const { t, locale } = useScopedI18n('views.user.UserLogin')
+  const commonT = useScopedI18n('ui.common').t
   const { userOpenSettings, openSettings } = useAppStore((state) => ({ userOpenSettings: state.userOpenSettings, openSettings: state.openSettings }))
   const registrationEnabled = userOpenSettings.enable
   const tab = view === 'register' && registrationEnabled ? 'signup' : 'signin'
@@ -69,6 +70,7 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
   const register = async (reset = false) => {
     if (!email || !password) return toast.error(t('pleaseInput'))
     if (!isValidEmailAddress(email)) return toast.error(t('invalidEmail'))
+    if (!isValidUserPassword(password)) return toast.error(commonT('passwordRequirements'))
     if (!code && userOpenSettings.enableMailVerify) return toast.error(t('pleaseInputCode'))
     try {
       await api.fetch('/api/user/register', { method: 'POST', body: { email: email.trim(), password: await hashPassword(password), code, cf_token: reset ? resetToken : signupToken } })
@@ -134,7 +136,7 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
         {registrationEnabled && <TabsContent value="signup" className="grid gap-4">
           <>
             <Field label={t('email')}><Input className="h-11 bg-muted/35" autoCapitalize="none" autoComplete="email" inputMode="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field>
-            <Field label={t('password')}><Input className="h-11 bg-muted/35" autoComplete="new-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
+            <Field label={t('password')} description={commonT('passwordRequirements')}><Input className="h-11 bg-muted/35" autoComplete="new-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field>
             {userOpenSettings.enableMailVerify && <><Turnstile value={signupToken} onChange={setSignupToken} /><Field label={t('verifyCode')}><div className="flex"><Input className="h-11 rounded-r-none bg-muted/35" value={code} onChange={(event) => setCode(event.target.value)} /><Button className="h-11 rounded-l-none" variant="outline" disabled={seconds > 0} onClick={() => sendCode(false)}><Send />{seconds ? t('waitforVerifyCode', { timeout: seconds }) : t('sendVerificationCode')}</Button></div></Field></>}
             {!userOpenSettings.enableMailVerify && <Turnstile value={signupToken} onChange={setSignupToken} />}
             <Button className="h-11 w-full shadow-[0_8px_20px_rgba(21,183,126,0.18)]" onClick={() => register(false)}><UserPlus />{t('register')}</Button>
@@ -145,7 +147,7 @@ export function AuthPage({ view = 'login' }: { view?: AuthRouteKey }) {
 
     <Dialog open={addressLoginOpen} onOpenChange={setAddressLoginOpen}><DialogContent><DialogHeader><DialogTitle>{t('loginWithAddressCredential')}</DialogTitle></DialogHeader><AddressLogin loginOnly preferCredential bindAfterLogin={false} onAuthenticated={() => setAddressLoginOpen(false)} /></DialogContent></Dialog>
     <Dialog open={view === 'forgotPassword'} onOpenChange={(open) => !open && go(AUTH_ROUTES.login)}><DialogContent><DialogHeader><DialogTitle>{t('forgotPassword')}</DialogTitle><DialogDescription>{userOpenSettings.enable && userOpenSettings.enableMailVerify ? t('resetPassword') : t('cannotForgotPassword')}</DialogDescription></DialogHeader>
-      {userOpenSettings.enable && userOpenSettings.enableMailVerify && <div className="grid gap-4"><Field label={t('email')}><Input autoCapitalize="none" autoComplete="email" inputMode="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field><Field label={t('password')}><Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field><Turnstile value={resetToken} onChange={setResetToken} /><Field label={t('verifyCode')}><div className="flex"><Input className="rounded-r-none" value={code} onChange={(event) => setCode(event.target.value)} /><Button className="rounded-l-none" variant="outline" disabled={seconds > 0} onClick={() => sendCode(true)}>{seconds ? t('waitforVerifyCode', { timeout: seconds }) : t('sendVerificationCode')}</Button></div></Field><Button onClick={() => register(true)}>{t('resetPassword')}</Button></div>}
+      {userOpenSettings.enable && userOpenSettings.enableMailVerify && <div className="grid gap-4"><Field label={t('email')}><Input autoCapitalize="none" autoComplete="email" inputMode="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></Field><Field label={t('password')} description={commonT('passwordRequirements')}><Input autoComplete="new-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></Field><Turnstile value={resetToken} onChange={setResetToken} /><Field label={t('verifyCode')}><div className="flex"><Input className="rounded-r-none" value={code} onChange={(event) => setCode(event.target.value)} /><Button className="rounded-l-none" variant="outline" disabled={seconds > 0} onClick={() => sendCode(true)}>{seconds ? t('waitforVerifyCode', { timeout: seconds }) : t('sendVerificationCode')}</Button></div></Field><Button onClick={() => register(true)}>{t('resetPassword')}</Button></div>}
     </DialogContent></Dialog>
   </main>
 }
